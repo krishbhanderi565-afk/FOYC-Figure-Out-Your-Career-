@@ -71,6 +71,10 @@ export interface HabitItem {
   completedToday: boolean;
   history: { [dateStr: string]: boolean };
   category: string;
+  unit?: string | null;
+  target?: number | null;
+  schedule?: 'weekday' | 'weekend' | 'everyday';
+  color?: string;
 }
 
 export interface ProjectItem {

@@ -247,32 +247,41 @@ export const OverviewPage: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                {dashboardData.habits.map((habit) => (
-                  <div
-                    key={habit.id}
-                    className="p-3.5 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] flex items-center justify-between shadow-[2px_2px_0px_#17172B]"
-                  >
-                    <div className="min-w-0 pr-2">
-                      <h5 className="font-bold text-xs sm:text-sm text-[#17172B] truncate">
-                        {habit.title}
-                      </h5>
-                      <span className="text-[11px] font-semibold text-[#17172B]/60">
-                        🔥 {habit.currentStreak} day streak • Target: {habit.targetDaysPerWeek}d/wk
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => toggleHabit(habit.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-black border-2 transition-all shrink-0 ${
-                        habit.completedToday
-                          ? 'bg-[#DDF5C9] text-emerald-950 border-[#17172B]'
-                          : 'bg-white hover:bg-[#FFE76B] text-[#17172B] border-[#17172B]'
-                      }`}
+                {dashboardData.habits.length > 0 ? (
+                  dashboardData.habits.map((habit) => (
+                    <div
+                      key={habit.id}
+                      className="p-3.5 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] flex items-center justify-between shadow-[2px_2px_0px_#17172B]"
                     >
-                      {habit.completedToday ? '✓ Done' : 'Mark'}
-                    </button>
+                      <div className="min-w-0 pr-2">
+                        <h5 className="font-bold text-xs sm:text-sm text-[#17172B] truncate">
+                          {habit.title}
+                        </h5>
+                        <span className="text-[11px] font-semibold text-[#17172B]/60">
+                          🔥 {habit.currentStreak} day streak • Target: {habit.targetDaysPerWeek}d/wk
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => toggleHabit(habit.id)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-black border-2 transition-all shrink-0 ${
+                          habit.completedToday
+                            ? 'bg-[#DDF5C9] text-emerald-950 border-[#17172B]'
+                            : 'bg-white hover:bg-[#FFE76B] text-[#17172B] border-[#17172B]'
+                        }`}
+                      >
+                        {habit.completedToday ? '✓ Done' : 'Mark'}
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-5 rounded-xl border border-dashed border-[#17172B]/30 text-center text-xs font-medium text-[#17172B]/70 space-y-1">
+                    <p>No active routines configured yet.</p>
+                    <Link to="/dashboard/habits" className="text-[#526B50] font-bold underline inline-block">
+                      + Add your first habit in tracker
+                    </Link>
                   </div>
-                ))}
+                )}
               </div>
             </Card>
           </div>

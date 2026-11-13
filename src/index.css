@@ -2,6 +2,7 @@
 
 @layer base {
   :root {
+    --color-saffron: #FDF5EB;
     --color-ivory: #FFFDF8;
     --color-white: #FFFFFF;
     --color-charcoal-deep: #171717;
@@ -18,7 +19,7 @@
   }
 
   body {
-    background-color: #FFFDF8;
+    background-color: #FDF5EB;
     color: #171717;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -101,7 +102,7 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #FFFDF8;
+  background: #FDF5EB;
 }
 ::-webkit-scrollbar-thumb {
   background: #E8E5DE;

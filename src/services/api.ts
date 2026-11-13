@@ -95,7 +95,56 @@ export const api = {
     } catch {}
   },
 
-  // Habit toggle
+  // Habit CRUD & toggle
+  getHabits: async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/habits`, {
+        headers: getHeaders(),
+      });
+      return await res.json();
+    } catch {
+      return null;
+    }
+  },
+
+  createHabit: async (habitData: any) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/habits`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(habitData),
+      });
+      return await res.json();
+    } catch {
+      return null;
+    }
+  },
+
+  updateHabit: async (habitId: string, updates: any) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/habits/${habitId}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(updates),
+      });
+      return await res.json();
+    } catch {
+      return null;
+    }
+  },
+
+  deleteHabit: async (habitId: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/habits/${habitId}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      });
+      return await res.json();
+    } catch {
+      return null;
+    }
+  },
+
   toggleHabit: async (habitId: string, dateStr?: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/habits/${habitId}/toggle`, {

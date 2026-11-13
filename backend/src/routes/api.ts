@@ -21,6 +21,7 @@ import {
 import {
   getHabits,
   createHabit,
+  updateHabit,
   toggleHabitLog,
   deleteHabit,
 } from '../controllers/habitController.js';
@@ -75,6 +76,7 @@ router.delete('/tasks/:taskId', requireAuth, deleteTask);
 // 7. Habits
 router.get('/habits', requireAuth, getHabits);
 router.post('/habits', requireAuth, createHabit);
+router.put('/habits/:habitId', requireAuth, updateHabit);
 router.post('/habits/:habitId/toggle', requireAuth, toggleHabitLog);
 router.delete('/habits/:habitId', requireAuth, deleteHabit);
 

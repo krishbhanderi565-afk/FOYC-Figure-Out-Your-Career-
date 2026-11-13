@@ -9,7 +9,7 @@ import { Compass, Home, Target, LayoutDashboard, ArrowRight } from 'lucide-react
 
 export const NotFoundPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-[#FFFDF8] flex flex-col font-sans text-[#171717]">
+    <div className="min-h-screen bg-[#FDF5EB] flex flex-col font-sans text-[#171717]">
       <Navbar />
 
       <main className="flex-1 flex items-center justify-center p-4 sm:p-8">

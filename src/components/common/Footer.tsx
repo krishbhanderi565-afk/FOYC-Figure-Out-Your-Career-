@@ -29,6 +29,8 @@ export const Footer: React.FC = () => {
           <div className="md:col-span-2 flex flex-col gap-2.5">
             <span className="font-bold text-xs uppercase tracking-wider text-[#A8B99A]">Journey</span>
             <Link to="/" className="text-xs text-white/80 hover:text-white transition-colors">Home</Link>
+            <Link to="/explore" className="text-xs text-white/80 hover:text-white transition-colors">Explore Paths</Link>
+            <Link to="/about" className="text-xs text-white/80 hover:text-white transition-colors">About FOYC</Link>
             <Link to="/onboarding" className="text-xs text-white/80 hover:text-white transition-colors">Start Discovery</Link>
             <Link to="/reflection" className="text-xs text-white/80 hover:text-white transition-colors">Mind Reflection</Link>
             <Link to="/prompt-ready" className="text-xs text-white/80 hover:text-white transition-colors">ChatGPT Coach Prompt</Link>

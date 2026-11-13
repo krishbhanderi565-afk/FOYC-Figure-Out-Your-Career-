@@ -4,6 +4,8 @@ import { CareerProvider } from './context/CareerContext';
 import { SplashScreen } from './components/common/SplashScreen';
 import { ScrollToTop } from './components/common/ScrollToTop';
 import { LandingPage } from './pages/LandingPage';
+import { ExplorePage } from './pages/ExplorePage';
+import { AboutPage } from './pages/AboutPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { MindReflectionPage } from './pages/MindReflectionPage';
 import { PromptReadyPage } from './pages/PromptReadyPage';
@@ -34,6 +36,8 @@ export function App() {
           <Routes>
             {/* Public Discovery Flow */}
             <Route path="/" element={<LandingPage />} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/reflection" element={<MindReflectionPage />} />
             <Route path="/mind" element={<Navigate to="/reflection" replace />} />

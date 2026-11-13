@@ -80,7 +80,7 @@ export const HandoffImportPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] flex flex-col text-[#171717]">
+    <div className="min-h-screen bg-[#FDF5EB] flex flex-col text-[#171717]">
       <Navbar />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-16">

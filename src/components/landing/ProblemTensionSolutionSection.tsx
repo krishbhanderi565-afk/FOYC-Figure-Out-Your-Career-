@@ -2,7 +2,7 @@ import React from 'react';
 
 export const ProblemTensionSolutionSection: React.FC = () => {
   return (
-    <section className="py-12 sm:py-16 md:py-20 bg-[#FFFDF8] border-y border-[#E8E5DE]">
+    <section className="py-12 sm:py-16 md:py-20 bg-[#FDF5EB] border-y border-[#E8E5DE]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-[#FEFAF7] rounded-3xl border-2 border-[#171717] shadow-[4px_4px_0px_#171717] overflow-hidden transition-all hover:shadow-[6px_6px_0px_#171717]">
           <div className="w-full overflow-x-auto scrollbar-thin">

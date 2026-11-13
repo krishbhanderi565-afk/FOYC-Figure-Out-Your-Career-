@@ -6,13 +6,13 @@ import { Button } from '../common/Button';
 
 export const HeroSection: React.FC = () => {
   return (
-    <section className="relative pt-8 pb-14 md:pt-12 md:pb-16 overflow-hidden bg-[#FFFDF8]">
+    <section className="relative pt-8 pb-14 md:pt-12 md:pb-16 overflow-hidden bg-[#FDF5EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Column: Headline, Subtitle and CTAs matching the reference */}
           <div className="lg:col-span-6 space-y-6 text-left">
             {/* Top Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 border-[#171717] bg-[#FFFDF8] shadow-[2px_2px_0px_#171717]">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 border-[#171717] bg-white shadow-[2px_2px_0px_#171717]">
               <Compass className="w-4 h-4 text-[#171717]" />
               <span className="text-xs font-black uppercase tracking-wider text-[#171717]">
                 FOYC • Career Discovery & Clarity

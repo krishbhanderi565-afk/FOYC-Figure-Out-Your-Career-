@@ -89,59 +89,38 @@ const COLOR_PALETTE = [
 ];
 
 export const HabitTrackerPage: React.FC = () => {
-  const { dashboardData } = useCareer();
+  const { dashboardData, addHabit, updateHabit, deleteHabit, toggleHabit } = useCareer();
 
-  // Storage state
-  const [habits, setHabits] = useState<HabitModel[]>(() => {
-    try {
-      const saved = localStorage.getItem('foyc_habits_v2');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-
-    // Seed from dashboardData or default career habits
-    if (dashboardData.habits && dashboardData.habits.length > 0) {
-      return dashboardData.habits.map((h, i) => ({
-        id: h.id || `h-${i}`,
-        name: h.title,
-        type: 'binary',
-        target: null,
-        unit: null,
-        color: COLOR_PALETTE[i % COLOR_PALETTE.length],
-        schedule: (h.frequency === 'weekly' ? 'weekend' : 'everyday') as any,
-      }));
+  // Storage state derived directly from CareerContext for 100% sync
+  const habits: HabitModel[] = useMemo(() => {
+    if (!dashboardData.habits || dashboardData.habits.length === 0) {
+      return [];
     }
+    return dashboardData.habits.map((h, i) => ({
+      id: h.id,
+      name: h.title,
+      type: (h.target ? 'time' : 'binary') as any,
+      target: h.target ?? null,
+      unit: h.unit ?? null,
+      color: h.color || COLOR_PALETTE[i % COLOR_PALETTE.length],
+      schedule: h.schedule || (h.frequency === 'weekly' ? 'weekend' : 'everyday'),
+    }));
+  }, [dashboardData.habits]);
 
-    return [
-      { id: 'h-1', name: 'Deep Work Coding', type: 'time', target: 60, unit: 'min', color: '#526B50', schedule: 'weekday' },
-      { id: 'h-2', name: 'System Design Reading', type: 'time', target: 30, unit: 'min', color: '#333333', schedule: 'weekday' },
-      { id: 'h-3', name: 'Review Roadmap Tasks', type: 'binary', target: null, unit: null, color: '#A8B99A', schedule: 'everyday' },
-      { id: 'h-4', name: 'Portfolio Capstone Sprint', type: 'time', target: 90, unit: 'min', color: '#3b82f6', schedule: 'weekend' },
-      { id: 'h-5', name: 'Weekly Reflection & Calibration', type: 'binary', target: null, unit: null, color: '#d97706', schedule: 'weekend' },
-    ];
-  });
-
-  const [logs, setLogs] = useState<Record<string, Record<string, any>>>(() => {
-    try {
-      const saved = localStorage.getItem('foyc_habit_logs_v2');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-
-    // Seed past 14 days with realistic completions
-    const initialLogs: Record<string, Record<string, any>> = {};
-    const today = new Date();
-    for (let i = 0; i < 14; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
-      const k = localDateStr(d);
-      initialLogs[k] = {
-        'h-1': 60,
-        'h-2': 30,
-        'h-3': true,
-        'h-4': 90,
-      };
+  const logs: Record<string, Record<string, any>> = useMemo(() => {
+    const res: Record<string, Record<string, any>> = {};
+    if (dashboardData.habits) {
+      dashboardData.habits.forEach((h) => {
+        if (h.history) {
+          Object.entries(h.history).forEach(([dateStr, completed]) => {
+            if (!res[dateStr]) res[dateStr] = {};
+            res[dateStr][h.id] = completed ? (h.target || true) : false;
+          });
+        }
+      });
     }
-    return initialLogs;
-  });
+    return res;
+  }, [dashboardData.habits]);
 
   const [goals, setGoals] = useState<GoalModel[]>(() => {
     try {
@@ -364,24 +343,9 @@ export const HabitTrackerPage: React.FC = () => {
   }, []);
 
   // Checkbox toggle handler
-  const handleToggleCheckbox = (date: string, habitId: string) => {
-    const habit = habits.find((h) => h.id === habitId);
-    if (!habit) return;
-    const curVal = (logs[date] || {})[habitId];
-    const currentlyDone = isDone(habit, curVal);
-
-    setLogs((prev) => {
-      const dayLog = { ...(prev[date] || {}) };
-      if (habit.type === 'binary') {
-        dayLog[habitId] = !currentlyDone;
-      } else {
-        dayLog[habitId] = currentlyDone ? 0 : habit.target || 1;
-      }
-      return {
-        ...prev,
-        [date]: dayLog,
-      };
-    });
+  const handleToggleCheckbox = async (date: string, habitId: string) => {
+    await toggleHabit(habitId, date);
+    triggerAutoSave();
   };
 
   // Add Habit
@@ -407,32 +371,38 @@ export const HabitTrackerPage: React.FC = () => {
     setShowHabitModal(true);
   };
 
-  const handleSaveHabit = (e: React.FormEvent) => {
+  const handleSaveHabit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!habitFormName.trim()) return;
 
-    const data: HabitModel = {
-      id: editingHabitId || `h-${Date.now()}`,
-      name: habitFormName.trim(),
-      type: habitFormType,
-      target: habitFormTarget ? Number(habitFormTarget) : null,
-      unit: habitFormUnit.trim() || null,
-      schedule: habitFormSched,
-      color: habitFormColor,
-    };
-
     if (editingHabitId) {
-      setHabits((prev) => prev.map((h) => (h.id === editingHabitId ? data : h)));
+      await updateHabit(editingHabitId, {
+        title: habitFormName.trim(),
+        schedule: habitFormSched,
+        unit: habitFormUnit.trim() || null,
+        target: habitFormTarget ? Number(habitFormTarget) : null,
+        color: habitFormColor,
+        frequency: habitFormSched === 'weekend' ? 'weekly' : 'daily',
+      });
     } else {
-      setHabits((prev) => [...prev, data]);
+      await addHabit({
+        title: habitFormName.trim(),
+        frequency: habitFormSched === 'weekend' ? 'weekly' : 'daily',
+        schedule: habitFormSched,
+        unit: habitFormUnit.trim() || null,
+        target: habitFormTarget ? Number(habitFormTarget) : null,
+        color: habitFormColor,
+      });
     }
     setShowHabitModal(false);
+    triggerAutoSave();
   };
 
-  const handleDeleteHabit = (id: string) => {
-    if (window.confirm('Delete this habit?')) {
-      setHabits((prev) => prev.filter((h) => h.id !== id));
+  const handleDeleteHabit = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this routine? All associated history will be removed.')) {
+      await deleteHabit(id);
       if (activeHabitId === id) setActiveHabitId(null);
+      triggerAutoSave();
     }
   };
 
@@ -685,7 +655,7 @@ export const HabitTrackerPage: React.FC = () => {
   }, [habits, logs, activeHabitId]);
 
   return (
-    <div className="flex-1 flex flex-col bg-[#FFFDF8] text-[#171717] min-h-screen">
+    <div className="flex-1 flex flex-col bg-[#FDF5EB] text-[#171717] min-h-screen">
       <DashboardHeader
         onOpenMobileMenu={() => {}}
         title="Career Habit Command Centre"
@@ -703,6 +673,25 @@ export const HabitTrackerPage: React.FC = () => {
       </div>
 
       <main className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl w-full mx-auto">
+        {/* Empty state notice if user has 0 habits */}
+        {habits.length === 0 && (
+          <div className="p-8 text-center bg-white rounded-2xl border-2 border-[#171717] shadow-[3px_3px_0px_#171717] max-w-xl mx-auto space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-[#FFE76B] border border-[#171717] flex items-center justify-center mx-auto shadow-xs">
+              <CalendarCheck className="w-6 h-6 text-[#171717]" />
+            </div>
+            <h3 className="text-lg font-black text-[#171717]">Build Your Daily Routine</h3>
+            <p className="text-xs text-[#555555] font-medium max-w-md mx-auto leading-relaxed">
+              Your habit command centre is ready. Add routines tailored to your career milestones (e.g. 60 min Deep Work Coding or Weekly Project Review) to build real momentum.
+            </p>
+            <button
+              onClick={() => handleOpenAddHabit('weekday')}
+              className="px-5 py-2.5 rounded-xl bg-[#171717] hover:bg-[#333333] text-white font-black text-xs border border-[#171717] shadow-[2px_2px_0px_#526B50] inline-flex items-center gap-1.5 transition-transform active:translate-y-0.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Your First Habit</span>
+            </button>
+          </div>
+        )}
         {/* KPI ROW (4 Cards with animated circular progress) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
@@ -823,71 +812,79 @@ export const HabitTrackerPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E8E5DE] text-xs">
-                {habits
-                  .filter((h) => h.schedule === 'weekday' || h.schedule === 'everyday')
-                  .map((habit) => {
-                    const streak = calculateStreak(habit.id);
-                    return (
-                      <tr key={habit.id} className="hover:bg-[#FFFDF8] transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="w-2.5 h-2.5 rounded-full shrink-0"
-                              style={{ backgroundColor: habit.color }}
-                            />
-                            <span className="font-bold text-[#171717] truncate">{habit.name}</span>
-                            {streak > 0 && (
-                              <span className="inline-flex items-center gap-0.5 text-[10px] font-mono font-bold text-[#526B50] bg-[#EDF2E9] px-1.5 py-0.5 rounded">
-                                🔥{streak}
-                              </span>
-                            )}
-                          </div>
-                        </td>
+                {habits.filter((h) => h.schedule === 'weekday' || h.schedule === 'everyday').length > 0 ? (
+                  habits
+                    .filter((h) => h.schedule === 'weekday' || h.schedule === 'everyday')
+                    .map((habit) => {
+                      const streak = calculateStreak(habit.id);
+                      return (
+                        <tr key={habit.id} className="hover:bg-[#FFFDF8] transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full shrink-0"
+                                style={{ backgroundColor: habit.color }}
+                              />
+                              <span className="font-bold text-[#171717] truncate">{habit.name}</span>
+                              {streak > 0 && (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] font-mono font-bold text-[#526B50] bg-[#EDF2E9] px-1.5 py-0.5 rounded">
+                                  🔥{streak}
+                                </span>
+                              )}
+                            </div>
+                          </td>
 
-                        {weekDates.slice(0, 5).map((d) => {
-                          const done = isDone(habit, (logs[d] || {})[habit.id]);
-                          const isFuture = d > TODAY;
-                          return (
-                            <td key={d} className="text-center py-3 px-2">
+                          {weekDates.slice(0, 5).map((d) => {
+                            const done = isDone(habit, (logs[d] || {})[habit.id]);
+                            const isFuture = d > TODAY;
+                            return (
+                              <td key={d} className="text-center py-3 px-2">
+                                <button
+                                  type="button"
+                                  disabled={isFuture}
+                                  onClick={() => handleToggleCheckbox(d, habit.id)}
+                                  className={`w-7 h-7 rounded-lg border flex items-center justify-center mx-auto transition-all ${
+                                    done
+                                      ? 'bg-[#526B50] border-[#526B50] text-white shadow-xs'
+                                      : isFuture
+                                      ? 'bg-[#F4F3EF] border-[#E8E5DE] opacity-40 cursor-not-allowed'
+                                      : 'bg-white border-[#E8E5DE] hover:border-[#526B50] text-transparent'
+                                  }`}
+                                >
+                                  {done && <Check className="w-4 h-4 stroke-[3]" />}
+                                </button>
+                              </td>
+                            );
+                          })}
+
+                          <td className="text-right py-3 px-4">
+                            <div className="flex items-center justify-end gap-1.5">
                               <button
-                                type="button"
-                                disabled={isFuture}
-                                onClick={() => handleToggleCheckbox(d, habit.id)}
-                                className={`w-7 h-7 rounded-lg border flex items-center justify-center mx-auto transition-all ${
-                                  done
-                                    ? 'bg-[#526B50] border-[#526B50] text-white shadow-xs'
-                                    : isFuture
-                                    ? 'bg-[#F4F3EF] border-[#E8E5DE] opacity-40 cursor-not-allowed'
-                                    : 'bg-white border-[#E8E5DE] hover:border-[#526B50] text-transparent'
-                                }`}
+                                onClick={() => handleOpenEditHabit(habit)}
+                                className="p-1 rounded-md text-[#666666] hover:text-[#171717] hover:bg-[#F4F3EF]"
+                                title="Edit habit"
                               >
-                                {done && <Check className="w-4 h-4 stroke-[3]" />}
+                                <Pencil className="w-3.5 h-3.5" />
                               </button>
-                            </td>
-                          );
-                        })}
-
-                        <td className="text-right py-3 px-4">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => handleOpenEditHabit(habit)}
-                              className="p-1 rounded-md text-[#666666] hover:text-[#171717] hover:bg-[#F4F3EF]"
-                              title="Edit habit"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteHabit(habit.id)}
-                              className="p-1 rounded-md text-[#666666] hover:text-red-600 hover:bg-red-50"
-                              title="Delete habit"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                              <button
+                                onClick={() => handleDeleteHabit(habit.id)}
+                                className="p-1 rounded-md text-[#666666] hover:text-red-600 hover:bg-red-50"
+                                title="Delete habit"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="py-8 text-center text-[#888888] font-medium text-xs">
+                      No weekday routines added yet. Click "+ Add Weekday Habit" to start tracking.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -937,71 +934,79 @@ export const HabitTrackerPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E8E5DE] text-xs">
-                {habits
-                  .filter((h) => h.schedule === 'weekend' || h.schedule === 'everyday')
-                  .map((habit) => {
-                    const streak = calculateStreak(habit.id);
-                    return (
-                      <tr key={habit.id} className="hover:bg-[#FFFDF8] transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="w-2.5 h-2.5 rounded-full shrink-0"
-                              style={{ backgroundColor: habit.color }}
-                            />
-                            <span className="font-bold text-[#171717] truncate">{habit.name}</span>
-                            {streak > 0 && (
-                              <span className="inline-flex items-center gap-0.5 text-[10px] font-mono font-bold text-[#d97706] bg-[#FFFBEB] px-1.5 py-0.5 rounded">
-                                🔥{streak}
-                              </span>
-                            )}
-                          </div>
-                        </td>
+                {habits.filter((h) => h.schedule === 'weekend' || h.schedule === 'everyday').length > 0 ? (
+                  habits
+                    .filter((h) => h.schedule === 'weekend' || h.schedule === 'everyday')
+                    .map((habit) => {
+                      const streak = calculateStreak(habit.id);
+                      return (
+                        <tr key={habit.id} className="hover:bg-[#FFFDF8] transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full shrink-0"
+                                style={{ backgroundColor: habit.color }}
+                              />
+                              <span className="font-bold text-[#171717] truncate">{habit.name}</span>
+                              {streak > 0 && (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] font-mono font-bold text-[#d97706] bg-[#FFFBEB] px-1.5 py-0.5 rounded">
+                                  🔥{streak}
+                                </span>
+                              )}
+                            </div>
+                          </td>
 
-                        {weekDates.slice(5, 7).map((d) => {
-                          const done = isDone(habit, (logs[d] || {})[habit.id]);
-                          const isFuture = d > TODAY;
-                          return (
-                            <td key={d} className="text-center py-3 px-2">
+                          {weekDates.slice(5, 7).map((d) => {
+                            const done = isDone(habit, (logs[d] || {})[habit.id]);
+                            const isFuture = d > TODAY;
+                            return (
+                              <td key={d} className="text-center py-3 px-2">
+                                <button
+                                  type="button"
+                                  disabled={isFuture}
+                                  onClick={() => handleToggleCheckbox(d, habit.id)}
+                                  className={`w-7 h-7 rounded-lg border flex items-center justify-center mx-auto transition-all ${
+                                    done
+                                      ? 'bg-[#d97706] border-[#d97706] text-white shadow-xs'
+                                      : isFuture
+                                      ? 'bg-[#F4F3EF] border-[#E8E5DE] opacity-40 cursor-not-allowed'
+                                      : 'bg-white border-[#E8E5DE] hover:border-[#d97706] text-transparent'
+                                  }`}
+                                >
+                                  {done && <Check className="w-4 h-4 stroke-[3]" />}
+                                </button>
+                              </td>
+                            );
+                          })}
+
+                          <td className="text-right py-3 px-4">
+                            <div className="flex items-center justify-end gap-1.5">
                               <button
-                                type="button"
-                                disabled={isFuture}
-                                onClick={() => handleToggleCheckbox(d, habit.id)}
-                                className={`w-7 h-7 rounded-lg border flex items-center justify-center mx-auto transition-all ${
-                                  done
-                                    ? 'bg-[#d97706] border-[#d97706] text-white shadow-xs'
-                                    : isFuture
-                                    ? 'bg-[#F4F3EF] border-[#E8E5DE] opacity-40 cursor-not-allowed'
-                                    : 'bg-white border-[#E8E5DE] hover:border-[#d97706] text-transparent'
-                                }`}
+                                onClick={() => handleOpenEditHabit(habit)}
+                                className="p-1 rounded-md text-[#666666] hover:text-[#171717] hover:bg-[#F4F3EF]"
+                                title="Edit habit"
                               >
-                                {done && <Check className="w-4 h-4 stroke-[3]" />}
+                                <Pencil className="w-3.5 h-3.5" />
                               </button>
-                            </td>
-                          );
-                        })}
-
-                        <td className="text-right py-3 px-4">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => handleOpenEditHabit(habit)}
-                              className="p-1 rounded-md text-[#666666] hover:text-[#171717] hover:bg-[#F4F3EF]"
-                              title="Edit habit"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteHabit(habit.id)}
-                              className="p-1 rounded-md text-[#666666] hover:text-red-600 hover:bg-red-50"
-                              title="Delete habit"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                              <button
+                                onClick={() => handleDeleteHabit(habit.id)}
+                                className="p-1 rounded-md text-[#666666] hover:text-red-600 hover:bg-red-50"
+                                title="Delete habit"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="py-8 text-center text-[#888888] font-medium text-xs">
+                      No weekend routines added yet. Click "+ Add Weekend Habit" to start tracking.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

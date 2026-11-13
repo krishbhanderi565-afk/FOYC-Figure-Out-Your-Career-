@@ -9,6 +9,19 @@ import {
 } from '../types/career';
 import { parseHandoffText } from '../utils/handoffParser';
 import { SAMPLE_HANDOFFS } from '../utils/sampleHandoffs';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { api } from '../services/api';
+
+export interface HabitInput {
+  title: string;
+  frequency?: 'daily' | 'weekly' | 'custom';
+  targetDaysPerWeek?: number;
+  category?: string;
+  schedule?: 'weekday' | 'weekend' | 'everyday';
+  unit?: string | null;
+  target?: number | null;
+  color?: string;
+}
 
 interface CareerContextType {
   profile: UserProfile;
@@ -22,10 +35,20 @@ interface CareerContextType {
   toggleTask: (taskId: string) => void;
   addTask: (task: Omit<TaskItem, 'id'>) => void;
   deleteTask: (taskId: string) => void;
-  toggleHabit: (habitId: string, dateStr?: string) => void;
+  addHabit: (habit: HabitInput) => Promise<HabitItem>;
+  updateHabit: (habitId: string, updates: Partial<HabitItem>) => Promise<void>;
+  deleteHabit: (habitId: string) => Promise<void>;
+  toggleHabit: (habitId: string, dateStr?: string) => Promise<void>;
   toggleMilestone: (milestoneId: string) => void;
   isAuthenticated: boolean;
   userEmail: string | null;
+  userName: string | null;
+  userId: string | null;
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ success: boolean; error?: string }>;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signOut: () => Promise<void>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   loginDemo: (email?: string) => void;
   logoutDemo: () => void;
   resetToDefault: () => void;
@@ -61,18 +84,30 @@ const CareerContext = createContext<CareerContextType | undefined>(undefined);
 
 export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [profile, setProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('foyc_profile');
-    return saved ? JSON.parse(saved) : DEFAULT_PROFILE;
+    try {
+      const saved = localStorage.getItem('foyc_profile');
+      return saved ? JSON.parse(saved) : DEFAULT_PROFILE;
+    } catch {
+      return DEFAULT_PROFILE;
+    }
   });
 
   const [reflection, setReflection] = useState<UserReflection>(() => {
-    const saved = localStorage.getItem('foyc_reflection');
-    return saved ? JSON.parse(saved) : DEFAULT_REFLECTION;
+    try {
+      const saved = localStorage.getItem('foyc_reflection');
+      return saved ? JSON.parse(saved) : DEFAULT_REFLECTION;
+    } catch {
+      return DEFAULT_REFLECTION;
+    }
   });
 
   const [dashboardData, setDashboardData] = useState<CareerDashboardData>(() => {
-    const saved = localStorage.getItem('foyc_dashboard_data');
-    return saved ? JSON.parse(saved) : initialParsed;
+    try {
+      const saved = localStorage.getItem('foyc_dashboard_data');
+      return saved ? JSON.parse(saved) : initialParsed;
+    } catch {
+      return initialParsed;
+    }
   });
 
   const [activeProfessionId, setActiveProfessionId] = useState<string>(() => {
@@ -86,6 +121,51 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [userEmail, setUserEmail] = useState<string | null>(() => {
     return localStorage.getItem('foyc_user_email') || null;
   });
+
+  const [userName, setUserName] = useState<string | null>(() => {
+    return localStorage.getItem('foyc_user_name') || null;
+  });
+
+  const [userId, setUserId] = useState<string | null>(() => {
+    return localStorage.getItem('foyc_user_id') || null;
+  });
+
+  // Check Supabase session on mount
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          setIsAuthenticated(true);
+          setUserEmail(session.user.email || null);
+          setUserId(session.user.id);
+          const name = session.user.user_metadata?.full_name || session.user.email?.split('@')[0];
+          setUserName(name || null);
+          localStorage.setItem('foyc_auth', 'true');
+          if (session.user.email) localStorage.setItem('foyc_user_email', session.user.email);
+          if (session.access_token) localStorage.setItem('foyc_auth_token', session.access_token);
+        }
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          setIsAuthenticated(true);
+          setUserEmail(session.user.email || null);
+          setUserId(session.user.id);
+          const name = session.user.user_metadata?.full_name || session.user.email?.split('@')[0];
+          setUserName(name || null);
+          localStorage.setItem('foyc_auth', 'true');
+          if (session.user.email) localStorage.setItem('foyc_user_email', session.user.email);
+          if (session.access_token) localStorage.setItem('foyc_auth_token', session.access_token);
+        } else {
+          // Keep local demo state unless explicitly logging out
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('foyc_profile', JSON.stringify(profile));
@@ -156,8 +236,69 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }));
   };
 
-  const toggleHabit = (habitId: string, dateStr?: string) => {
+  // Habit Management: Add, Update, Delete, Toggle
+  const addHabit = async (habitInput: HabitInput): Promise<HabitItem> => {
+    const newId = `h-${Date.now()}`;
+    const newHabit: HabitItem = {
+      id: newId,
+      title: habitInput.title.trim(),
+      frequency: habitInput.frequency || 'daily',
+      targetDaysPerWeek: habitInput.targetDaysPerWeek || 5,
+      currentStreak: 0,
+      bestStreak: 0,
+      completedToday: false,
+      history: {},
+      category: habitInput.category || 'Skill',
+      schedule: habitInput.schedule || (habitInput.frequency === 'weekly' ? 'weekend' : 'everyday'),
+      unit: habitInput.unit || null,
+      target: habitInput.target || null,
+      color: habitInput.color || '#526B50',
+    };
+
+    setDashboardData((prev) => ({
+      ...prev,
+      habits: [...prev.habits, newHabit],
+    }));
+
+    // Sync with backend / Supabase
+    try {
+      await api.createHabit({
+        title: newHabit.title,
+        frequency: newHabit.frequency,
+        targetDaysPerWeek: newHabit.targetDaysPerWeek,
+        category: newHabit.category,
+      });
+    } catch {}
+
+    return newHabit;
+  };
+
+  const updateHabit = async (habitId: string, updates: Partial<HabitItem>): Promise<void> => {
+    setDashboardData((prev) => ({
+      ...prev,
+      habits: prev.habits.map((h) => (h.id === habitId ? { ...h, ...updates } : h)),
+    }));
+
+    try {
+      await api.updateHabit(habitId, updates);
+    } catch {}
+  };
+
+  const deleteHabit = async (habitId: string): Promise<void> => {
+    setDashboardData((prev) => ({
+      ...prev,
+      habits: prev.habits.filter((h) => h.id !== habitId),
+    }));
+
+    try {
+      await api.deleteHabit(habitId);
+    } catch {}
+  };
+
+  const toggleHabit = async (habitId: string, dateStr?: string): Promise<void> => {
     const today = dateStr || new Date().toISOString().split('T')[0];
+    const isToday = today === new Date().toISOString().split('T')[0];
+
     setDashboardData((prev) => ({
       ...prev,
       habits: prev.habits.map((h) => {
@@ -168,7 +309,7 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           const newStreak = newStatus ? h.currentStreak + 1 : Math.max(0, h.currentStreak - 1);
           return {
             ...h,
-            completedToday: newStatus,
+            completedToday: isToday ? newStatus : h.completedToday,
             currentStreak: newStreak,
             bestStreak: Math.max(h.bestStreak, newStreak),
             history: newHistory,
@@ -177,6 +318,10 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return h;
       }),
     }));
+
+    try {
+      await api.toggleHabit(habitId, today);
+    } catch {}
   };
 
   const toggleMilestone = (milestoneId: string) => {
@@ -188,18 +333,143 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }));
   };
 
+  // Auth Functions
+  const signUp = async (email: string, password: string, fullName?: string): Promise<{ success: boolean; error?: string }> => {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName || email.split('@')[0] },
+          },
+        });
+        if (error) return { success: false, error: error.message };
+        if (data.user) {
+          setIsAuthenticated(true);
+          setUserEmail(data.user.email || email);
+          setUserId(data.user.id);
+          setUserName(fullName || email.split('@')[0]);
+          localStorage.setItem('foyc_auth', 'true');
+          localStorage.setItem('foyc_user_email', email);
+          if (fullName) localStorage.setItem('foyc_user_name', fullName);
+          return { success: true };
+        }
+      } catch (err: any) {
+        return { success: false, error: err.message || 'Signup failed' };
+      }
+    }
+
+    // Local / Dev fallback
+    setIsAuthenticated(true);
+    setUserEmail(email);
+    setUserName(fullName || email.split('@')[0]);
+    setUserId(`user-${Date.now()}`);
+    localStorage.setItem('foyc_auth', 'true');
+    localStorage.setItem('foyc_user_email', email);
+    if (fullName) localStorage.setItem('foyc_user_name', fullName);
+    return { success: true };
+  };
+
+  const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return { success: false, error: error.message };
+        if (data.user) {
+          setIsAuthenticated(true);
+          setUserEmail(data.user.email || email);
+          setUserId(data.user.id);
+          const name = data.user.user_metadata?.full_name || email.split('@')[0];
+          setUserName(name);
+          localStorage.setItem('foyc_auth', 'true');
+          localStorage.setItem('foyc_user_email', email);
+          localStorage.setItem('foyc_user_name', name);
+          if (data.session?.access_token) {
+            localStorage.setItem('foyc_auth_token', data.session.access_token);
+          }
+          return { success: true };
+        }
+      } catch (err: any) {
+        return { success: false, error: err.message || 'Login failed' };
+      }
+    }
+
+    // Local / Dev fallback
+    setIsAuthenticated(true);
+    setUserEmail(email);
+    const name = email.split('@')[0];
+    setUserName(name);
+    setUserId(`user-${Date.now()}`);
+    localStorage.setItem('foyc_auth', 'true');
+    localStorage.setItem('foyc_user_email', email);
+    localStorage.setItem('foyc_user_name', name);
+    return { success: true };
+  };
+
+  const signOut = async (): Promise<void> => {
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.auth.signOut();
+      } catch {}
+    }
+    setIsAuthenticated(false);
+    setUserEmail(null);
+    setUserName(null);
+    setUserId(null);
+    localStorage.removeItem('foyc_auth');
+    localStorage.removeItem('foyc_user_email');
+    localStorage.removeItem('foyc_user_name');
+    localStorage.removeItem('foyc_auth_token');
+  };
+
+  const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
+    if (isSupabaseConfigured()) {
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin + '/dashboard',
+          },
+        });
+        if (error) return { success: false, error: error.message };
+        return { success: true };
+      } catch (err: any) {
+        return { success: false, error: err.message || 'Google authentication failed' };
+      }
+    }
+    return {
+      success: false,
+      error: 'Google OAuth provider is not yet enabled in Supabase Project rlrzdvebvbtegxixyfrb. Please sign in with email and password.',
+    };
+  };
+
+  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    if (isSupabaseConfigured()) {
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + '/auth',
+        });
+        if (error) return { success: false, error: error.message };
+        return { success: true };
+      } catch (err: any) {
+        return { success: false, error: err.message || 'Reset password request failed' };
+      }
+    }
+    return { success: true };
+  };
+
   const loginDemo = (email = 'alex.chen@example.com') => {
     setIsAuthenticated(true);
     setUserEmail(email);
+    setUserName('Alex Chen');
     localStorage.setItem('foyc_auth', 'true');
     localStorage.setItem('foyc_user_email', email);
+    localStorage.setItem('foyc_user_name', 'Alex Chen');
   };
 
   const logoutDemo = () => {
-    setIsAuthenticated(false);
-    setUserEmail(null);
-    localStorage.removeItem('foyc_auth');
-    localStorage.removeItem('foyc_user_email');
+    signOut();
   };
 
   const resetToDefault = () => {
@@ -222,10 +492,20 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         toggleTask,
         addTask,
         deleteTask,
+        addHabit,
+        updateHabit,
+        deleteHabit,
         toggleHabit,
         toggleMilestone,
         isAuthenticated,
         userEmail,
+        userName,
+        userId,
+        signUp,
+        signIn,
+        signOut,
+        signInWithGoogle,
+        resetPassword,
         loginDemo,
         logoutDemo,
         resetToDefault,

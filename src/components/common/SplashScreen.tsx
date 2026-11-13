@@ -34,7 +34,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ children }) => {
     <>
       {showSplash && (
         <div
-          className={`fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-[#FFFDF8] transition-opacity duration-500 ease-in-out select-none ${
+          className={`fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-[#FDF5EB] transition-opacity duration-500 ease-in-out select-none ${
             fadeExit ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
           style={{ willChange: 'opacity' }}
