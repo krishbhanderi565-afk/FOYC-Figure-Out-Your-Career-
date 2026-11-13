@@ -58,7 +58,7 @@ export const AboutPage: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-[#FDF5EB] text-[#171717]">
       <Navbar />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 pb-24 md:pb-16">
         {/* Brand Banner */}
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16 space-y-4">
           <div className="flex justify-center mb-4">

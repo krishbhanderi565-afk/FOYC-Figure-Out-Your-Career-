@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { CareerProvider } from './context/CareerContext';
 import { SplashScreen } from './components/common/SplashScreen';
 import { ScrollToTop } from './components/common/ScrollToTop';
+import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { LandingPage } from './pages/LandingPage';
 import { ExplorePage } from './pages/ExplorePage';
 import { AboutPage } from './pages/AboutPage';
@@ -71,6 +72,7 @@ export function App() {
             <Route path="/404" element={<NotFoundPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
+          <MobileBottomNav />
         </BrowserRouter>
       </SplashScreen>
     </CareerProvider>

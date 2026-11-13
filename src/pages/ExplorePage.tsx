@@ -123,7 +123,7 @@ export const ExplorePage: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-[#FDF5EB] text-[#171717]">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 pb-24 md:pb-16">
         {/* Header Section */}
         <div className="max-w-3xl mb-10 sm:mb-14">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 border-[#171717] bg-white shadow-[2px_2px_0px_#171717] mb-4">

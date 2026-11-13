@@ -11,7 +11,7 @@ export const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-[#FDF5EB] text-[#171717]">
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 pb-20 md:pb-0">
         {/* Section 1: Hero */}
         <HeroSection />
 

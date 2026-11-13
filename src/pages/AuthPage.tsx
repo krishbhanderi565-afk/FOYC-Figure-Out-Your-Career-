@@ -144,7 +144,7 @@ export const AuthPage: React.FC = () => {
     <div className="min-h-screen bg-[#FDF5EB] flex flex-col text-[#171717]">
       <Navbar />
 
-      <main className="flex-1 max-w-lg w-full mx-auto px-4 sm:px-6 py-10 sm:py-16">
+      <main className="flex-1 max-w-lg w-full mx-auto px-4 sm:px-6 py-10 sm:py-16 pb-24 md:pb-16">
         <Card
           variant="white"
           shadowSize="lg"

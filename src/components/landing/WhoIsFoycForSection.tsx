@@ -140,18 +140,18 @@ export const WhoIsFoycForSection: React.FC = () => {
             {duplicatedRowOne.map((card, idx) => (
               <div
                 key={`${card.id}-r1-${idx}`}
-                className="group relative w-[210px] sm:w-[250px] md:w-[270px] shrink-0 bg-white rounded-2xl border-2 border-[#171717] shadow-[3px_3px_0px_#171717] p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[5px_5px_0px_#171717]"
+                className="group relative w-[170px] sm:w-[220px] md:w-[270px] shrink-0 bg-white rounded-2xl border-2 border-[#171717] shadow-[3px_3px_0px_#171717] p-3 sm:p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[5px_5px_0px_#171717]"
               >
                 {/* Top Badge */}
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#EDF2E9] text-[#526B50] border border-[#A8B99A]">
+                <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 sm:px-2.5 py-0.5 rounded-full bg-[#EDF2E9] text-[#526B50] border border-[#A8B99A]">
                     {card.badge}
                   </span>
                   <span className="w-2 h-2 rounded-full bg-[#526B50]" />
                 </div>
 
                 {/* Character Illustration */}
-                <div className="w-full h-40 sm:h-44 flex items-center justify-center overflow-hidden my-1">
+                <div className="w-full h-28 sm:h-36 md:h-44 flex items-center justify-center overflow-hidden my-1">
                   <img
                     src={card.imageSrc}
                     alt={`${card.label} — FOYC career discovery for ${card.label}`}
@@ -161,11 +161,11 @@ export const WhoIsFoycForSection: React.FC = () => {
                 </div>
 
                 {/* Category Label & Tagline */}
-                <div className="pt-3 border-t border-[#E8E5DE] text-left">
-                  <h3 className="font-black text-sm sm:text-base text-[#171717] tracking-tight group-hover:text-[#526B50] transition-colors truncate">
+                <div className="pt-2 sm:pt-3 border-t border-[#E8E5DE] text-left">
+                  <h3 className="font-black text-xs sm:text-base text-[#171717] tracking-tight group-hover:text-[#526B50] transition-colors truncate">
                     {card.label}
                   </h3>
-                  <p className="text-[11px] font-bold text-[#666666] truncate mt-0.5">
+                  <p className="text-[10px] sm:text-[11px] font-bold text-[#666666] truncate mt-0.5">
                     {card.tagline}
                   </p>
                 </div>
@@ -180,18 +180,18 @@ export const WhoIsFoycForSection: React.FC = () => {
             {duplicatedRowTwo.map((card, idx) => (
               <div
                 key={`${card.id}-r2-${idx}`}
-                className="group relative w-[210px] sm:w-[250px] md:w-[270px] shrink-0 bg-white rounded-2xl border-2 border-[#171717] shadow-[3px_3px_0px_#171717] p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[5px_5px_0px_#171717]"
+                className="group relative w-[170px] sm:w-[220px] md:w-[270px] shrink-0 bg-white rounded-2xl border-2 border-[#171717] shadow-[3px_3px_0px_#171717] p-3 sm:p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[5px_5px_0px_#171717]"
               >
                 {/* Top Badge */}
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#EDF2E9] text-[#526B50] border border-[#A8B99A]">
+                <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 sm:px-2.5 py-0.5 rounded-full bg-[#EDF2E9] text-[#526B50] border border-[#A8B99A]">
                     {card.badge}
                   </span>
                   <span className="w-2 h-2 rounded-full bg-[#d97706]" />
                 </div>
 
                 {/* Character Illustration */}
-                <div className="w-full h-40 sm:h-44 flex items-center justify-center overflow-hidden my-1">
+                <div className="w-full h-28 sm:h-36 md:h-44 flex items-center justify-center overflow-hidden my-1">
                   <img
                     src={card.imageSrc}
                     alt={`${card.label} — FOYC career discovery for ${card.label}`}
@@ -201,11 +201,11 @@ export const WhoIsFoycForSection: React.FC = () => {
                 </div>
 
                 {/* Category Label & Tagline */}
-                <div className="pt-3 border-t border-[#E8E5DE] text-left">
-                  <h3 className="font-black text-sm sm:text-base text-[#171717] tracking-tight group-hover:text-[#526B50] transition-colors truncate">
+                <div className="pt-2 sm:pt-3 border-t border-[#E8E5DE] text-left">
+                  <h3 className="font-black text-xs sm:text-base text-[#171717] tracking-tight group-hover:text-[#526B50] transition-colors truncate">
                     {card.label}
                   </h3>
-                  <p className="text-[11px] font-bold text-[#666666] truncate mt-0.5">
+                  <p className="text-[10px] sm:text-[11px] font-bold text-[#666666] truncate mt-0.5">
                     {card.tagline}
                   </p>
                 </div>

@@ -21,7 +21,7 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-[#FFFDF8]/95 backdrop-blur-md border-b border-[#E8E5DE] shadow-xs transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 md:h-20 flex items-center justify-between gap-4">
         {/* Official FOYC Brand Logo (Medium, balanced 125-155px wide on desktop, 95-120px mobile) */}
         <Link to="/" className="flex items-center group focus:outline-none py-1 hover:opacity-90 transition-opacity">
           <Logo size="md" />

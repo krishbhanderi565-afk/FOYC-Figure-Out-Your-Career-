@@ -866,7 +866,8 @@ export const HabitTrackerCore: React.FC<HabitTrackerCoreProps> = ({
             </button>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[620px]">
               <thead>
                 <tr className="border-b border-[#E8E5DE] bg-[#F4F3EF]/50 text-[11px] font-mono text-[#666666]">
@@ -968,6 +969,117 @@ export const HabitTrackerCore: React.FC<HabitTrackerCoreProps> = ({
               </tbody>
             </table>
           </div>
+
+          {/* Dedicated Touch-Friendly Mobile Habit Cards for Weekday (md:hidden) */}
+          <div className="md:hidden divide-y divide-[#E8E5DE]">
+            {habits.filter((h) => h.schedule === 'weekday' || h.schedule === 'everyday').length > 0 ? (
+              habits
+                .filter((h) => h.schedule === 'weekday' || h.schedule === 'everyday')
+                .map((habit) => {
+                  const streak = calculateStreak(habit.id);
+                  const doneToday = isDone(habit, (logs[TODAY] || {})[habit.id]);
+                  return (
+                    <div key={habit.id} className="p-4 bg-[#FFFDF8] space-y-3">
+                      {/* Habit Name, Streak, and Actions */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="w-3 h-3 rounded-full shrink-0"
+                            style={{ backgroundColor: habit.color }}
+                          />
+                          <span className="font-bold text-sm text-[#171717] truncate">{habit.name}</span>
+                          {streak > 0 && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-mono font-bold text-[#526B50] bg-[#EDF2E9] px-2 py-0.5 rounded-full shrink-0">
+                              🔥{streak}d
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => handleOpenEditHabit(habit)}
+                            className="p-1.5 rounded-lg text-[#666666] hover:text-[#171717] hover:bg-[#F4F3EF]"
+                            title="Edit habit"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteHabit(habit.id)}
+                            className="p-1.5 rounded-lg text-[#666666] hover:text-red-600 hover:bg-red-50"
+                            title="Delete habit"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 5-day mini progress dots (Mon - Fri) */}
+                      <div className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-[#E8E5DE]">
+                        <span className="text-[10px] font-bold text-[#777777] uppercase tracking-wider">Week:</span>
+                        <div className="flex items-center gap-2">
+                          {weekDates.slice(0, 5).map((d) => {
+                            const dow = new Date(d + 'T00:00:00').getDay();
+                            const done = isDone(habit, (logs[d] || {})[habit.id]);
+                            const isToday = d === TODAY;
+                            const isFuture = d > TODAY;
+                            return (
+                              <button
+                                key={d}
+                                type="button"
+                                disabled={isFuture}
+                                onClick={() => handleToggleCheckbox(d, habit.id)}
+                                className={`flex flex-col items-center gap-0.5 py-1 px-1.5 rounded-lg transition-all ${
+                                  isToday ? 'bg-[#EDF2E9] font-black' : ''
+                                }`}
+                              >
+                                <span className="text-[9px] text-[#777777]">{DAY_NAMES[dow][0]}</span>
+                                <div
+                                  className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] transition-all ${
+                                    done
+                                      ? 'bg-[#526B50] text-white shadow-xs'
+                                      : isFuture
+                                      ? 'bg-[#F4F3EF] border border-[#E8E5DE] opacity-40'
+                                      : 'bg-white border border-[#E8E5DE] text-transparent'
+                                  }`}
+                                >
+                                  {done && <Check className="w-3 h-3 stroke-[3]" />}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 1-Tap Large Mobile Completion Control for TODAY */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleCheckbox(TODAY, habit.id)}
+                        className={`w-full min-h-[44px] rounded-xl flex items-center justify-center font-bold text-xs gap-2 transition-all active:scale-[0.98] shadow-xs ${
+                          doneToday
+                            ? 'bg-[#EDF2E9] text-[#526B50] border-2 border-[#526B50]'
+                            : 'bg-[#FFE76B] hover:bg-[#FADB3D] text-[#171717] border-2 border-[#171717]'
+                        }`}
+                      >
+                        {doneToday ? (
+                          <>
+                            <Check className="w-4 h-4 stroke-[3]" />
+                            <span>Completed for Today</span>
+                          </>
+                        ) : (
+                          <>
+                            <CalendarCheck className="w-4 h-4 text-[#171717]" />
+                            <span>Tap to Mark Complete for Today</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })
+            ) : (
+              <div className="p-6 text-center text-[#888888] font-medium text-xs">
+                No weekday routines added yet. Click "+ Add Weekday Habit" to start.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* WEEKEND TASKS (Sat - Sun) */}
@@ -988,7 +1100,8 @@ export const HabitTrackerCore: React.FC<HabitTrackerCoreProps> = ({
             </button>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[500px]">
               <thead>
                 <tr className="border-b border-[#E8E5DE] bg-[#F4F3EF]/50 text-[11px] font-mono text-[#666666]">
@@ -1089,6 +1202,117 @@ export const HabitTrackerCore: React.FC<HabitTrackerCoreProps> = ({
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Dedicated Touch-Friendly Mobile Habit Cards for Weekend (md:hidden) */}
+          <div className="md:hidden divide-y divide-[#E8E5DE]">
+            {habits.filter((h) => h.schedule === 'weekend' || h.schedule === 'everyday').length > 0 ? (
+              habits
+                .filter((h) => h.schedule === 'weekend' || h.schedule === 'everyday')
+                .map((habit) => {
+                  const streak = calculateStreak(habit.id);
+                  const doneToday = isDone(habit, (logs[TODAY] || {})[habit.id]);
+                  return (
+                    <div key={habit.id} className="p-4 bg-[#FFFDF8] space-y-3">
+                      {/* Habit Name, Streak, and Actions */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="w-3 h-3 rounded-full shrink-0"
+                            style={{ backgroundColor: habit.color }}
+                          />
+                          <span className="font-bold text-sm text-[#171717] truncate">{habit.name}</span>
+                          {streak > 0 && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-mono font-bold text-[#d97706] bg-[#FFFBEB] px-2 py-0.5 rounded-full shrink-0">
+                              🔥{streak}d
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => handleOpenEditHabit(habit)}
+                            className="p-1.5 rounded-lg text-[#666666] hover:text-[#171717] hover:bg-[#F4F3EF]"
+                            title="Edit habit"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteHabit(habit.id)}
+                            className="p-1.5 rounded-lg text-[#666666] hover:text-red-600 hover:bg-red-50"
+                            title="Delete habit"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 2-day mini progress dots (Sat, Sun) */}
+                      <div className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-[#E8E5DE]">
+                        <span className="text-[10px] font-bold text-[#777777] uppercase tracking-wider">Weekend:</span>
+                        <div className="flex items-center gap-2">
+                          {weekDates.slice(5, 7).map((d) => {
+                            const dow = new Date(d + 'T00:00:00').getDay();
+                            const done = isDone(habit, (logs[d] || {})[habit.id]);
+                            const isToday = d === TODAY;
+                            const isFuture = d > TODAY;
+                            return (
+                              <button
+                                key={d}
+                                type="button"
+                                disabled={isFuture}
+                                onClick={() => handleToggleCheckbox(d, habit.id)}
+                                className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-all ${
+                                  isToday ? 'bg-[#FFFBEB] font-black' : ''
+                                }`}
+                              >
+                                <span className="text-[9px] text-[#777777]">{DAY_NAMES[dow]}</span>
+                                <div
+                                  className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] transition-all ${
+                                    done
+                                      ? 'bg-[#d97706] text-white shadow-xs'
+                                      : isFuture
+                                      ? 'bg-[#F4F3EF] border border-[#E8E5DE] opacity-40'
+                                      : 'bg-white border border-[#E8E5DE] text-transparent'
+                                  }`}
+                                >
+                                  {done && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 1-Tap Large Mobile Completion Control for TODAY */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleCheckbox(TODAY, habit.id)}
+                        className={`w-full min-h-[44px] rounded-xl flex items-center justify-center font-bold text-xs gap-2 transition-all active:scale-[0.98] shadow-xs ${
+                          doneToday
+                            ? 'bg-[#EDF2E9] text-[#526B50] border-2 border-[#526B50]'
+                            : 'bg-[#FFE76B] hover:bg-[#FADB3D] text-[#171717] border-2 border-[#171717]'
+                        }`}
+                      >
+                        {doneToday ? (
+                          <>
+                            <Check className="w-4 h-4 stroke-[3]" />
+                            <span>Completed for Today</span>
+                          </>
+                        ) : (
+                          <>
+                            <CalendarCheck className="w-4 h-4 text-[#171717]" />
+                            <span>Tap to Mark Complete for Today</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })
+            ) : (
+              <div className="p-6 text-center text-[#888888] font-medium text-xs">
+                No weekend routines added yet. Click "+ Add Weekend Habit" to start.
+              </div>
+            )}
           </div>
         </div>
 
