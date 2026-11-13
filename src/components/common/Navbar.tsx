@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ArrowRight, Compass, LayoutDashboard, LogIn, UserPlus, LogOut, User } from 'lucide-react';
+import { Menu, X, ArrowRight, Compass, LayoutDashboard, LogIn, UserPlus, LogOut, User, CalendarCheck } from 'lucide-react';
 import { Button } from './Button';
 import { Logo } from './Logo';
 import { useCareer } from '../../context/CareerContext';
@@ -58,6 +58,15 @@ export const Navbar: React.FC = () => {
             }`}
           >
             About
+          </Link>
+          <Link
+            to="/habit-tracker"
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              isCurrent('/habit-tracker') ? 'bg-[#526B50] text-white shadow-xs' : 'text-[#333333] hover:text-[#171717] hover:bg-black/5'
+            }`}
+          >
+            <CalendarCheck className="w-3.5 h-3.5" />
+            <span>Habit Tracker</span>
           </Link>
           <Link
             to="/import"
@@ -176,6 +185,16 @@ export const Navbar: React.FC = () => {
             className="font-bold text-sm text-[#171717] py-2 border-b border-[#E8E5DE]"
           >
             About FOYC
+          </Link>
+          <Link
+            to="/habit-tracker"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`font-bold text-sm py-2 border-b border-[#E8E5DE] flex items-center gap-2 ${
+              isCurrent('/habit-tracker') ? 'text-[#526B50]' : 'text-[#171717]'
+            }`}
+          >
+            <CalendarCheck className="w-4 h-4 text-[#526B50]" />
+            <span>Habit Tracker</span>
           </Link>
           <Link
             to="/import"

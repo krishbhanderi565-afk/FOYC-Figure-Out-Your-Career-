@@ -21,7 +21,8 @@ import { MyCareerPage } from './pages/dashboard/MyCareerPage';
 import { RoadmapPage } from './pages/dashboard/RoadmapPage';
 import { SkillDevelopmentPage } from './pages/dashboard/SkillDevelopmentPage';
 import { ChecklistPage } from './pages/dashboard/ChecklistPage';
-import { HabitTrackerPage } from './pages/dashboard/HabitTrackerPage';
+import { HabitTrackerPage as DashboardHabitTrackerPage } from './pages/dashboard/HabitTrackerPage';
+import { HabitTrackerPage } from './pages/HabitTrackerPage';
 import { ProjectsPage } from './pages/dashboard/ProjectsPage';
 import { ResourcesPage } from './pages/dashboard/ResourcesPage';
 import { WeeklyReviewPage } from './pages/dashboard/WeeklyReviewPage';
@@ -38,6 +39,7 @@ export function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/explore" element={<ExplorePage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/habit-tracker" element={<HabitTrackerPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/reflection" element={<MindReflectionPage />} />
             <Route path="/mind" element={<Navigate to="/reflection" replace />} />
@@ -57,7 +59,7 @@ export function App() {
               <Route path="roadmap" element={<RoadmapPage />} />
               <Route path="skills" element={<SkillDevelopmentPage />} />
               <Route path="tasks" element={<ChecklistPage />} />
-              <Route path="habits" element={<HabitTrackerPage />} />
+              <Route path="habits" element={<DashboardHabitTrackerPage />} />
               <Route path="projects" element={<ProjectsPage />} />
               <Route path="resources" element={<ResourcesPage />} />
               <Route path="review" element={<WeeklyReviewPage />} />

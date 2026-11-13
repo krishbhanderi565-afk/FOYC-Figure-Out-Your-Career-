@@ -104,7 +104,19 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [dashboardData, setDashboardData] = useState<CareerDashboardData>(() => {
     try {
       const saved = localStorage.getItem('foyc_dashboard_data');
-      return saved ? JSON.parse(saved) : initialParsed;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.habits && Array.isArray(parsed.habits)) {
+          parsed.habits = parsed.habits.map((h: any) => ({
+            ...h,
+            history: h.history || {},
+            currentStreak: typeof h.currentStreak === 'number' ? h.currentStreak : 0,
+            bestStreak: typeof h.bestStreak === 'number' ? h.bestStreak : 0,
+          }));
+        }
+        return parsed;
+      }
+      return initialParsed;
     } catch {
       return initialParsed;
     }
@@ -301,17 +313,20 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     setDashboardData((prev) => ({
       ...prev,
-      habits: prev.habits.map((h) => {
+      habits: (prev.habits || []).map((h) => {
         if (h.id === habitId) {
-          const wasCompleted = !!h.history[today];
+          const hist = h.history || {};
+          const wasCompleted = !!hist[today];
           const newStatus = !wasCompleted;
-          const newHistory = { ...h.history, [today]: newStatus };
-          const newStreak = newStatus ? h.currentStreak + 1 : Math.max(0, h.currentStreak - 1);
+          const newHistory = { ...hist, [today]: newStatus };
+          const curStreak = typeof h.currentStreak === 'number' ? h.currentStreak : 0;
+          const bestStreak = typeof h.bestStreak === 'number' ? h.bestStreak : 0;
+          const newStreak = newStatus ? curStreak + 1 : Math.max(0, curStreak - 1);
           return {
             ...h,
-            completedToday: isToday ? newStatus : h.completedToday,
+            completedToday: isToday ? newStatus : (h.completedToday ?? false),
             currentStreak: newStreak,
-            bestStreak: Math.max(h.bestStreak, newStreak),
+            bestStreak: Math.max(bestStreak, newStreak),
             history: newHistory,
           };
         }

@@ -23,7 +23,7 @@ export const DashboardLayout: React.FC = () => {
           collapsed ? 'lg:ml-20' : 'lg:ml-72'
         }`}
       >
-        <Outlet />
+        <Outlet context={{ onOpenMobileMenu: () => setMobileOpen(true) }} />
       </div>
 
       {/* Mobile Bottom Navigation Bar (First-class mobile experience) */}
