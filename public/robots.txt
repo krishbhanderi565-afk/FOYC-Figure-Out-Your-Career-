@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /onboarding
+Allow: /reflection
+Allow: /prompt-ready
+Allow: /import
+Allow: /privacy
+Allow: /terms
+
+Disallow: /dashboard/
+Disallow: /api/
+
+Sitemap: https://figureoutyourcareer.com/sitemap.xml

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCareer } from '../../context/CareerContext';
 import { DashboardHeader } from '../../components/dashboard/DashboardHeader';
 import { Card } from '../../components/common/Card';
@@ -12,10 +12,50 @@ import {
   CheckCircle2,
   Code2,
   Trophy,
+  Trash2,
 } from 'lucide-react';
+import { ProjectItem } from '../../types/career';
 
 export const ProjectsPage: React.FC = () => {
   const { dashboardData } = useCareer();
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // Form states
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [skillsStr, setSkillsStr] = useState('');
+  const [targetDate, setTargetDate] = useState('Month 3');
+  const [projectUrl, setProjectUrl] = useState('');
+  const [status, setStatus] = useState<ProjectItem['status']>('planned');
+
+  const handleCreateProject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+
+    const newProject: ProjectItem = {
+      id: `p-${Date.now()}`,
+      title: title.trim(),
+      description: description.trim(),
+      skillsDeveloped: skillsStr.split(',').map((s) => s.trim()).filter(Boolean),
+      status,
+      targetDate,
+      projectUrl: projectUrl.trim() || undefined,
+      achievements: ['Project architecture specified'],
+    };
+
+    dashboardData.projects.unshift(newProject);
+    setTitle('');
+    setDescription('');
+    setSkillsStr('');
+    setProjectUrl('');
+    setShowAddModal(false);
+  };
+
+  const handleDeleteProject = (id: string) => {
+    dashboardData.projects = dashboardData.projects.filter((p) => p.id !== id);
+    // trigger re-render
+    setTitle((prev) => prev);
+  };
 
   return (
     <div className="flex-1 flex flex-col">
@@ -33,13 +73,129 @@ export const ProjectsPage: React.FC = () => {
           <Button
             variant="primary"
             size="sm"
-            onClick={() => alert('New capstone modal opened. In production, this saves to projects table.')}
+            onClick={() => setShowAddModal(true)}
             className="gap-1.5 font-bold shrink-0"
           >
             <Plus className="w-4 h-4" />
             Add Capstone Project
           </Button>
         </div>
+
+        {/* Modal: Add Project */}
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl border-3 border-[#17172B] shadow-[8px_8px_0px_#17172B] p-6 sm:p-8 max-w-lg w-full animate-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between pb-3 mb-4 border-b-2 border-[#17172B]">
+                <h3 className="font-black text-xl text-[#17172B]">Add Proof-of-Work Project</h3>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="w-8 h-8 rounded-lg bg-[#FFF8E9] border border-[#17172B] font-black text-sm flex items-center justify-center"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateProject} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
+                    Project Title
+                  </label>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g. Distributed WebSocket Telemetry Engine"
+                    required
+                    className="w-full px-4 py-2.5 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-semibold text-sm focus:ring-2 focus:ring-[#FFE76B]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
+                    Problem & Core Description
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={2}
+                    placeholder="Explain what practical customer pain point this project solves..."
+                    className="w-full p-2.5 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-medium text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
+                    Skills Developed (Comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={skillsStr}
+                    onChange={(e) => setSkillsStr(e.target.value)}
+                    placeholder="e.g. TypeScript, Docker, PostgreSQL, Next.js"
+                    className="w-full px-4 py-2 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-semibold text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
+                      Status
+                    </label>
+                    <select
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value as any)}
+                      className="w-full px-3 py-2 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-bold text-xs"
+                    >
+                      <option value="planned">Planned</option>
+                      <option value="in-progress">In Progress</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
+                      Target Completion Date
+                    </label>
+                    <input
+                      type="text"
+                      value={targetDate}
+                      onChange={(e) => setTargetDate(e.target.value)}
+                      placeholder="e.g. Month 3, End of Sprint"
+                      className="w-full px-3 py-2 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-semibold text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
+                    GitHub / Demo URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={projectUrl}
+                    onChange={(e) => setProjectUrl(e.target.value)}
+                    placeholder="https://github.com/..."
+                    className="w-full px-4 py-2 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-semibold text-xs"
+                  />
+                </div>
+
+                <div className="pt-2 flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setShowAddModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" variant="primary" size="sm" className="font-black">
+                    Save Capstone
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Project Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
@@ -68,9 +224,18 @@ export const ProjectsPage: React.FC = () => {
                       </span>
                     </div>
 
-                    <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border border-[#17172B] ${statusVariants[proj.status]}`}>
-                      {proj.status.replace('-', ' ')}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border border-[#17172B] ${statusVariants[proj.status]}`}>
+                        {proj.status.replace('-', ' ')}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteProject(proj.id)}
+                        className="p-1 text-red-500 hover:text-red-700"
+                        title="Delete project"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
                   <h3 className="text-xl sm:text-2xl font-black text-[#17172B] mb-2 leading-snug">

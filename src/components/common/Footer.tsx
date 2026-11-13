@@ -65,12 +65,12 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom bar */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#FFF8E9]/50">
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#FFF8E9]/70">
           <p>© {new Date().getFullYear()} FOYC (Figure Out Your Career). Built with craft & empathy.</p>
           <div className="flex items-center gap-6">
-            <a href="#privacy" className="hover:text-white">Privacy First</a>
-            <a href="#terms" className="hover:text-white">Ethical AI Framework</a>
-            <a href="#contact" className="hover:text-white">Feedback & Support</a>
+            <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="hover:text-white transition-colors">Data Portability</Link>
           </div>
         </div>
       </div>

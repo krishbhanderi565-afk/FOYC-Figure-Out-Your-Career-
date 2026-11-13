@@ -8,6 +8,9 @@ import { PromptReadyPage } from './pages/PromptReadyPage';
 import { HandoffImportPage } from './pages/HandoffImportPage';
 import { HandoffPreviewPage } from './pages/HandoffPreviewPage';
 import { AuthPage } from './pages/AuthPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { TermsPage } from './pages/TermsPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { DashboardLayout } from './components/dashboard/DashboardLayout';
 import { OverviewPage } from './pages/dashboard/OverviewPage';
 import { MyCareerPage } from './pages/dashboard/MyCareerPage';
@@ -35,6 +38,8 @@ export function App() {
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/signup" element={<AuthPage />} />
           <Route path="/login" element={<AuthPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
 
           {/* Universal Personalized Dashboard Engine */}
           <Route path="/dashboard" element={<DashboardLayout />}>
@@ -50,7 +55,8 @@ export function App() {
           </Route>
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/404" element={<NotFoundPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
     </CareerProvider>

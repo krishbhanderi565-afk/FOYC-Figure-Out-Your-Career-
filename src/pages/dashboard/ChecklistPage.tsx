@@ -12,13 +12,16 @@ import {
   Calendar,
   Filter,
   Check,
-  AlertCircle,
+  Search,
+  FileText,
+  Clock,
 } from 'lucide-react';
 import { TaskItem } from '../../types/career';
 
 export const ChecklistPage: React.FC = () => {
   const { dashboardData, toggleTask, addTask, deleteTask } = useCareer();
-  const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'high'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'high' | 'overdue'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
   // New task form fields
@@ -26,6 +29,7 @@ export const ChecklistPage: React.FC = () => {
   const [newCategory, setNewCategory] = useState<TaskItem['category']>('Technical');
   const [newPriority, setNewPriority] = useState<TaskItem['priority']>('high');
   const [newDueDate, setNewDueDate] = useState('This week');
+  const [newNotes, setNewNotes] = useState('');
 
   const handleCreateTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,16 +39,25 @@ export const ChecklistPage: React.FC = () => {
       category: newCategory,
       priority: newPriority,
       dueDate: newDueDate,
+      notes: newNotes,
       completed: false,
     });
     setNewTitle('');
+    setNewNotes('');
     setShowAddModal(false);
   };
 
   const filteredTasks = dashboardData.tasks.filter((t) => {
+    const matchesSearch =
+      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.category.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+
     if (filter === 'pending') return !t.completed;
     if (filter === 'completed') return t.completed;
     if (filter === 'high') return t.priority === 'high';
+    if (filter === 'overdue') return !t.completed && (t.dueDate.toLowerCase().includes('past') || t.dueDate.toLowerCase().includes('yesterday'));
     return true;
   });
 
@@ -60,17 +73,42 @@ export const ChecklistPage: React.FC = () => {
 
       <main className="p-4 sm:p-8 space-y-6 max-w-6xl">
         {/* Top Controls Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border-2 border-[#17172B] shadow-[3px_3px_0px_#17172B]">
-          {/* Filters */}
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-            <span className="text-xs font-black uppercase tracking-wider text-[#17172B]/50 mr-2 flex items-center gap-1">
-              <Filter className="w-3.5 h-3.5" /> Filter:
+        <div className="bg-white p-4 rounded-2xl border-2 border-[#17172B] shadow-[3px_3px_0px_#17172B] space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-md">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search tasks by name or category..."
+                className="w-full pl-9 pr-4 py-2 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] text-xs font-bold text-[#17172B] focus:ring-2 focus:ring-[#FFE76B]"
+              />
+              <Search className="w-4 h-4 text-[#17172B]/50 absolute left-3 top-2.5" />
+            </div>
+
+            {/* Add Task Button */}
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setShowAddModal(true)}
+              className="gap-2 shrink-0 font-bold"
+            >
+              <Plus className="w-4 h-4" />
+              Add New Task
+            </Button>
+          </div>
+
+          {/* Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pt-1 border-t border-[#17172B]/10">
+            <span className="text-[11px] font-black uppercase tracking-wider text-[#17172B]/50 mr-1 flex items-center gap-1">
+              <Filter className="w-3 h-3" /> Filter:
             </span>
-            {(['all', 'pending', 'completed', 'high'] as const).map((mode) => (
+            {(['all', 'pending', 'completed', 'high', 'overdue'] as const).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setFilter(mode)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
+                className={`px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
                   filter === mode
                     ? 'bg-[#FFE76B] text-[#17172B] border border-[#17172B] shadow-[1.5px_1.5px_0px_#17172B]'
                     : 'text-[#17172B]/70 hover:bg-[#FFF8E9]'
@@ -82,21 +120,12 @@ export const ChecklistPage: React.FC = () => {
                   ? `Pending (${dashboardData.tasks.length - completedCount})`
                   : mode === 'completed'
                   ? `Done (${completedCount})`
-                  : 'High Priority'}
+                  : mode === 'high'
+                  ? 'High Priority'
+                  : 'Overdue'}
               </button>
             ))}
           </div>
-
-          {/* Add Task Button */}
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setShowAddModal(true)}
-            className="gap-2 shrink-0 font-bold"
-          >
-            <Plus className="w-4 h-4" />
-            Add New Task
-          </Button>
         </div>
 
         {/* Modal: Add Task */}
@@ -175,6 +204,19 @@ export const ChecklistPage: React.FC = () => {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
+                    Notes / Documentation Reference (Optional)
+                  </label>
+                  <textarea
+                    value={newNotes}
+                    onChange={(e) => setNewNotes(e.target.value)}
+                    rows={2}
+                    placeholder="e.g. Check MDN guide on refresh tokens and HTTP-only cookies"
+                    className="w-full p-2.5 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-medium text-xs"
+                  />
+                </div>
+
                 <div className="pt-2 flex justify-end gap-2">
                   <Button
                     type="button"
@@ -212,7 +254,7 @@ export const ChecklistPage: React.FC = () => {
               return (
                 <div
                   key={t.id}
-                  className={`p-4 rounded-2xl border-2 transition-all flex items-center justify-between gap-4 ${
+                  className={`p-4 rounded-2xl border-2 transition-all flex items-start justify-between gap-4 ${
                     t.completed
                       ? 'bg-[#F9FFF9] border-emerald-500/50 text-[#17172B]/50'
                       : 'bg-white border-[#17172B] shadow-[3px_3px_0px_#17172B]'
@@ -220,10 +262,10 @@ export const ChecklistPage: React.FC = () => {
                 >
                   <div
                     onClick={() => toggleTask(t.id)}
-                    className="flex items-center gap-3.5 flex-1 min-w-0 cursor-pointer"
+                    className="flex items-start gap-3.5 flex-1 min-w-0 cursor-pointer pt-0.5"
                   >
                     <div
-                      className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors ${
+                      className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors mt-0.5 ${
                         t.completed
                           ? 'bg-emerald-500 border-emerald-500 text-white'
                           : 'border-[#17172B] bg-[#FFF8E9]'
@@ -236,13 +278,18 @@ export const ChecklistPage: React.FC = () => {
                       <span className={`text-sm sm:text-base font-bold block truncate ${t.completed ? 'line-through' : 'text-[#17172B]'}`}>
                         {t.title}
                       </span>
-                      <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
                         <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-[#FFF8E9] border border-[#17172B]">
                           {t.category}
                         </span>
-                        <span className="text-[11px] font-semibold text-[#17172B]/60">
-                          Due: {t.dueDate}
+                        <span className="text-[11px] font-semibold text-[#17172B]/60 flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> Due: {t.dueDate}
                         </span>
+                        {t.notes && (
+                          <span className="text-[10px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                            📝 Has Notes
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

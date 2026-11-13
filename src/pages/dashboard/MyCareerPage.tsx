@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCareer } from '../../context/CareerContext';
 import { DashboardHeader } from '../../components/dashboard/DashboardHeader';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
-import { Highlight } from '../../components/common/Highlight';
 import {
   Target,
   RefreshCw,
@@ -15,12 +14,36 @@ import {
   ArrowRight,
   TrendingUp,
   Compass,
+  Check,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const MyCareerPage: React.FC = () => {
-  const { dashboardData } = useCareer();
+  const { dashboardData, loadSampleProfession } = useCareer();
   const dir = dashboardData.direction;
+
+  const [showReassessModal, setShowReassessModal] = useState(false);
+  const [proposedDirection, setProposedDirection] = useState('');
+  const [reassessmentReason, setReassessmentReason] = useState('');
+  const [successToast, setSuccessToast] = useState(false);
+
+  const handleApplyReassessment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!proposedDirection.trim()) return;
+
+    // Apply update to current direction
+    dashboardData.direction.primaryTitle = proposedDirection.trim();
+    dashboardData.direction.lastReassessedDate = new Date().toLocaleDateString();
+    if (reassessmentReason) {
+      dashboardData.direction.summary = `${dashboardData.direction.summary} (Recalibrated: ${reassessmentReason})`;
+    }
+
+    setShowReassessModal(false);
+    setProposedDirection('');
+    setReassessmentReason('');
+    setSuccessToast(true);
+    setTimeout(() => setSuccessToast(false), 3000);
+  };
 
   return (
     <div className="flex-1 flex flex-col">
@@ -31,6 +54,16 @@ export const MyCareerPage: React.FC = () => {
       />
 
       <main className="p-4 sm:p-8 space-y-8 max-w-6xl">
+        {/* Toast confirmation */}
+        {successToast && (
+          <div className="p-4 rounded-2xl bg-[#DDF5C9] border-2 border-[#17172B] shadow-[3px_3px_0px_#17172B] flex items-center gap-3 animate-in fade-in-50">
+            <CheckCircle2 className="w-5 h-5 text-emerald-800" />
+            <span className="font-bold text-sm text-[#17172B]">
+              Career trajectory successfully recalibrated! Your dashboard has updated.
+            </span>
+          </div>
+        )}
+
         {/* Main Career Header Card */}
         <Card variant="yellow" shadowSize="lg" className="p-6 sm:p-10">
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
@@ -51,12 +84,15 @@ export const MyCareerPage: React.FC = () => {
               </p>
             </div>
 
-            <Link to="/reflection" className="shrink-0">
-              <Button variant="dark" size="md" className="gap-2">
-                <RefreshCw className="w-4 h-4" />
-                Revisit Direction
-              </Button>
-            </Link>
+            <Button
+              variant="dark"
+              size="md"
+              onClick={() => setShowReassessModal(true)}
+              className="gap-2 shrink-0 font-extrabold shadow-[4px_4px_0px_#0A0A14]"
+            >
+              <RefreshCw className="w-4 h-4 text-[#FFE76B]" />
+              Revisit & Reassess
+            </Button>
           </div>
 
           <div className="mt-8 pt-6 border-t-2 border-[#17172B] grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -79,6 +115,87 @@ export const MyCareerPage: React.FC = () => {
             </div>
           </div>
         </Card>
+
+        {/* Modal: Reassess & Recalibrate */}
+        {showReassessModal && (
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl border-3 border-[#17172B] shadow-[8px_8px_0px_#17172B] p-6 sm:p-8 max-w-xl w-full animate-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between pb-3 mb-4 border-b-2 border-[#17172B]">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-5 h-5 text-[#17172B]" />
+                  <h3 className="font-black text-xl text-[#17172B]">Recalibrate Career Direction</h3>
+                </div>
+                <button
+                  onClick={() => setShowReassessModal(false)}
+                  className="w-8 h-8 rounded-lg bg-[#FFF8E9] border border-[#17172B] font-black text-sm flex items-center justify-center"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleApplyReassessment} className="space-y-4">
+                {/* Current vs Proposed Diff Comparison */}
+                <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-[#FFF8E9] border-2 border-[#17172B] text-xs">
+                  <div>
+                    <span className="font-black uppercase text-[#17172B]/60 block">Current Focus</span>
+                    <span className="font-bold text-[#17172B]">{dir.primaryTitle}</span>
+                  </div>
+                  <div>
+                    <span className="font-black uppercase text-emerald-800 block">Proposed Focus</span>
+                    <span className="font-bold text-emerald-950">
+                      {proposedDirection || 'Enter new title below...'}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
+                    New Target Career Title
+                  </label>
+                  <input
+                    type="text"
+                    value={proposedDirection}
+                    onChange={(e) => setProposedDirection(e.target.value)}
+                    placeholder="e.g. Applied AI Engineer, Solutions Architect..."
+                    required
+                    className="w-full px-4 py-2.5 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-bold text-sm focus:ring-2 focus:ring-[#FFE76B]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
+                    What triggered this shift? (Interests, new opportunity, market changes)
+                  </label>
+                  <textarea
+                    value={reassessmentReason}
+                    onChange={(e) => setReassessmentReason(e.target.value)}
+                    rows={3}
+                    placeholder="e.g. After 3 weeks of coding, I realized I enjoy data modeling and LLM agent orchestration more than standard frontend."
+                    className="w-full p-3 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-medium text-xs focus:ring-2 focus:ring-[#FFE76B]"
+                  />
+                </div>
+
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-[11px] font-semibold text-amber-900">
+                  ⚠️ Note: Explicit user approval is required before updating milestones. Your existing completed tasks and habit streaks will remain intact.
+                </div>
+
+                <div className="pt-2 flex justify-end gap-3">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setShowReassessModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" variant="primary" size="sm" className="font-black">
+                    Confirm & Apply Trajectory Shift
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Skills Radar & Gap Analysis */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
