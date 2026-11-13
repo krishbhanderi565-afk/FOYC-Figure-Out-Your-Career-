@@ -4,7 +4,10 @@
   :root {
     --color-cream: #FFF8E9;
     --color-yellow: #FFE76B;
-    --color-pink: #FFD9E8;
+    --color-parrot: #B8E986;
+    --color-parrot-light: #DDF5C5;
+    --color-parrot-bg: #F2F9E9;
+    --color-parrot-deep: #315B28;
     --color-blue: #D7EAFE;
     --color-lavender: #E8DDFF;
     --color-green: #DDF5C9;
@@ -69,6 +72,50 @@
   border-radius: 8px;
   box-shadow: 2px 2px 0px #17172B;
   line-height: 1.15;
+}
+
+.highlight-box-green {
+  background-color: #B8E986;
+  border: 2px solid #17172B;
+  display: inline-block;
+  padding: 0 0.35em;
+  border-radius: 8px;
+  box-shadow: 2px 2px 0px #17172B;
+  line-height: 1.15;
+}
+
+@keyframes progressSlide {
+  0% {
+    width: 0%;
+    margin-left: 0%;
+  }
+  50% {
+    width: 70%;
+    margin-left: 15%;
+  }
+  100% {
+    width: 100%;
+    margin-left: 0%;
+  }
+}
+
+.animate-progress {
+  animation: progressSlide 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes scaleUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Custom Scrollbars */

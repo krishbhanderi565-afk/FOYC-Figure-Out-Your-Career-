@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'dark' | 'pink' | 'blue' | 'green' | 'lavender' | 'outline';
+  variant?: 'primary' | 'secondary' | 'dark' | 'pink' | 'parrot' | 'blue' | 'green' | 'lavender' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
   children: React.ReactNode;
@@ -26,13 +26,15 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const variantStyles = {
-    primary: 'bg-[#FFE76B] text-[#17172B]',
-    secondary: 'bg-[#FFFFFF] text-[#17172B]',
+    primary: 'bg-[#FFE76B] text-[#17172B] hover:bg-[#FADC49]',
+    secondary: 'bg-[#FFFFFF] text-[#17172B] hover:bg-[#F2F9E9]',
     dark: 'bg-[#17172B] text-[#FFF8E9] hover:bg-[#252542]',
-    pink: 'bg-[#FFD9E8] text-[#17172B]',
-    blue: 'bg-[#D7EAFE] text-[#17172B]',
-    green: 'bg-[#DDF5C9] text-[#17172B]',
-    lavender: 'bg-[#E8DDFF] text-[#17172B]',
+    // Refresh pink to parrot green
+    pink: 'bg-[#B8E986] text-[#17172B] hover:bg-[#A6DE71]',
+    parrot: 'bg-[#B8E986] text-[#17172B] hover:bg-[#A6DE71]',
+    blue: 'bg-[#D7EAFE] text-[#17172B] hover:bg-[#C2DFFE]',
+    green: 'bg-[#DDF5C9] text-[#17172B] hover:bg-[#CEEEB2]',
+    lavender: 'bg-[#E8DDFF] text-[#17172B] hover:bg-[#D9C8FF]',
     outline: 'bg-transparent text-[#17172B] hover:bg-[#FFF8E9]',
   };
 

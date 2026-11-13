@@ -228,7 +228,7 @@ export const SettingsPage: React.FC = () => {
               </div>
               <button
                 onClick={() => setShowResetModal(false)}
-                className="w-8 h-8 rounded-lg border-2 border-[#17172B] bg-white flex items-center justify-center hover:bg-[#FFD9E8] transition-colors"
+                className="w-8 h-8 rounded-lg border-2 border-[#17172B] bg-white flex items-center justify-center hover:bg-[#DDF5C5] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -238,7 +238,7 @@ export const SettingsPage: React.FC = () => {
               This action will reset your personalized milestones, custom checklist tasks, habit streaks, and restore default demo data in local storage.
             </p>
 
-            <div className="p-3 bg-[#FFD9E8] rounded-xl border border-red-300 text-xs font-bold text-[#17172B]">
+            <div className="p-3 bg-[#DDF5C5] rounded-xl border border-[#315B28]/30 text-xs font-bold text-[#17172B]">
               Tip: You can export your current data as JSON before resetting.
             </div>
 

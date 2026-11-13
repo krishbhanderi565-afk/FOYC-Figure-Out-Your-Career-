@@ -96,7 +96,7 @@ export const MindReflectionPage: React.FC = () => {
 
         {/* Header */}
         <div className="max-w-3xl mb-8">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFD9E8] border-2 border-[#17172B] shadow-[2px_2px_0px_#17172B] text-xs font-black uppercase tracking-wider mb-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#B8E986] border-2 border-[#17172B] shadow-[2px_2px_0px_#17172B] text-xs font-black uppercase tracking-wider mb-3">
             <HeartHandshake className="w-4 h-4 text-[#17172B]" />
             A Safe, Judgment-Free Space
           </div>

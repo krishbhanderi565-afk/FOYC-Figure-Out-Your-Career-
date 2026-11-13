@@ -225,7 +225,7 @@ export const MyCareerPage: React.FC = () => {
           {/* Skill Gaps to Close */}
           <Card variant="white" shadowSize="md" className="p-6 sm:p-8">
             <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-[#17172B]">
-              <div className="w-8 h-8 rounded-lg bg-[#FFD9E8] border border-[#17172B] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-[#FFE76B] border border-[#17172B] flex items-center justify-center">
                 <AlertCircle className="w-4 h-4 text-red-700" />
               </div>
               <h3 className="font-extrabold text-lg text-[#17172B]">

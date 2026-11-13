@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Compass, Menu, X, ArrowRight, Sparkles, LayoutDashboard } from 'lucide-react';
+import { Menu, X, ArrowRight, Sparkles, LayoutDashboard } from 'lucide-react';
 import { Button } from './Button';
+import { Logo } from './Logo';
 import { useCareer } from '../../context/CareerContext';
 
 export const Navbar: React.FC = () => {
@@ -14,20 +15,9 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-50 w-full bg-[#FFF8E9]/90 backdrop-blur-md border-b-2 border-[#17172B] transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-3 group focus:outline-none">
-          <div className="w-11 h-11 rounded-xl bg-[#FFE76B] border-2 border-[#17172B] shadow-[2px_2px_0px_#17172B] flex items-center justify-center group-hover:rotate-6 transition-transform">
-            <Compass className="w-6 h-6 text-[#17172B] transition-transform duration-300 group-hover:rotate-45" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-extrabold text-2xl tracking-tighter text-[#17172B] leading-none flex items-center gap-1">
-              FOYC
-              <span className="inline-block w-2 h-2 rounded-full bg-[#17172B]" />
-            </span>
-            <span className="text-[10px] uppercase font-bold tracking-widest text-[#17172B]/60">
-              Figure Out Your Career
-            </span>
-          </div>
+        {/* Official FOYC Brand Logo */}
+        <Link to="/" className="flex items-center group focus:outline-none py-1">
+          <Logo size="md" />
         </Link>
 
         {/* Desktop Navigation Links */}

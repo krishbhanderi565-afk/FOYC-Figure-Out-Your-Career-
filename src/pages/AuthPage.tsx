@@ -7,6 +7,7 @@ import { Card } from '../components/common/Card';
 import { Highlight } from '../components/common/Highlight';
 import { Badge } from '../components/common/Badge';
 import { ShieldCheck, Mail, Lock, ArrowRight, Sparkles, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Logo } from '../components/common/Logo';
 
 export const AuthPage: React.FC = () => {
   const navigate = useNavigate();
@@ -37,17 +38,20 @@ export const AuthPage: React.FC = () => {
           <ArrowLeft className="w-4 h-4" /> Back to Plan Review
         </Link>
 
-        <Card variant="white" shadowSize="lg" className="p-8 sm:p-10 relative">
-          <div className="text-center mb-8">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFE76B] border border-[#17172B] text-xs font-black uppercase tracking-wider mb-3">
+        <Card variant="white" shadowSize="lg" className="p-8 sm:p-10 relative border-3 bg-[#FFFDF8]">
+          <div className="text-center mb-6">
+            <div className="flex justify-center mb-4">
+              <Logo size="sm" />
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#B8E986] border border-[#17172B] text-xs font-black uppercase tracking-wider mb-3">
               <Sparkles className="w-3.5 h-3.5 text-[#17172B]" />
-              Stage 08 • Save & Launch
+              Save & Launch Your Workspace
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-[#17172B] tracking-tight leading-tight">
               {isSignUp ? 'Your career dashboard is' : 'Welcome back to your'}{' '}
-              <Highlight color="#DDF5C9">{isSignUp ? 'ready to create.' : 'workspace.'}</Highlight>
+              <Highlight color="#B8E986">{isSignUp ? 'ready to save.' : 'workspace.'}</Highlight>
             </h1>
-            <p className="text-xs sm:text-sm text-[#17172B]/75 font-medium mt-2 leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#17172B]/75 font-semibold mt-2 leading-relaxed">
               Create your free FOYC account to save your career roadmap, track your progress and continue developing your future.
             </p>
           </div>
@@ -62,7 +66,7 @@ export const AuthPage: React.FC = () => {
                 {dashboardData.direction.primaryTitle}
               </span>
             </div>
-            <span className="text-xs font-bold px-2 py-0.5 rounded bg-[#DDF5C9] border border-[#17172B]">
+            <span className="text-xs font-bold px-2 py-0.5 rounded bg-[#B8E986] border border-[#17172B]">
               Ready
             </span>
           </div>

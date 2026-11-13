@@ -19,7 +19,7 @@ export const NotFoundPage: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            <span className="inline-block text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full bg-[#FFD9E8] border-2 border-[#17172B] shadow-[2px_2px_0px_#17172B]">
+            <span className="inline-block text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full bg-[#B8E986] border-2 border-[#17172B] shadow-[2px_2px_0px_#17172B]">
               Error 404 • Lost in Transit
             </span>
             <h1 className="text-4xl sm:text-6xl font-black text-[#17172B] tracking-tight">

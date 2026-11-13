@@ -15,31 +15,66 @@ import {
   ArrowLeft,
   Sparkles,
   Info,
-  ShieldAlert,
+  ShieldCheck,
   MessageSquareCode,
+  AlertCircle,
 } from 'lucide-react';
 
 export const PromptReadyPage: React.FC = () => {
   const navigate = useNavigate();
   const { profile, reflection } = useCareer();
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const promptText = generateDiscoveryPrompt(profile, reflection);
 
-  const handleCopy = async () => {
+  const copyToClipboard = async (): Promise<boolean> => {
     try {
-      await navigator.clipboard.writeText(promptText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(promptText);
+        return true;
+      } else {
+        // Fallback for older browsers or non-secure contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = promptText;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const successful = document.execCommand('copy');
+        textArea.remove();
+        return successful;
+      }
     } catch {
-      // Fallback
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      return false;
     }
   };
 
-  const handleOpenChatGPT = () => {
-    window.open('https://chatgpt.com', '_blank', 'noopener,noreferrer');
+  const handleContinueWithChatGPT = async () => {
+    const success = await copyToClipboard();
+    if (success) {
+      setCopied(true);
+      setCopyFailed(false);
+      setStatusMessage('Your personalized prompt is copied!');
+      // Open ChatGPT in a new tab
+      window.open('https://chatgpt.com/', '_blank', 'noopener,noreferrer');
+    } else {
+      setCopyFailed(true);
+      setStatusMessage('Clipboard access was blocked by your browser. Please use the Copy button below.');
+    }
+  };
+
+  const handleManualCopy = async () => {
+    const success = await copyToClipboard();
+    if (success) {
+      setCopied(true);
+      setCopyFailed(false);
+      setStatusMessage('Your personalized prompt is copied!');
+      setTimeout(() => setCopied(false), 3000);
+    }
   };
 
   return (
@@ -47,161 +82,153 @@ export const PromptReadyPage: React.FC = () => {
       <Navbar />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-16">
-        {/* Breadcrumbs */}
+        {/* Breadcrumb Navigation */}
         <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#17172B]/60 mb-6">
           <Link to="/reflection" className="hover:underline flex items-center gap-1">
-            <ArrowLeft className="w-3.5 h-3.5" /> Stage 3: Reflection
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Reflection
           </Link>
           <span>/</span>
-          <span className="text-[#17172B]">Stage 4: Generated Prompt Ready</span>
+          <span className="text-[#17172B]">Prompt Ready</span>
         </div>
 
-        {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#DDF5C9] border-2 border-[#17172B] shadow-[2px_2px_0px_#17172B] text-xs font-black uppercase tracking-wider mb-3">
-            <Sparkles className="w-4 h-4 text-[#17172B]" />
+        {/* Page Header */}
+        <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
+          <Badge variant="parrot" size="sm">
+            <Sparkles className="w-3.5 h-3.5 mr-1" />
             Prompt Successfully Synthesized
-          </span>
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-[#17172B] tracking-tight leading-[1.12]">
-            Your personalized career discovery prompt is <Highlight color="#FFE76B">ready.</Highlight>
+          </Badge>
+          <h1 className="text-3xl sm:text-5xl font-black text-[#17172B] tracking-tight leading-[1.12]">
+            Your career discovery prompt is <Highlight color="#FFE76B">ready.</Highlight>
           </h1>
-          <p className="text-base sm:text-lg text-[#17172B]/75 font-medium mt-3">
-            Copy this structured prompt and paste it into ChatGPT. It instructs ChatGPT to act as a patient, objective career coach.
+          <p className="text-base sm:text-lg text-[#17172B]/80 font-semibold">
+            One click copies your prompt and launches ChatGPT to begin your personalized career discussion.
           </p>
         </div>
 
-        {/* Actions Bar */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border-3 border-[#17172B] shadow-[5px_5px_0px_#17172B] mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#FFE76B] border-2 border-[#17172B] flex items-center justify-center shrink-0">
-              <MessageSquareCode className="w-5 h-5 text-[#17172B]" />
+        {/* Primary Action Card */}
+        <Card variant="white" shadowSize="lg" className="p-6 sm:p-8 space-y-6 border-3 bg-[#FFFDF8] mb-8">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-4 border-b-2 border-[#17172B]/10">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-[#FFE76B] border-2 border-[#17172B] shadow-[2px_2px_0px_#17172B] flex items-center justify-center shrink-0">
+                <MessageSquareCode className="w-6 h-6 text-[#17172B]" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base sm:text-lg text-[#17172B]">
+                  Personalized Discovery Coach Prompt
+                </h3>
+                <p className="text-xs text-[#17172B]/65 font-bold">
+                  {promptText.length} characters • Includes handoff markers & schema rules
+                </p>
+              </div>
             </div>
-            <div>
-              <span className="font-extrabold text-sm text-[#17172B] block">Personalized Career Prompt</span>
-              <span className="text-xs text-[#17172B]/60 font-semibold">{promptText.length} characters • Formatted with guidelines</span>
-            </div>
+
+            {/* Primary Action: Continue with ChatGPT */}
+            <Button
+              variant="parrot"
+              size="lg"
+              onClick={handleContinueWithChatGPT}
+              className="gap-2.5 font-black text-base shadow-[4px_4px_0px_#17172B]"
+            >
+              <ExternalLink className="w-5 h-5 text-[#17172B]" />
+              <span>Continue with ChatGPT</span>
+            </Button>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          {/* Feedback & Instructions Notification */}
+          {statusMessage && (
+            <div
+              className={`p-4 rounded-xl border-2 flex items-start gap-3 transition-all ${
+                copyFailed
+                  ? 'bg-red-50 border-red-300 text-red-900'
+                  : 'bg-[#DDF5C5] border-[#315B28] text-[#17172B]'
+              }`}
+            >
+              {copyFailed ? (
+                <AlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
+              ) : (
+                <Check className="w-5 h-5 text-[#315B28] shrink-0 mt-0.5" />
+              )}
+              <div className="space-y-1 text-xs sm:text-sm">
+                <p className="font-black">{statusMessage}</p>
+                <p className="font-semibold text-[#17172B]/85">
+                  Your prompt is ready. Paste it into ChatGPT using <strong>Ctrl+V</strong> (or long-press Paste on mobile), then press Enter to begin.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Manual Copy Button (Always Available for Accessibility) */}
+          <div className="flex items-center justify-between bg-[#F2F9E9] p-3 rounded-xl border-2 border-[#17172B]">
+            <span className="text-xs font-bold text-[#17172B]/80 flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-[#315B28]" />
+              Manual clipboard control:
+            </span>
             <Button
-              variant={copied ? 'green' : 'primary'}
-              size="md"
-              onClick={handleCopy}
-              className="gap-2 flex-1 sm:flex-none"
+              variant={copied ? 'parrot' : 'secondary'}
+              size="sm"
+              onClick={handleManualCopy}
+              className="gap-1.5 text-xs font-black shadow-[2px_2px_0px_#17172B]"
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-800" />
-                  <span className="text-emerald-950">Copied to Clipboard!</span>
+                  <Check className="w-3.5 h-3.5 text-[#315B28]" />
+                  <span>Prompt Copied!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4" />
-                  <span>Copy Prompt</span>
+                  <Copy className="w-3.5 h-3.5 text-[#17172B]" />
+                  <span>Copy Prompt Manually</span>
                 </>
               )}
             </Button>
-
-            <Button
-              variant="dark"
-              size="md"
-              onClick={handleOpenChatGPT}
-              className="gap-2 flex-1 sm:flex-none"
-            >
-              <span>Open ChatGPT</span>
-              <ExternalLink className="w-4 h-4" />
-            </Button>
           </div>
-        </div>
 
-        {/* Prompt Preview Text Container */}
-        <Card variant="white" shadowSize="md" className="p-6 relative mb-8">
-          <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-[#17172B]/20">
-            <span className="text-xs font-black uppercase tracking-wider text-[#17172B]/70">
-              Prompt Preview
+          {/* Prompt Preview Block */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-black uppercase tracking-wider text-[#17172B]/70">
+                Prompt Preview
+              </span>
+              <span className="text-[11px] font-bold text-[#17172B]/50">
+                Read-only preview
+              </span>
+            </div>
+            <div className="max-h-72 overflow-y-auto p-4 rounded-xl bg-[#FFF8E9] border-2 border-[#17172B] font-mono text-xs text-[#17172B] whitespace-pre-wrap leading-relaxed select-all">
+              {promptText}
+            </div>
+          </div>
+        </Card>
+
+        {/* 3 Step Guide Card */}
+        <Card variant="cream" shadowSize="md" className="p-6 space-y-4 border-2">
+          <h4 className="font-extrabold text-sm uppercase tracking-wider text-[#17172B] flex items-center gap-2">
+            <Info className="w-4 h-4 text-[#17172B]" />
+            What happens next:
+          </h4>
+          <ol className="space-y-3 text-xs sm:text-sm font-semibold text-[#17172B]/85 list-decimal ml-5">
+            <li>
+              <strong>Paste into ChatGPT:</strong> Press Ctrl+V (or tap Paste) in the ChatGPT message box and send the prompt.
+            </li>
+            <li>
+              <strong>Have your 1-on-1 discussion:</strong> ChatGPT will ask one question at a time to explore your strengths, interests, and potential directions.
+            </li>
+            <li>
+              <strong>Say YES to the handoff:</strong> When you're ready, ChatGPT will ask if you'd like your personalized FOYC Career Dashboard block. Say YES to receive the <code className="bg-white px-1.5 py-0.5 rounded border border-[#17172B] font-bold">FOYC_DASHBOARD_START</code> block.
+            </li>
+          </ol>
+
+          <div className="pt-3 border-t border-[#17172B]/15 flex items-center justify-between">
+            <span className="text-xs font-bold text-[#17172B]/70">
+              Already have your FOYC handoff block?
             </span>
-            <button
-              onClick={handleCopy}
-              className="text-xs font-bold text-[#17172B] hover:underline flex items-center gap-1"
-            >
-              <Copy className="w-3.5 h-3.5" /> Copy
-            </button>
-          </div>
-          <pre className="font-mono text-xs sm:text-sm text-[#17172B]/90 whitespace-pre-wrap leading-relaxed max-h-72 overflow-y-auto bg-[#FFFDF7] p-4 rounded-xl border border-[#17172B]/30 select-all">
-            {promptText}
-          </pre>
-        </Card>
-
-        {/* 4 Step Instructions Card */}
-        <Card variant="blue" shadowSize="md" className="p-6 sm:p-8 mb-8">
-          <h3 className="font-extrabold text-lg sm:text-xl text-[#17172B] mb-4 flex items-center gap-2">
-            <Info className="w-5 h-5 text-[#17172B]" />
-            What to do next:
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white p-4 rounded-xl border-2 border-[#17172B]">
-              <span className="text-xs font-black uppercase tracking-wider text-[#17172B]/60 block mb-1">
-                Step 1: Paste & Chat
-              </span>
-              <p className="text-xs sm:text-sm font-semibold text-[#17172B]">
-                Open ChatGPT, paste the prompt, and answer ChatGPT's questions honestly one at a time.
-              </p>
-            </div>
-
-            <div className="bg-white p-4 rounded-xl border-2 border-[#17172B]">
-              <span className="text-xs font-black uppercase tracking-wider text-[#17172B]/60 block mb-1">
-                Step 2: Request Handoff
-              </span>
-              <p className="text-xs sm:text-sm font-semibold text-[#17172B]">
-                When you agree on a direction, ChatGPT will ask to generate your FOYC Handoff. Say "YES".
-              </p>
-            </div>
-
-            <div className="bg-white p-4 rounded-xl border-2 border-[#17172B]">
-              <span className="text-xs font-black uppercase tracking-wider text-[#17172B]/60 block mb-1">
-                Step 3: Copy Handoff Block
-              </span>
-              <p className="text-xs sm:text-sm font-semibold text-[#17172B]">
-                Copy the entire delimited text block starting with <code>---BEGIN FOYC...</code>.
-              </p>
-            </div>
-
-            <div className="bg-white p-4 rounded-xl border-2 border-[#17172B]">
-              <span className="text-xs font-black uppercase tracking-wider text-[#17172B]/60 block mb-1">
-                Step 4: Return to FOYC
-              </span>
-              <p className="text-xs sm:text-sm font-semibold text-[#17172B]">
-                Click below to go to the Import screen, paste the handoff, and unlock your live dashboard.
-              </p>
-            </div>
+            <Link to="/import">
+              <Button variant="parrot" size="sm" className="gap-1.5 font-black text-xs">
+                <span>Create Dashboard Now</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
           </div>
         </Card>
-
-        {/* Privacy & Transparency Notice */}
-        <div className="bg-[#FFF8E9] p-4 rounded-xl border-2 border-[#17172B]/30 flex items-start gap-3 mb-8 text-xs text-[#17172B]/75">
-          <ShieldAlert className="w-4 h-4 text-[#17172B] shrink-0 mt-0.5" />
-          <p>
-            <strong>Transparent Architecture:</strong> FOYC never reads, tracks or intercepts your ChatGPT session. Your conversation takes place strictly inside your own ChatGPT account for maximum privacy and safety.
-          </p>
-        </div>
-
-        {/* Bottom Navigation */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link to="/reflection">
-            <Button variant="secondary" size="md" className="gap-2 w-full sm:w-auto">
-              <ArrowLeft className="w-4 h-4" />
-              Edit Reflection
-            </Button>
-          </Link>
-
-          <Link to="/import" className="w-full sm:w-auto">
-            <Button variant="primary" size="lg" className="gap-3 w-full sm:w-auto font-black shadow-[5px_5px_0px_#17172B]">
-              <span>Ready? Proceed to Import Handoff</span>
-              <ArrowRight className="w-5 h-5" />
-            </Button>
-          </Link>
-        </div>
       </main>
     </div>
   );

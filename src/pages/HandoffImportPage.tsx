@@ -14,7 +14,9 @@ import {
   ArrowRight,
   ArrowLeft,
   Sparkles,
+  Trash2,
   HelpCircle,
+  CheckCircle2,
 } from 'lucide-react';
 
 export const HandoffImportPage: React.FC = () => {
@@ -22,17 +24,29 @@ export const HandoffImportPage: React.FC = () => {
   const { applyHandoffText } = useCareer();
   const [handoffInput, setHandoffInput] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
+  const [validationSuccess, setValidationSuccess] = useState(false);
 
   const handlePasteFromClipboard = async () => {
     try {
-      const text = await navigator.clipboard.readText();
-      if (text) {
-        setHandoffInput(text);
-        setErrors([]);
+      if (navigator.clipboard) {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          setHandoffInput(text);
+          setErrors([]);
+          setValidationSuccess(false);
+        }
+      } else {
+        alert('Clipboard API unavailable. Please paste into the box with Ctrl+V (or long-press on mobile).');
       }
     } catch {
-      alert('Clipboard permission denied. Please paste manually into the text box using Ctrl+V or Cmd+V.');
+      alert('Clipboard permission denied by browser. Please paste into the box manually with Ctrl+V or Cmd+V.');
     }
+  };
+
+  const handleClear = () => {
+    setHandoffInput('');
+    setErrors([]);
+    setValidationSuccess(false);
   };
 
   const handleLoadSample = (sampleId: string) => {
@@ -40,14 +54,26 @@ export const HandoffImportPage: React.FC = () => {
     if (sample) {
       setHandoffInput(sample.rawText);
       setErrors([]);
+      setValidationSuccess(false);
     }
   };
 
-  const handleValidateAndContinue = () => {
+  const handleValidate = () => {
     setErrors([]);
+    setValidationSuccess(false);
+
+    if (!handoffInput.trim()) {
+      setErrors(['Please paste your FOYC-ready handoff block from ChatGPT before validating.']);
+      return;
+    }
+
     const res = applyHandoffText(handoffInput);
     if (res.success) {
-      navigate('/import-preview');
+      setValidationSuccess(true);
+      // Give visual feedback then transition to preview
+      setTimeout(() => {
+        navigate('/import-preview');
+      }, 400);
     } else {
       setErrors(res.errors);
     }
@@ -61,31 +87,31 @@ export const HandoffImportPage: React.FC = () => {
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#17172B]/60 mb-6">
           <Link to="/prompt-ready" className="hover:underline flex items-center gap-1">
-            <ArrowLeft className="w-3.5 h-3.5" /> Stage 4: Prompt
+            <ArrowLeft className="w-3.5 h-3.5" /> Stage 4: ChatGPT Prompt
           </Link>
           <span>/</span>
-          <span className="text-[#17172B]">Stage 7: Import Handoff</span>
+          <span className="text-[#17172B]">Create My Dashboard</span>
         </div>
 
-        {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <Badge variant="yellow" className="mb-3">
-            Stage 07 • Handoff Import
+        {/* Official Section 9 Header */}
+        <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
+          <Badge variant="parrot" size="sm">
+            <Sparkles className="w-3.5 h-3.5 mr-1" />
+            Handoff Import & Extraction
           </Badge>
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-[#17172B] tracking-tight leading-[1.12]">
-            Your career direction is ready.{' '}
-            <Highlight color="#FFE76B">Let's build your dashboard.</Highlight>
+          <h1 className="text-3xl sm:text-5xl font-black text-[#17172B] tracking-tight leading-[1.12]">
+            Create My Personalized <Highlight color="#FFE76B">Dashboard</Highlight>
           </h1>
-          <p className="text-base sm:text-lg text-[#17172B]/75 font-medium mt-3">
-            Paste the FOYC Dashboard Handoff Prompt generated during your ChatGPT conversation. We'll organize your career direction, learning roadmap, tasks and habits into your personal workspace.
+          <p className="text-base sm:text-lg text-[#17172B]/80 font-semibold">
+            Your career discussion is complete. Paste your FOYC-ready prompt below and let us organize your next steps.
           </p>
         </div>
 
-        {/* Quick Demo Pre-fill Pills */}
-        <div className="bg-white p-4 rounded-2xl border-2 border-[#17172B] shadow-[3px_3px_0px_#17172B] mb-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+        {/* Quick Demo Example Links */}
+        <div className="bg-[#FFFDF8] p-4 rounded-2xl border-2 border-[#17172B] shadow-[3px_3px_0px_#17172B] mb-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span className="text-xs font-black uppercase tracking-wider text-[#17172B] flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-[#D97706]" />
-            Quick Demo: Load a Pre-Generated Sample:
+            <Sparkles className="w-4 h-4 text-[#315B28]" />
+            Example Handoffs (Quick Test):
           </span>
           <div className="flex flex-wrap gap-2">
             {SAMPLE_HANDOFFS.map((sample) => (
@@ -93,7 +119,7 @@ export const HandoffImportPage: React.FC = () => {
                 key={sample.id}
                 type="button"
                 onClick={() => handleLoadSample(sample.id)}
-                className="px-3 py-1 bg-[#FFF8E9] hover:bg-[#FFE76B] text-xs font-bold rounded-lg border border-[#17172B] transition-colors"
+                className="px-3 py-1 bg-[#FFF8E9] hover:bg-[#B8E986] text-xs font-bold rounded-lg border-2 border-[#17172B] shadow-[1.5px_1.5px_0px_#17172B] transition-colors"
               >
                 {sample.role}
               </button>
@@ -101,21 +127,37 @@ export const HandoffImportPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Big Paste Area Card */}
-        <Card variant="white" shadowSize="lg" className="p-6 sm:p-8 mb-6">
-          <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-[#17172B]/20">
-            <span className="text-xs font-black uppercase tracking-wider text-[#17172B]/70">
-              Paste Handoff Text Block
+        {/* Large Paste Box Card */}
+        <Card variant="white" shadowSize="lg" className="p-6 sm:p-8 mb-6 border-3 bg-[#FFFDF8]">
+          <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-[#17172B]/15">
+            <span className="text-xs font-black uppercase tracking-wider text-[#17172B]">
+              Paste FOYC Handoff Block
             </span>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handlePasteFromClipboard}
-              className="gap-1.5 text-xs py-1"
-            >
-              <ClipboardPaste className="w-3.5 h-3.5" />
-              Paste from Clipboard
-            </Button>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handlePasteFromClipboard}
+                className="gap-1.5 text-xs font-bold py-1 bg-[#F2F9E9] hover:bg-[#DDF5C5]"
+              >
+                <ClipboardPaste className="w-3.5 h-3.5" />
+                Paste from Clipboard
+              </Button>
+
+              {handoffInput && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClear}
+                  className="gap-1 text-xs py-1 border border-[#17172B] text-red-700 hover:bg-red-50"
+                  title="Clear paste box"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Clear
+                </Button>
+              )}
+            </div>
           </div>
 
           <textarea
@@ -123,49 +165,77 @@ export const HandoffImportPage: React.FC = () => {
             onChange={(e) => {
               setHandoffInput(e.target.value);
               if (errors.length) setErrors([]);
+              setValidationSuccess(false);
             }}
-            rows={12}
-            placeholder={`FOYC CAREER DASHBOARD HANDOFF\n\n---BEGIN FOYC CAREER DIRECTION---\nPrimary: Full-Stack Software Engineer\nSummary: ...\n---END FOYC CAREER DIRECTION---\n\n---BEGIN FOYC MILESTONES---\n1. Foundation ...\n---END FOYC MILESTONES---`}
-            className="w-full p-4 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-mono text-xs sm:text-sm text-[#17172B] focus:outline-none focus:ring-2 focus:ring-[#FFE76B] shadow-[2px_2px_0px_#17172B] resize-y leading-relaxed"
+            rows={13}
+            placeholder={`FOYC_DASHBOARD_START\n{\n  "schema_version": "foyc_dashboard_v2",\n  "profile": {\n    "preferred_name": "Alex",\n    ...\n  },\n  "career_direction": {\n    "primary_career_direction": "Full-Stack Software Engineer",\n    ...\n  },\n  "roadmap": { ... },\n  "tasks": [ ... ],\n  "habits": [ ... ]\n}\nFOYC_DASHBOARD_END`}
+            className="w-full p-4 rounded-xl border-2 border-[#17172B] bg-[#FFF8E9]/60 font-mono text-xs sm:text-sm text-[#17172B] focus:outline-none focus:ring-2 focus:ring-[#B8E986] shadow-[2px_2px_0px_#17172B] resize-y leading-relaxed"
           />
 
-          {/* Error messages if validation failed */}
+          {/* Validation Error Feedback */}
           {errors.length > 0 && (
-            <div className="mt-4 p-4 rounded-xl bg-red-50 border-2 border-red-400 text-red-900 text-xs sm:text-sm space-y-1">
-              <div className="flex items-center gap-2 font-bold text-red-700">
-                <AlertTriangle className="w-4 h-4" />
-                Handoff Validation Issue:
+            <div className="mt-4 p-4 rounded-xl bg-red-50 border-2 border-red-400 text-red-900 text-xs sm:text-sm space-y-1 animate-fadeIn">
+              <div className="flex items-center gap-2 font-black text-red-700">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>Handoff Parsing Issue:</span>
               </div>
               {errors.map((err, i) => (
-                <p key={i}>• {err}</p>
+                <p key={i} className="font-semibold">• {err}</p>
               ))}
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-4 mt-2 text-xs font-bold text-[#17172B]/60">
+          {/* Validation Success Feedback */}
+          {validationSuccess && (
+            <div className="mt-4 p-4 rounded-xl bg-[#DDF5C5] border-2 border-[#315B28] text-[#17172B] text-xs sm:text-sm flex items-center gap-2 font-black animate-fadeIn">
+              <CheckCircle2 className="w-5 h-5 text-[#315B28]" />
+              <span>Handoff validated successfully! Generating dashboard preview...</span>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between pt-4 mt-2 text-xs font-bold text-[#17172B]/60 border-t border-[#17172B]/10">
             <span>{handoffInput.length} characters pasted</span>
-            <span>Must include standard FOYC section markers</span>
+            <span>Deterministic schema validation (Zero AI API required)</span>
+          </div>
+        </Card>
+
+        {/* Simple Instructions */}
+        <Card variant="cream" shadowSize="sm" className="p-4 mb-6 border-2 flex items-start gap-3">
+          <HelpCircle className="w-5 h-5 text-[#17172B] shrink-0 mt-0.5" />
+          <div className="text-xs font-semibold text-[#17172B]/85 space-y-1">
+            <span className="font-black text-[#17172B] block uppercase tracking-wider">
+              Simple Instructions:
+            </span>
+            <p>
+              1. Ask ChatGPT: "Would you like me to prepare your personalized FOYC Career Dashboard Prompt?" and reply YES.
+            </p>
+            <p>
+              2. Copy the entire code block including <code className="font-bold bg-white px-1 py-0.5 rounded border border-[#17172B]">FOYC_DASHBOARD_START</code> and <code className="font-bold bg-white px-1 py-0.5 rounded border border-[#17172B]">FOYC_DASHBOARD_END</code>.
+            </p>
+            <p>
+              3. Click <strong>Validate & Preview Plan</strong> below to inspect and customize your roadmap before saving.
+            </p>
           </div>
         </Card>
 
         {/* Bottom Actions */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <Link to="/prompt-ready">
-            <Button variant="secondary" size="md" className="gap-2 w-full sm:w-auto">
+            <Button variant="secondary" size="md" className="gap-2 w-full sm:w-auto font-bold">
               <ArrowLeft className="w-4 h-4" />
               Back to Prompt
             </Button>
           </Link>
 
           <Button
-            variant="primary"
+            variant="parrot"
             size="lg"
-            onClick={handleValidateAndContinue}
+            onClick={handleValidate}
             disabled={!handoffInput.trim()}
-            className="gap-3 w-full sm:w-auto font-black shadow-[5px_5px_0px_#17172B]"
+            className="gap-3 w-full sm:w-auto font-black shadow-[4px_4px_0px_#17172B]"
           >
-            <FileCheck2 className="w-5 h-5" />
-            <span>Validate & Preview Dashboard Draft</span>
+            <FileCheck2 className="w-5 h-5 text-[#17172B]" />
+            <span>Validate & Preview Plan</span>
             <ArrowRight className="w-5 h-5" />
           </Button>
         </div>

@@ -230,7 +230,7 @@ export const OverviewPage: React.FC = () => {
             <Card variant="white" shadowSize="md" className="p-6">
               <div className="flex items-center justify-between pb-4 mb-4 border-b-2 border-[#17172B]">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-[#FFD9E8] border border-[#17172B] flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-[#B8E986] border border-[#17172B] flex items-center justify-center">
                     <Flame className="w-4 h-4 text-[#D97706] fill-amber-500" />
                   </div>
                   <div>

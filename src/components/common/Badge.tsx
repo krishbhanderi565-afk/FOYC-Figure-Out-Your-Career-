@@ -2,7 +2,7 @@ import React from 'react';
 
 export interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'yellow' | 'pink' | 'blue' | 'green' | 'lavender' | 'dark' | 'white';
+  variant?: 'yellow' | 'pink' | 'parrot' | 'blue' | 'green' | 'lavender' | 'dark' | 'white';
   size?: 'sm' | 'md';
   className?: string;
   dot?: boolean;
@@ -17,7 +17,9 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
   const variantStyles = {
     yellow: 'bg-[#FFE76B] text-[#17172B] border-[#17172B]',
-    pink: 'bg-[#FFD9E8] text-[#17172B] border-[#17172B]',
+    // Refresh pink to light parrot green
+    pink: 'bg-[#DDF5C5] text-[#17172B] border-[#17172B]',
+    parrot: 'bg-[#B8E986] text-[#17172B] border-[#17172B]',
     blue: 'bg-[#D7EAFE] text-[#17172B] border-[#17172B]',
     green: 'bg-[#DDF5C9] text-[#17172B] border-[#17172B]',
     lavender: 'bg-[#E8DDFF] text-[#17172B] border-[#17172B]',

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Compass, Heart, ArrowUpRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowUpRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { Logo } from './Logo';
 
 export const Footer: React.FC = () => {
   return (
@@ -9,11 +10,8 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-[#FFF8E9]/15">
           {/* Brand Column */}
           <div className="md:col-span-5 flex flex-col gap-4">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#FFE76B] border-2 border-white flex items-center justify-center">
-                <Compass className="w-6 h-6 text-[#17172B]" />
-              </div>
-              <span className="font-extrabold text-2xl tracking-tighter text-white">FOYC</span>
+            <Link to="/" className="inline-block focus:outline-none">
+              <Logo size="md" variant="dark" />
             </Link>
             <p className="font-bold text-[#FFE76B] text-lg">
               From Career Confusion to Career Clarity.
@@ -21,8 +19,8 @@ export const Footer: React.FC = () => {
             <p className="text-sm text-[#FFF8E9]/70 max-w-sm leading-relaxed">
               FOYC helps people from any country, educational background or career stage explore real possibilities, identify skill gaps, and turn raw ambitions into a living, personalized career roadmap.
             </p>
-            <div className="inline-flex items-center gap-2 text-xs text-[#DDF5C9] bg-[#DDF5C9]/10 px-3 py-1.5 rounded-full border border-[#DDF5C9]/20 w-fit">
-              <ShieldCheck className="w-4 h-4 text-[#DDF5C9]" />
+            <div className="inline-flex items-center gap-2 text-xs text-[#17172B] bg-[#B8E986] px-3.5 py-1.5 rounded-full border-2 border-[#17172B] font-bold shadow-[2px_2px_0px_#FFE76B] w-fit">
+              <ShieldCheck className="w-4 h-4 text-[#17172B]" />
               <span>Zero mandatory accounts • 100% private discovery</span>
             </div>
           </div>
@@ -39,7 +37,7 @@ export const Footer: React.FC = () => {
 
           {/* Nav links 2 */}
           <div className="md:col-span-2 flex flex-col gap-3">
-            <span className="font-bold text-xs uppercase tracking-widest text-[#FFD9E8]">Dashboard</span>
+            <span className="font-bold text-xs uppercase tracking-widest text-[#B8E986]">Dashboard</span>
             <Link to="/dashboard" className="text-sm text-[#FFF8E9]/80 hover:text-white transition-colors">Overview</Link>
             <Link to="/dashboard/roadmap" className="text-sm text-[#FFF8E9]/80 hover:text-white transition-colors">Career Roadmap</Link>
             <Link to="/dashboard/tasks" className="text-sm text-[#FFF8E9]/80 hover:text-white transition-colors">Learning Checklist</Link>

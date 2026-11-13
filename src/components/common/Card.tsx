@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'cream' | 'yellow' | 'pink' | 'blue' | 'lavender' | 'green' | 'white' | 'dark';
+  variant?: 'cream' | 'yellow' | 'pink' | 'parrot' | 'blue' | 'lavender' | 'green' | 'white' | 'dark';
   shadowSize?: 'sm' | 'md' | 'lg' | 'none';
   interactive?: boolean;
   children: React.ReactNode;
@@ -18,7 +18,9 @@ export const Card: React.FC<CardProps> = ({
   const variantStyles = {
     cream: 'bg-[#FFF8E9] text-[#17172B] border-[#17172B]',
     yellow: 'bg-[#FFE76B] text-[#17172B] border-[#17172B]',
-    pink: 'bg-[#FFD9E8] text-[#17172B] border-[#17172B]',
+    // Refresh pink to light parrot green for brand update
+    pink: 'bg-[#DDF5C5] text-[#17172B] border-[#17172B]',
+    parrot: 'bg-[#B8E986] text-[#17172B] border-[#17172B]',
     blue: 'bg-[#D7EAFE] text-[#17172B] border-[#17172B]',
     lavender: 'bg-[#E8DDFF] text-[#17172B] border-[#17172B]',
     green: 'bg-[#DDF5C9] text-[#17172B] border-[#17172B]',
