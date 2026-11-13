@@ -12,7 +12,6 @@ import {
   AlertCircle,
   Plus,
   ArrowRight,
-  Sparkles,
 } from 'lucide-react';
 
 export const RoadmapPage: React.FC = () => {

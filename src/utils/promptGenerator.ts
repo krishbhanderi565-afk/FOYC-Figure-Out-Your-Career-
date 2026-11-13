@@ -10,6 +10,30 @@ export function generateDiscoveryPrompt(profile: UserProfile, reflection: UserRe
   const experience = profile.workExperience || 'Not specified';
   const hours = profile.availableHoursPerWeek ? `${profile.availableHoursPerWeek} hours/week` : '10-15 hours/week';
 
+  let reflectionSection = reflection.mindText || "I have multiple interests and curiosities, but I feel paralyzed by conflicting advice, changing job markets, and fear of making the wrong move. I need help figuring out a realistic, fulfilling direction and a clear action plan.";
+
+  if (reflection.questionnaireAnswers && Object.keys(reflection.questionnaireAnswers).length > 0) {
+    const qLabels = [
+      '1. Current Situation',
+      '2. Interests',
+      '3. Existing Skills & Strengths',
+      '4. Career Aspirations',
+      '5. Current Confusion',
+      '6. What I Have Already Tried',
+      '7. Constraints & Limitations',
+      '8. Additional Thoughts & Context',
+    ];
+    const items = Object.entries(reflection.questionnaireAnswers)
+      .map(([idx, ans]) => {
+        const num = parseInt(idx, 10);
+        return ans && ans.trim() ? `${qLabels[num] || `Question ${num + 1}`}:\n${ans.trim()}` : null;
+      })
+      .filter(Boolean);
+    if (items.length > 0) {
+      reflectionSection = items.join('\n\n');
+    }
+  }
+
   return `You are the official FOYC (Figure Out Your Career) Career Discovery Partner & Pragmatic Career Coach.
 Your mission is to guide me from career confusion to genuine career clarity through a natural, empathetic, and objective 1-on-1 discussion.
 
@@ -24,9 +48,9 @@ MY BACKGROUND & CURRENT CONTEXT:
 - Prior Experience: ${experience}
 - Available Learning Commitment: ${hours}
 
-WHAT IS CURRENTLY ON MY MIND & MY RAW CONFUSION:
+WHAT IS CURRENTLY ON MY MIND & MY DISCOVERY QUESTIONNAIRE:
 """
-${reflection.mindText || "I have multiple interests and curiosities, but I feel paralyzed by conflicting advice, changing job markets, and fear of making the wrong move. I need help figuring out a realistic, fulfilling direction and a clear action plan."}
+${reflectionSection}
 """
 
 ==================================================

@@ -6,7 +6,7 @@ import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { Highlight } from '../components/common/Highlight';
 import { Badge } from '../components/common/Badge';
-import { ShieldCheck, Mail, Lock, ArrowRight, Sparkles, CheckCircle, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, ArrowRight, Compass, CheckCircle, ArrowLeft } from 'lucide-react';
 import { Logo } from '../components/common/Logo';
 
 export const AuthPage: React.FC = () => {
@@ -29,7 +29,7 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FCEEE9] flex flex-col text-[#17172B]">
+    <div className="min-h-screen bg-[#FFFDF8] flex flex-col text-[#171717]">
       <Navbar />
 
       <main className="flex-1 max-w-xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-16">
@@ -44,7 +44,7 @@ export const AuthPage: React.FC = () => {
               <Logo size="sm" />
             </div>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#B8E986] border border-[#17172B] text-xs font-black uppercase tracking-wider mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-[#17172B]" />
+              <Compass className="w-3.5 h-3.5 text-[#17172B]" />
               Save & Launch Your Workspace
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-[#17172B] tracking-tight leading-tight">
@@ -157,7 +157,7 @@ export const AuthPage: React.FC = () => {
               onClick={handleInstantDemo}
               className="gap-2 w-full text-xs font-extrabold"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <Compass className="w-3.5 h-3.5" />
               Instant 1-Click Demo Access (Skip Login Form)
             </Button>
           </div>

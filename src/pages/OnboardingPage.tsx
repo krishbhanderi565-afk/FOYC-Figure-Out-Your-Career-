@@ -6,7 +6,7 @@ import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { Highlight } from '../components/common/Highlight';
-import { ArrowLeft, ArrowRight, Sparkles, Check, Globe, Clock, User, BookOpen } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Compass, Check, Globe, Clock, User, BookOpen } from 'lucide-react';
 import { AgeRange, EducationStatus, CareerStage } from '../types/career';
 
 export const OnboardingPage: React.FC = () => {
@@ -48,7 +48,7 @@ export const OnboardingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FCEEE9] flex flex-col text-[#17172B]">
+    <div className="min-h-screen bg-[#FFFDF8] flex flex-col text-[#171717]">
       <Navbar />
 
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-16">

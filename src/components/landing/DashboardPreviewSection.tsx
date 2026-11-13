@@ -12,7 +12,7 @@ import {
   ListTodo,
   TrendingUp,
   ArrowRight,
-  Sparkles,
+  Compass,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -34,7 +34,7 @@ export const DashboardPreviewSection: React.FC = () => {
         {/* Header */}
         <div className="max-w-3xl mx-auto text-center mb-16">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFE76B] text-[#17172B] border-2 border-white text-xs font-black uppercase tracking-wider mb-4 shadow-[2px_2px_0px_#FFFFFF]">
-            <Sparkles className="w-3.5 h-3.5 text-[#17172B]" />
+            <Compass className="w-3.5 h-3.5 text-[#17172B]" />
             Your Command Centre
           </span>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-[1.15] mb-4">

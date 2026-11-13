@@ -4,241 +4,250 @@ import { useCareer } from '../context/CareerContext';
 import { Navbar } from '../components/common/Navbar';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
-import { Highlight } from '../components/common/Highlight';
 import {
-  Mic,
-  RotateCcw,
-  Sparkles,
+  Compass,
   ArrowRight,
   ArrowLeft,
+  CheckCircle2,
   HelpCircle,
-  Lightbulb,
-  HeartHandshake,
-  Check,
 } from 'lucide-react';
+
+const QUESTIONS = [
+  {
+    id: 1,
+    title: 'Current Situation',
+    subtitle: 'What are you currently studying, learning or working on?',
+    placeholder: 'e.g. Currently in 3rd year of Computer Science; or working in customer service while learning web development on weekends...',
+    hint: 'Give your coach a clear picture of where you stand today.',
+  },
+  {
+    id: 2,
+    title: 'Interests & Curiosities',
+    subtitle: 'What subjects, topics or activities genuinely interest or excite you?',
+    placeholder: 'e.g. Building interactive web apps, experimenting with AI prompting, designing clean user interfaces, solving logical backend puzzles...',
+    hint: 'Think about things you enjoy exploring even when no one is grading or paying you.',
+  },
+  {
+    id: 3,
+    title: 'Existing Skills & Strengths',
+    subtitle: 'What skills, strengths or past experiences do you already have?',
+    placeholder: 'e.g. Basic Python and JavaScript, good communication, ability to break complex problems into steps, fast self-directed learner...',
+    hint: 'Include technical tools, soft skills, or domain knowledge you have accumulated.',
+  },
+  {
+    id: 4,
+    title: 'Career Aspirations',
+    subtitle: 'What kind of career or daily work life do you aspire to build?',
+    placeholder: 'e.g. Working as a full-stack engineer at a fast-moving product team, having high autonomy, earning well while building products people use...',
+    hint: 'Focus on both the role and the lifestyle you want in 2–3 years.',
+  },
+  {
+    id: 5,
+    title: 'Current Confusion',
+    subtitle: 'What is causing you the most confusion or uncertainty right now?',
+    placeholder: 'e.g. Confused between deep AI/ML versus Full-Stack development. Worried whether AI will automate junior coders before I land my first job...',
+    hint: 'Be completely honest—there are no wrong answers.',
+  },
+  {
+    id: 6,
+    title: 'What Have You Already Tried?',
+    subtitle: 'What steps, courses, tutorials or attempts have you made so far?',
+    placeholder: 'e.g. Completed a couple of freeCodeCamp modules, watched YouTube roadmaps, built a simple to-do app, but keep getting stuck in tutorial hell...',
+    hint: 'Knowing what you tried helps avoid repeating things that did not work.',
+  },
+  {
+    id: 7,
+    title: 'Constraints & Limitations',
+    subtitle: 'What constraints (time, finances, location, commitments) must be respected?',
+    placeholder: 'e.g. Can commit 15 hours per week around college; cannot afford an expensive boot camp; need a remote or hybrid role within 6 months...',
+    hint: 'Pragmatic career roadmaps must fit your actual life reality.',
+  },
+  {
+    id: 8,
+    title: 'Anything Else On Your Mind?',
+    subtitle: 'Any additional fears, doubts, or specific questions for your coach?',
+    placeholder: 'e.g. Feeling like everyone else is ahead of me; wanting to know if switching from mechanical engineering to tech is still realistic this year...',
+    hint: 'Anything else you want ChatGPT to take into consideration during your discussion.',
+  },
+];
 
 export const MindReflectionPage: React.FC = () => {
   const navigate = useNavigate();
   const { reflection, updateReflection } = useCareer();
-  const [mindText, setMindText] = useState(reflection.mindText || '');
-  const [isRecording, setIsRecording] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const characterCount = mindText.length;
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, string>>(() => {
+    if (reflection.questionnaireAnswers && Object.keys(reflection.questionnaireAnswers).length > 0) {
+      return { ...reflection.questionnaireAnswers };
+    }
+    // Initialize question 0 with existing mindText if available
+    return {
+      0: reflection.mindText || '',
+    };
+  });
 
-  const guidanceQuestions = [
-    'What are you currently studying, learning or working on?',
-    'What genuinely interests or excites you?',
-    'What do you enjoy doing when nobody is grading or paying you?',
-    'What are you struggling with the most?',
-    'Which specific career options are confusing you right now?',
-    'What do you want your daily future lifestyle to look like?',
-    'What constraints, time limitations or financial responsibilities do you have?',
-    'Is there a path you are doing only because family or peers expect you to?',
-  ];
+  const currentQ = QUESTIONS[currentIndex];
+  const currentAnswer = answers[currentIndex] || '';
+  const progressPct = Math.round(((currentIndex + 1) / QUESTIONS.length) * 100);
 
-  const quickStarters = [
-    "I'm torn between Software Engineering and AI...",
-    "I have no coding experience but want to enter tech...",
-    "I feel overwhelmed by how fast AI is changing...",
-    "I want to build my own startup or micro-products...",
-  ];
+  const handleAnswerChange = (val: string) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [currentIndex]: val,
+    }));
+  };
 
-  const handleAppendStarter = (text: string) => {
-    if (!mindText.trim()) {
-      setMindText(text + ' ');
+  const handleNext = () => {
+    if (currentIndex < QUESTIONS.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
     } else {
-      setMindText((prev) => prev.trim() + ' ' + text + ' ');
+      // Save full reflection & navigate
+      saveAndContinue();
     }
   };
 
-  const handleClear = () => {
-    if (window.confirm('Are you sure you want to clear your reflection?')) {
-      setMindText('');
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
     }
   };
 
-  const handleVoiceInputMock = () => {
-    setIsRecording(true);
-    setToastMessage('Voice input simulation: Listening... (Click to stop)');
-    setTimeout(() => {
-      setIsRecording(false);
-      setToastMessage('Voice transcribed smoothly!');
-      if (!mindText.includes('I enjoy building projects and problem solving')) {
-        setMindText((prev) =>
-          prev
-            ? prev + ' I also enjoy building practical projects and problem solving with creative teammates.'
-            : 'I enjoy building practical projects and problem solving with creative teammates.'
-        );
-      }
-      setTimeout(() => setToastMessage(null), 3000);
-    }, 2500);
-  };
+  const saveAndContinue = () => {
+    // Compile summary mindText from all 8 answers
+    const compiledText = QUESTIONS.map((q, idx) => {
+      const a = (answers[idx] || '').trim();
+      return a ? `${q.title}:\n${a}` : null;
+    })
+      .filter(Boolean)
+      .join('\n\n');
 
-  const handleContinue = () => {
-    updateReflection({ mindText });
+    updateReflection({
+      mindText: compiledText || currentAnswer,
+      questionnaireAnswers: answers,
+    });
     navigate('/prompt-ready');
   };
 
   return (
-    <div className="min-h-screen bg-[#FCEEE9] flex flex-col text-[#17172B]">
+    <div className="min-h-screen bg-[#FFFDF8] flex flex-col text-[#171717]">
       <Navbar />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-14">
-        {/* Breadcrumb indicator */}
-        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#17172B]/60 mb-6">
-          <Link to="/onboarding" className="hover:underline flex items-center gap-1">
-            <ArrowLeft className="w-3.5 h-3.5" /> Stage 2: Profile
-          </Link>
-          <span>/</span>
-          <span className="text-[#17172B]">Stage 3: Personal Reflection</span>
-        </div>
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        {/* Top Header & Progress */}
+        <div className="mb-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <Link
+              to="/onboarding"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#333333] hover:text-[#171717]"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Profile</span>
+            </Link>
 
-        {/* Header */}
-        <div className="max-w-3xl mb-8">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#B8E986] border-2 border-[#17172B] shadow-[2px_2px_0px_#17172B] text-xs font-black uppercase tracking-wider mb-3">
-            <HeartHandshake className="w-4 h-4 text-[#17172B]" />
-            A Safe, Judgment-Free Space
+            <span className="text-xs font-mono font-bold text-[#526B50] bg-[#EDF2E9] px-2.5 py-1 rounded-full border border-[#A8B99A]">
+              Question {currentIndex + 1} of {QUESTIONS.length}
+            </span>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-[#17172B] tracking-tight leading-[1.12]">
-            Let's start with <Highlight color="#FFE76B">what's on your mind.</Highlight>
-          </h1>
-          <p className="text-base sm:text-lg text-[#17172B]/80 font-medium mt-3 leading-relaxed">
-            You don't need to have everything figured out. Tell us honestly about your interests, ambitions, struggles and confusion.
-          </p>
+
+          {/* Progress Bar */}
+          <div className="w-full h-2 bg-[#F4F3EF] rounded-full overflow-hidden border border-[#E8E5DE]">
+            <div
+              className="h-full bg-[#526B50] rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
         </div>
 
-        {/* Main 2-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Big Textarea Container */}
-          <div className="lg:col-span-8">
-            <Card variant="white" shadowSize="lg" className="p-6 sm:p-8 relative">
-              {/* Top Textarea Toolbar */}
-              <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-[#17172B]/20">
-                <span className="text-xs font-black uppercase tracking-wider text-[#17172B]/70">
-                  Your Open Reflection
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleVoiceInputMock}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold border-2 border-[#17172B] flex items-center gap-1.5 transition-all ${
-                      isRecording
-                        ? 'bg-red-400 text-white animate-pulse'
-                        : 'bg-[#DDF5C5] hover:bg-[#FFE76B] text-[#17172B]'
-                    }`}
-                  >
-                    <Mic className="w-3.5 h-3.5" />
-                    <span>{isRecording ? 'Listening...' : 'Voice Input'}</span>
-                  </button>
-                  {mindText && (
-                    <button
-                      type="button"
-                      onClick={handleClear}
-                      className="px-2.5 py-1 rounded-lg text-xs font-bold text-red-600 hover:bg-red-50 border border-transparent hover:border-red-300 flex items-center gap-1"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      Clear
-                    </button>
-                  )}
-                </div>
-              </div>
+        {/* Question Card */}
+        <div className="bg-white rounded-2xl border border-[#E8E5DE] shadow-xs p-6 sm:p-8 space-y-6">
+          <div className="space-y-2">
+            <span className="text-xs font-black uppercase tracking-wider text-[#526B50] inline-block">
+              {currentQ.title}
+            </span>
+            <h1 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight leading-snug">
+              {currentQ.subtitle}
+            </h1>
+            <p className="text-xs text-[#666666] font-medium">
+              {currentQ.hint}
+            </p>
+          </div>
 
-              {/* Toast if recording */}
-              {toastMessage && (
-                <div className="mb-3 px-3 py-2 rounded-lg bg-[#FFE76B] border border-[#17172B] text-xs font-bold text-[#17172B] animate-in fade-in-50">
-                  {toastMessage}
-                </div>
-              )}
-
-              {/* The large textarea */}
-              <textarea
-                value={mindText}
-                onChange={(e) => setMindText(e.target.value)}
-                rows={12}
-                placeholder="I'm currently studying computer science. Everyone around me says AI will replace programming, and I'm confused about what skills I should develop. I enjoy building projects and solving problems, but I don't know which career direction is right for me. I want to build something meaningful in the future..."
-                className="w-full p-4 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-medium text-base text-[#17172B] focus:outline-none focus:ring-2 focus:ring-[#FFE76B] shadow-[2px_2px_0px_#17172B] leading-relaxed resize-y"
-              />
-
-              {/* Bottom Character Counter & Hint */}
-              <div className="flex items-center justify-between pt-3 mt-2 text-xs font-bold text-[#17172B]/60">
-                <span>{characterCount} characters written</span>
-                <span>The more honest you are, the better the guidance.</span>
-              </div>
-
-              {/* Quick Thought Starters */}
-              <div className="mt-6 pt-4 border-t-2 border-[#17172B]/20">
-                <span className="text-[11px] font-black uppercase tracking-wider text-[#17172B]/60 block mb-2">
-                  Need inspiration? Click to insert:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {quickStarters.map((starter, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => handleAppendStarter(starter)}
-                      className="px-3 py-1.5 rounded-lg bg-[#DDF5C5] hover:bg-[#FFE76B] text-xs font-bold text-[#17172B] border border-[#17172B] transition-all"
-                    >
-                      + {starter}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </Card>
-
-            {/* Bottom Actions */}
-            <div className="mt-8 flex items-center justify-between">
-              <Link to="/onboarding">
-                <Button variant="secondary" size="md" className="gap-2">
-                  <ArrowLeft className="w-4 h-4" />
-                  Back
-                </Button>
-              </Link>
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={handleContinue}
-                disabled={characterCount < 10}
-                className="gap-3 px-8 text-base font-extrabold shadow-[5px_5px_0px_#17172B]"
-              >
-                <span>Generate ChatGPT Coach Prompt</span>
-                <ArrowRight className="w-5 h-5" />
-              </Button>
+          {/* Text Area */}
+          <div className="relative">
+            <textarea
+              value={currentAnswer}
+              onChange={(e) => handleAnswerChange(e.target.value)}
+              rows={6}
+              placeholder={currentQ.placeholder}
+              className="w-full p-4 rounded-xl border border-[#E8E5DE] bg-[#FFFDF8] text-sm text-[#171717] font-medium leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#526B50] focus:border-transparent placeholder:text-[#999999] transition-all resize-y"
+              autoFocus
+            />
+            <div className="flex justify-between items-center mt-2 px-1 text-[11px] font-mono text-[#888888]">
+              <span>Text input only • Preserved across questions</span>
+              <span>{currentAnswer.length} characters</span>
             </div>
           </div>
 
-          {/* Right Column: Guidance Panel */}
-          <div className="lg:col-span-4 space-y-5">
-            <Card variant="yellow" shadowSize="md" className="p-6">
-              <div className="flex items-center gap-2 mb-3">
-                <Lightbulb className="w-5 h-5 text-[#17172B]" />
-                <h3 className="font-black text-base uppercase tracking-wider text-[#17172B]">
-                  Helpful Questions to Consider
-                </h3>
-              </div>
-              <p className="text-xs text-[#17172B]/80 font-medium mb-4">
-                You don't need to answer every question. Let these trigger thoughts you might have held back:
-              </p>
+          {/* Question Dots Navigation */}
+          <div className="pt-2 flex items-center justify-center gap-1.5 flex-wrap">
+            {QUESTIONS.map((q, idx) => {
+              const isDone = (answers[idx] || '').trim().length > 0;
+              const isCurrent = idx === currentIndex;
+              return (
+                <button
+                  key={q.id}
+                  type="button"
+                  onClick={() => setCurrentIndex(idx)}
+                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                    isCurrent
+                      ? 'bg-[#171717] text-white'
+                      : isDone
+                      ? 'bg-[#EDF2E9] text-[#526B50] border border-[#A8B99A]'
+                      : 'bg-[#F4F3EF] text-[#888888] hover:bg-[#E8E5DE]'
+                  }`}
+                  title={`${q.title}: ${isDone ? 'Answered' : 'Pending'}`}
+                >
+                  {q.id}
+                </button>
+              );
+            })}
+          </div>
 
-              <div className="space-y-2.5">
-                {guidanceQuestions.map((q, idx) => (
-                  <div key={idx} className="flex items-start gap-2 text-xs font-bold text-[#17172B]/90 bg-white/70 p-2.5 rounded-lg border border-[#17172B]/40">
-                    <span className="text-[#17172B] font-mono font-black">•</span>
-                    <span>{q}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
+          {/* Bottom Actions */}
+          <div className="pt-4 border-t border-[#E8E5DE] flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={handlePrev}
+              disabled={currentIndex === 0}
+              className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-colors ${
+                currentIndex === 0
+                  ? 'opacity-40 cursor-not-allowed text-[#888888]'
+                  : 'bg-[#F4F3EF] hover:bg-[#E8E5DE] text-[#171717]'
+              }`}
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Previous</span>
+            </button>
 
-            {/* Privacy Promise Card */}
-            <Card variant="green" shadowSize="sm" className="p-5">
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#17172B] block mb-1">
-                🔒 Private & Local
-              </span>
-              <p className="text-xs text-[#17172B]/85 font-medium leading-relaxed">
-                Your reflection stays in your browser until you choose to copy it to ChatGPT. FOYC does not monetize or train on your personal text.
-              </p>
-            </Card>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={saveAndContinue}
+                className="text-xs font-semibold text-[#666666] hover:text-[#171717] px-3 py-2"
+              >
+                Skip to Prompt
+              </button>
+
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleNext}
+                className="gap-2 text-xs font-bold bg-[#FFE76B] hover:bg-[#FADB3D] text-[#171717] border border-[#171717] shadow-[2px_2px_0px_#171717]"
+              >
+                <span>{currentIndex === QUESTIONS.length - 1 ? 'Generate Prompt' : 'Next Question'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
           </div>
         </div>
       </main>

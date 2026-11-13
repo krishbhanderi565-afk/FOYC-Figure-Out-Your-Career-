@@ -8,16 +8,16 @@ import { FinalCtaSection } from '../components/landing/FinalCtaSection';
 
 export const LandingPage: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#FCEEE9] text-[#17172B]">
+    <div className="min-h-screen flex flex-col bg-[#FFFDF8] text-[#171717]">
       <Navbar />
       <main className="flex-1">
         {/* Section 1: Hero */}
         <HeroSection />
 
-        {/* Section 2: Problem -> Tension -> Solution -> Outcome */}
+        {/* Section 2: Problem -> Tension -> Solution -> Outcome (New Graphic) */}
         <ProblemTensionSolutionSection />
 
-        {/* Section 3: How FOYC Works (4 Simple Steps) */}
+        {/* Section 3: How FOYC Works (New Graphic) */}
         <HowItWorksSimpleSection />
 
         {/* Section 4: Final CTA */}

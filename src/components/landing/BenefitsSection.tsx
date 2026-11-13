@@ -2,7 +2,7 @@ import React from 'react';
 import { Highlight } from '../common/Highlight';
 import { Card } from '../common/Card';
 import { Badge } from '../common/Badge';
-import { Shield, Sparkles, Compass, Target, RefreshCw, Lock } from 'lucide-react';
+import { Shield, Lightbulb, Compass, Target, RefreshCw, Lock } from 'lucide-react';
 
 export const BenefitsSection: React.FC = () => {
   const benefits = [
@@ -16,7 +16,7 @@ export const BenefitsSection: React.FC = () => {
       title: 'Transparent AI Collaboration',
       desc: 'FOYC does not pretend to have an omniscient black-box algorithm. We give you full visibility and control over your discovery prompt and handoff data.',
       color: 'yellow' as const,
-      icon: Sparkles,
+      icon: Lightbulb,
     },
     {
       title: 'Actionable Proof of Work',

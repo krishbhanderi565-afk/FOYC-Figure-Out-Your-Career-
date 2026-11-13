@@ -7,7 +7,6 @@ import { Button } from '../../components/common/Button';
 import {
   Target,
   RefreshCw,
-  Sparkles,
   CheckCircle2,
   AlertCircle,
   HelpCircle,

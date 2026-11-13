@@ -7,7 +7,6 @@ import { Button } from '../../components/common/Button';
 import { Highlight } from '../../components/common/Highlight';
 import {
   CalendarCheck,
-  Sparkles,
   CheckCircle2,
   TrendingUp,
   AlertCircle,

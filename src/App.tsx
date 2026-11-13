@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { CareerProvider } from './context/CareerContext';
 import { SplashScreen } from './components/common/SplashScreen';
+import { ScrollToTop } from './components/common/ScrollToTop';
 import { LandingPage } from './pages/LandingPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { MindReflectionPage } from './pages/MindReflectionPage';
@@ -29,6 +30,7 @@ export function App() {
     <CareerProvider>
       <SplashScreen>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             {/* Public Discovery Flow */}
             <Route path="/" element={<LandingPage />} />

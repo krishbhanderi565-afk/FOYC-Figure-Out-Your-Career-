@@ -8,7 +8,6 @@ import { Highlight } from '../../components/common/Highlight';
 import {
   Layers,
   ArrowRight,
-  Sparkles,
   CheckCircle2,
   TrendingUp,
   AlertCircle,

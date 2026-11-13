@@ -31,6 +31,7 @@ export interface UserProfile {
 
 export interface UserReflection {
   mindText: string;
+  questionnaireAnswers?: Record<number, string>;
   keyInterests?: string[];
   keyStruggles?: string[];
   dreamVision?: string;

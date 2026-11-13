@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   ExternalLink,
   Filter,
-  Sparkles,
   ShieldCheck,
   Video,
   FileText,

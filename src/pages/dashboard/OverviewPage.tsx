@@ -11,7 +11,6 @@ import {
   ArrowRight,
   TrendingUp,
   Target,
-  Sparkles,
   ListTodo,
   ExternalLink,
   Plus,

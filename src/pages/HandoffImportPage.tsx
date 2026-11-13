@@ -13,7 +13,7 @@ import {
   AlertTriangle,
   ArrowRight,
   ArrowLeft,
-  Sparkles,
+  Compass,
   Trash2,
   HelpCircle,
   CheckCircle2,
@@ -80,7 +80,7 @@ export const HandoffImportPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FCEEE9] flex flex-col text-[#17172B]">
+    <div className="min-h-screen bg-[#FFFDF8] flex flex-col text-[#171717]">
       <Navbar />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-16">
@@ -96,7 +96,7 @@ export const HandoffImportPage: React.FC = () => {
         {/* Official Section 9 Header */}
         <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
           <Badge variant="parrot" size="sm">
-            <Sparkles className="w-3.5 h-3.5 mr-1" />
+            <Compass className="w-3.5 h-3.5 mr-1" />
             Handoff Import & Extraction
           </Badge>
           <h1 className="text-3xl sm:text-5xl font-black text-[#17172B] tracking-tight leading-[1.12]">
@@ -110,7 +110,7 @@ export const HandoffImportPage: React.FC = () => {
         {/* Quick Demo Example Links */}
         <div className="bg-[#FFFDF8] p-4 rounded-2xl border-2 border-[#17172B] shadow-[3px_3px_0px_#17172B] mb-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span className="text-xs font-black uppercase tracking-wider text-[#17172B] flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-[#315B28]" />
+            <Compass className="w-4 h-4 text-[#526B50]" />
             Example Handoffs (Quick Test):
           </span>
           <div className="flex flex-wrap gap-2">

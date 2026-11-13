@@ -6,7 +6,6 @@ interface SplashScreenProps {
 }
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ children }) => {
-  // Always trigger splash screen on initial mount / page load
   const [showSplash, setShowSplash] = useState<boolean>(true);
   const [fadeExit, setFadeExit] = useState(false);
 
@@ -21,13 +20,12 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ children }) => {
       }, 500);
     }
 
-    // Keep splash active for 1.8 seconds so it is clearly visible and memorable
     const timer = setTimeout(() => {
       setFadeExit(true);
       setTimeout(() => {
         setShowSplash(false);
       }, 500);
-    }, 1800);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -36,24 +34,24 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ children }) => {
     <>
       {showSplash && (
         <div
-          className={`fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-[#B8E986] transition-opacity duration-500 ease-in-out select-none ${
+          className={`fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-[#FFFDF8] transition-opacity duration-500 ease-in-out select-none ${
             fadeExit ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
           style={{ willChange: 'opacity' }}
         >
           <div className="flex flex-col items-center justify-center space-y-6 px-6 max-w-lg text-center animate-scaleUp">
-            {/* Prominent Large Official FOYC Logo */}
-            <div className="bg-white p-6 sm:p-10 rounded-3xl border-3 sm:border-4 border-[#17172B] shadow-[8px_8px_0px_#17172B] transition-transform duration-700 ease-out transform scale-100">
-              <Logo size="xl" />
+            {/* Balanced Official FOYC Logo */}
+            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-[#E8E5DE] shadow-sm transition-transform duration-700 ease-out transform scale-100">
+              <Logo size="lg" />
             </div>
 
-            {/* Animated Loading Bar & Indicator */}
-            <div className="flex flex-col items-center space-y-3 pt-2">
-              <div className="w-52 sm:w-72 h-2.5 bg-white rounded-full overflow-hidden border-2 border-[#17172B] shadow-[2px_2px_0px_#17172B]">
-                <div className="h-full bg-[#FFE76B] rounded-full animate-progress" />
+            {/* Subtle Animated Loading Bar & Indicator */}
+            <div className="flex flex-col items-center space-y-2.5 pt-2">
+              <div className="w-48 sm:w-56 h-1.5 bg-[#F4F3EF] rounded-full overflow-hidden border border-[#E8E5DE]">
+                <div className="h-full bg-[#526B50] rounded-full animate-progress" />
               </div>
-              <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-[#17172B]">
-                Figure Out Your Career • Clarity OS
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[#333333]">
+                Figure Out Your Career
               </span>
             </div>
           </div>

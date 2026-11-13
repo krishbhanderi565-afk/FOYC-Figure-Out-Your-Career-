@@ -12,7 +12,7 @@ import {
   Plus,
   ArrowRight,
   ArrowLeft,
-  Sparkles,
+  Compass,
   Milestone as MilestoneIcon,
   ListTodo,
   Flame,
@@ -56,7 +56,7 @@ export const HandoffPreviewPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FCEEE9] flex flex-col text-[#17172B]">
+    <div className="min-h-screen bg-[#FFFDF8] flex flex-col text-[#171717]">
       <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-16">
@@ -342,9 +342,9 @@ export const HandoffPreviewPage: React.FC = () => {
               variant="dark"
               size="lg"
               onClick={handleCreateDashboardClick}
-              className="gap-3 font-black text-base shadow-[5px_5px_0px_#17172B] bg-[#17172B] text-white"
+              className="gap-3 font-black text-base shadow-[4px_4px_0px_#171717] bg-[#171717] text-white"
             >
-              <Sparkles className="w-5 h-5 text-[#FFE76B]" />
+              <Compass className="w-5 h-5 text-[#FFE76B]" />
               <span>Create My Dashboard</span>
               <ArrowRight className="w-5 h-5" />
             </Button>

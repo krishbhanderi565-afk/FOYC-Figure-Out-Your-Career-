@@ -2,7 +2,7 @@ import React from 'react';
 import { Highlight } from '../common/Highlight';
 import { Button } from '../common/Button';
 import { Card } from '../common/Card';
-import { ArrowRight, Sparkles, Compass } from 'lucide-react';
+import { ArrowRight, Compass } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const CtaSection: React.FC = () => {
@@ -37,7 +37,7 @@ export const CtaSection: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
             <Link to="/onboarding" className="w-full sm:w-auto">
               <Button variant="dark" size="lg" fullWidth className="gap-3 text-lg py-4 px-9 group">
-                <Sparkles className="w-5 h-5 text-[#FFE76B] group-hover:rotate-12 transition-transform" />
+                <Compass className="w-5 h-5 text-[#FFE76B] group-hover:rotate-12 transition-transform" />
                 Find My Direction Now
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
