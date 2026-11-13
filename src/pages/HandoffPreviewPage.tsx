@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCareer } from '../context/CareerContext';
+import { api } from '../services/api';
 import { Navbar } from '../components/common/Navbar';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
@@ -37,8 +38,11 @@ export const HandoffPreviewPage: React.FC = () => {
     { skill_name: 'Core System Design', current_level: 'Beginner', target_level: 'Intermediate', priority: 'High', explanation: 'Essential for scaling applications.' }
   ];
 
-  const handleCreateDashboardClick = () => {
+  const handleCreateDashboardClick = async () => {
     if (isAuthenticated) {
+      try {
+        await api.transferPlanToAccount(dashboardData);
+      } catch {}
       navigate('/dashboard');
     } else {
       setShowAuthModal(true);
@@ -52,6 +56,7 @@ export const HandoffPreviewPage: React.FC = () => {
 
   const handleGoToAuth = () => {
     setShowAuthModal(false);
+    localStorage.setItem('foyc_pending_draft_transfer', 'true');
     navigate('/auth');
   };
 

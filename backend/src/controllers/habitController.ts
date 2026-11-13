@@ -11,6 +11,10 @@ interface Habit {
   currentStreak: number;
   bestStreak: number;
   category: string;
+  schedule?: 'everyday' | 'weekday' | 'weekend' | 'custom';
+  unit?: string | null;
+  target?: number | null;
+  color?: string;
   completedToday: boolean;
   history: { [dateStr: string]: boolean };
 }
@@ -40,12 +44,16 @@ export const getHabits = async (req: AuthenticatedRequest, res: Response): Promi
           return {
             id: h.id,
             userId: h.user_id,
-            title: h.title,
+            title: h.title || h.name,
             frequency: h.frequency || 'daily',
             targetDaysPerWeek: h.target_days_per_week || 5,
             currentStreak: h.current_streak || 0,
             bestStreak: h.best_streak || 0,
             category: h.category || 'Skill',
+            schedule: h.schedule || (h.frequency === 'weekly' ? 'weekend' : 'everyday'),
+            unit: h.unit || null,
+            target: h.target_count || null,
+            color: h.color || '#526B50',
             completedToday: Boolean(history[today]),
             history,
           };
@@ -62,7 +70,7 @@ export const getHabits = async (req: AuthenticatedRequest, res: Response): Promi
 
 export const createHabit = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const userId = req.userId || 'default-user';
-  const { title, frequency, targetDaysPerWeek, category } = req.body;
+  const { title, frequency, targetDaysPerWeek, category, schedule, unit, target, color } = req.body;
 
   if (!title) {
     res.status(400).json({ success: false, error: 'Habit title is required.' });
@@ -78,6 +86,10 @@ export const createHabit = async (req: AuthenticatedRequest, res: Response): Pro
     currentStreak: 0,
     bestStreak: 0,
     category: category || 'Skill',
+    schedule: schedule || (frequency === 'weekly' ? 'weekend' : 'everyday'),
+    unit: unit || null,
+    target: target || null,
+    color: color || '#526B50',
     completedToday: false,
     history: {},
   };
@@ -88,9 +100,14 @@ export const createHabit = async (req: AuthenticatedRequest, res: Response): Pro
       const { data, error } = await supabase.from('habits').insert({
         user_id: userId,
         title: newHabit.title,
+        name: newHabit.title,
         frequency: newHabit.frequency,
         target_days_per_week: newHabit.targetDaysPerWeek,
         category: newHabit.category,
+        schedule: newHabit.schedule,
+        unit: newHabit.unit,
+        target_count: newHabit.target,
+        color: newHabit.color,
       }).select().single();
       if (!error && data) {
         newHabit.id = data.id;
@@ -113,12 +130,20 @@ export const updateHabit = async (req: AuthenticatedRequest, res: Response): Pro
   const supabase = getSupabaseAdminClient();
   if (supabase && userId !== 'default-user' && !userId.startsWith('mock-')) {
     try {
-      await supabase.from('habits').update({
-        title: updates.title,
-        frequency: updates.frequency,
-        target_days_per_week: updates.targetDaysPerWeek,
-        category: updates.category,
-      }).eq('id', habitId).eq('user_id', userId);
+      const dbPayload: any = { updated_at: new Date().toISOString() };
+      if (updates.title !== undefined) {
+        dbPayload.title = updates.title;
+        dbPayload.name = updates.title;
+      }
+      if (updates.frequency !== undefined) dbPayload.frequency = updates.frequency;
+      if (updates.targetDaysPerWeek !== undefined) dbPayload.target_days_per_week = updates.targetDaysPerWeek;
+      if (updates.category !== undefined) dbPayload.category = updates.category;
+      if (updates.schedule !== undefined) dbPayload.schedule = updates.schedule;
+      if (updates.unit !== undefined) dbPayload.unit = updates.unit;
+      if (updates.target !== undefined) dbPayload.target_count = updates.target;
+      if (updates.color !== undefined) dbPayload.color = updates.color;
+
+      await supabase.from('habits').update(dbPayload).eq('id', habitId).eq('user_id', userId);
     } catch {}
   }
 
@@ -169,19 +194,29 @@ export const toggleHabitLog = async (req: AuthenticatedRequest, res: Response): 
           completed: true,
         }, { onConflict: 'habit_id,completion_date' });
       } else {
-        await supabase.from('habit_logs')
-          .delete()
+        await supabase.from('habit_logs').delete()
           .eq('habit_id', habitId)
-          .eq('completion_date', today);
+          .eq('completion_date', today)
+          .eq('user_id', userId);
       }
+
+      // Update habit streak in database if RPC exists
+      try {
+        await supabase.rpc('increment_streak', {
+          p_habit_id: habitId,
+          p_delta: newStatus ? 1 : -1,
+        });
+      } catch {}
     } catch {}
   }
 
   res.json({
     success: true,
-    habit,
+    habitId,
     date: today,
     completed: newStatus,
+    currentStreak: habit ? habit.currentStreak : 1,
+    bestStreak: habit ? habit.bestStreak : 1,
   });
 };
 
@@ -197,7 +232,8 @@ export const deleteHabit = async (req: AuthenticatedRequest, res: Response): Pro
   }
 
   const userHabits = habitStore.get(userId) || [];
-  habitStore.set(userId, userHabits.filter((h) => h.id !== habitId));
+  const filtered = userHabits.filter((h) => h.id !== habitId);
+  habitStore.set(userId, filtered);
 
-  res.json({ success: true, message: 'Habit removed successfully.' });
+  res.json({ success: true, message: 'Habit deleted successfully.' });
 };

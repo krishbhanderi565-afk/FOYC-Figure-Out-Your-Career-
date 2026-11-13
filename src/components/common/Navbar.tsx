@@ -90,10 +90,14 @@ export const Navbar: React.FC = () => {
               </Link>
 
               <div className="flex items-center gap-2 pl-1 border-l border-[#E8E5DE]">
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EDF2E9] border border-[#A8B99A] text-xs font-bold text-[#526B50]">
+                <Link
+                  to="/profile"
+                  title="View & Edit Profile"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EDF2E9] border border-[#A8B99A] text-xs font-bold text-[#526B50] hover:bg-[#DDF5C5] transition-colors"
+                >
                   <User className="w-3 h-3" />
                   <span className="max-w-[120px] truncate">{userName || userEmail?.split('@')[0] || 'User'}</span>
-                </div>
+                </Link>
                 <button
                   onClick={handleLogout}
                   title="Sign Out"

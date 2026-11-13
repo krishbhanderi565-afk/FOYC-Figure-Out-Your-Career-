@@ -23,10 +23,16 @@ export const requireAuth = async (
 
   const token = authHeader.split(' ')[1];
 
-  // Handle demo authentication token for instant local review
-  if (token === 'demo-token' || token.startsWith('demo-user-')) {
+  // Handle demo authentication token for instant local review and multi-tenant testing
+  if (token === 'demo-token') {
     req.userId = '00000000-0000-0000-0000-000000000001';
     req.userEmail = 'alex.chen@example.com';
+    return next();
+  }
+
+  if (token.startsWith('demo-user-')) {
+    req.userId = token;
+    req.userEmail = `${token}@foyc.dev`;
     return next();
   }
 

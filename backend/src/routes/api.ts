@@ -13,6 +13,14 @@ import {
   reassessDirection,
 } from '../controllers/dashboardController.js';
 import {
+  getProfile,
+  updateProfile,
+} from '../controllers/profileController.js';
+import {
+  getMilestones,
+  toggleMilestone,
+} from '../controllers/milestoneController.js';
+import {
   getTasks,
   createTask,
   updateTask,
@@ -62,31 +70,39 @@ router.post('/prompt/generate', generatePrompt);
 // 4. Handoff Import & Parsing
 router.post('/handoff/import', importHandoff);
 
-// 5. Authenticated Dashboard & Data Transfer
+// 5. User Profile
+router.get('/profile', requireAuth, getProfile);
+router.put('/profile', requireAuth, updateProfile);
+
+// 6. Authenticated Dashboard & Data Transfer
 router.get('/dashboard', requireAuth, getDashboardData);
 router.post('/dashboard/transfer', requireAuth, transferAnonymousDraftToUser);
 router.post('/dashboard/reassess', requireAuth, reassessDirection);
 
-// 6. Tasks
+// 7. Milestones
+router.get('/milestones', requireAuth, getMilestones);
+router.post('/milestones/:milestoneId/toggle', requireAuth, toggleMilestone);
+
+// 8. Tasks
 router.get('/tasks', requireAuth, getTasks);
 router.post('/tasks', requireAuth, createTask);
 router.put('/tasks/:taskId', requireAuth, updateTask);
 router.delete('/tasks/:taskId', requireAuth, deleteTask);
 
-// 7. Habits
+// 9. Habits
 router.get('/habits', requireAuth, getHabits);
 router.post('/habits', requireAuth, createHabit);
 router.put('/habits/:habitId', requireAuth, updateHabit);
 router.post('/habits/:habitId/toggle', requireAuth, toggleHabitLog);
 router.delete('/habits/:habitId', requireAuth, deleteHabit);
 
-// 8. Projects
+// 10. Projects
 router.get('/projects', requireAuth, getProjects);
 router.post('/projects', requireAuth, createProject);
 router.put('/projects/:projectId', requireAuth, updateProject);
 router.delete('/projects/:projectId', requireAuth, deleteProject);
 
-// 9. Weekly Reviews
+// 11. Weekly Reviews
 router.get('/reviews', requireAuth, getReviews);
 router.post('/reviews', requireAuth, createReview);
 

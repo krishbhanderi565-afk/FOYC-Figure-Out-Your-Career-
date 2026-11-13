@@ -28,6 +28,8 @@ interface CareerContextType {
   reflection: UserReflection;
   dashboardData: CareerDashboardData;
   activeProfessionId: string;
+  isDataLoading: boolean;
+  syncFromCloud: () => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => void;
   updateReflection: (data: Partial<UserReflection>) => void;
   applyHandoffText: (text: string) => { success: boolean; errors: string[] };
@@ -142,6 +144,42 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return localStorage.getItem('foyc_user_id') || null;
   });
 
+  const [isDataLoading, setIsDataLoading] = useState(false);
+
+  // Cross-device synchronization function: Cloud is the permanent source of truth
+  const syncFromCloud = async () => {
+    try {
+      setIsDataLoading(true);
+      const [profileRes, dashRes] = await Promise.all([
+        api.getProfile(),
+        api.getDashboardData(),
+      ]);
+
+      if (profileRes?.profile) {
+        setProfile((prev) => ({
+          ...prev,
+          preferredName: profileRes.profile.fullName || profileRes.profile.preferredName || prev.preferredName,
+          country: profileRes.profile.country || prev.country,
+          educationStatus: (profileRes.profile.education || profileRes.profile.educationStatus || prev.educationStatus) as any,
+          currentField: profileRes.profile.profession || prev.currentField,
+          careerStage: (profileRes.profile.careerStage || prev.careerStage) as any,
+        }));
+      }
+
+      if (localStorage.getItem('foyc_pending_draft_transfer') === 'true') {
+        localStorage.removeItem('foyc_pending_draft_transfer');
+        await api.transferPlanToAccount(dashboardData);
+      }
+
+      if (dashRes?.success && dashRes.data) {
+        setDashboardData(dashRes.data);
+      }
+    } catch {
+    } finally {
+      setIsDataLoading(false);
+    }
+  };
+
   // Check Supabase session on mount
   useEffect(() => {
     if (isSupabaseConfigured()) {
@@ -155,6 +193,7 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           localStorage.setItem('foyc_auth', 'true');
           if (session.user.email) localStorage.setItem('foyc_user_email', session.user.email);
           if (session.access_token) localStorage.setItem('foyc_auth_token', session.access_token);
+          syncFromCloud();
         }
       });
 
@@ -168,14 +207,15 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           localStorage.setItem('foyc_auth', 'true');
           if (session.user.email) localStorage.setItem('foyc_user_email', session.user.email);
           if (session.access_token) localStorage.setItem('foyc_auth_token', session.access_token);
-        } else {
-          // Keep local demo state unless explicitly logging out
+          syncFromCloud();
         }
       });
 
       return () => {
         subscription.unsubscribe();
       };
+    } else if (isAuthenticated) {
+      syncFromCloud();
     }
   }, []);
 
@@ -197,6 +237,7 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const updateProfile = (data: Partial<UserProfile>) => {
     setProfile((prev) => ({ ...prev, ...data }));
+    api.updateProfile(data).catch(() => {});
   };
 
   const updateReflection = (data: Partial<UserReflection>) => {
@@ -206,7 +247,11 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const applyHandoffText = (text: string) => {
     const res = parseHandoffText(text, profile, reflection);
     if (res.success && res.data) {
-      setDashboardData(res.data as CareerDashboardData);
+      const parsed = res.data as CareerDashboardData;
+      setDashboardData(parsed);
+      if (isAuthenticated) {
+        api.transferPlanToAccount(parsed).catch(() => {});
+      }
       return { success: true, errors: [] };
     }
     return { success: false, errors: res.errors };
@@ -223,29 +268,52 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  const toggleTask = (taskId: string) => {
+  const toggleTask = async (taskId: string) => {
+    let nextStatus = false;
     setDashboardData((prev) => ({
       ...prev,
-      tasks: prev.tasks.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t)),
+      tasks: prev.tasks.map((t) => {
+        if (t.id === taskId) {
+          nextStatus = !t.completed;
+          return { ...t, completed: nextStatus };
+        }
+        return t;
+      }),
     }));
+    try {
+      await api.updateTask(taskId, { completed: nextStatus });
+    } catch {}
   };
 
-  const addTask = (taskInput: Omit<TaskItem, 'id'>) => {
+  const addTask = async (taskInput: Omit<TaskItem, 'id'>) => {
+    const tempId = `t-${Date.now()}`;
     const newTask: TaskItem = {
       ...taskInput,
-      id: `t-${Date.now()}`,
+      id: tempId,
     };
     setDashboardData((prev) => ({
       ...prev,
       tasks: [newTask, ...prev.tasks],
     }));
+    try {
+      const res = await api.createTask(taskInput);
+      if (res?.task?.id) {
+        setDashboardData((prev) => ({
+          ...prev,
+          tasks: prev.tasks.map((t) => (t.id === tempId ? { ...t, id: res.task.id } : t)),
+        }));
+      }
+    } catch {}
   };
 
-  const deleteTask = (taskId: string) => {
+  const deleteTask = async (taskId: string) => {
     setDashboardData((prev) => ({
       ...prev,
       tasks: prev.tasks.filter((t) => t.id !== taskId),
     }));
+    try {
+      await api.deleteTask(taskId);
+    } catch {}
   };
 
   // Habit Management: Add, Update, Delete, Toggle
@@ -339,13 +407,16 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } catch {}
   };
 
-  const toggleMilestone = (milestoneId: string) => {
+  const toggleMilestone = async (milestoneId: string) => {
     setDashboardData((prev) => ({
       ...prev,
       milestones: prev.milestones.map((m) =>
         m.id === milestoneId ? { ...m, completed: !m.completed } : m
       ),
     }));
+    try {
+      await api.toggleMilestone(milestoneId);
+    } catch {}
   };
 
   // Auth Functions
@@ -368,6 +439,10 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           localStorage.setItem('foyc_auth', 'true');
           localStorage.setItem('foyc_user_email', email);
           if (fullName) localStorage.setItem('foyc_user_name', fullName);
+          if (data.session?.access_token) {
+            localStorage.setItem('foyc_auth_token', data.session.access_token);
+          }
+          await syncFromCloud();
           return { success: true };
         }
       } catch (err: any) {
@@ -383,6 +458,7 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.setItem('foyc_auth', 'true');
     localStorage.setItem('foyc_user_email', email);
     if (fullName) localStorage.setItem('foyc_user_name', fullName);
+    await syncFromCloud();
     return { success: true };
   };
 
@@ -403,6 +479,7 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           if (data.session?.access_token) {
             localStorage.setItem('foyc_auth_token', data.session.access_token);
           }
+          await syncFromCloud();
           return { success: true };
         }
       } catch (err: any) {
@@ -419,6 +496,7 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.setItem('foyc_auth', 'true');
     localStorage.setItem('foyc_user_email', email);
     localStorage.setItem('foyc_user_name', name);
+    await syncFromCloud();
     return { success: true };
   };
 
@@ -436,6 +514,9 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.removeItem('foyc_user_email');
     localStorage.removeItem('foyc_user_name');
     localStorage.removeItem('foyc_auth_token');
+    localStorage.removeItem('foyc_user_id');
+    localStorage.removeItem('foyc_dashboard_data');
+    setDashboardData(initialParsed);
   };
 
   const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
@@ -500,6 +581,8 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         reflection,
         dashboardData,
         activeProfessionId,
+        isDataLoading,
+        syncFromCloud,
         updateProfile,
         updateReflection,
         applyHandoffText,
