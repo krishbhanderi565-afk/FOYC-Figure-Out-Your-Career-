@@ -55,7 +55,7 @@ export const HeroSection: React.FC = () => {
   const current = previews[activeTab];
 
   return (
-    <section className="relative pt-8 pb-16 md:pt-14 md:pb-20 overflow-hidden bg-[#B8E986]">
+    <section className="relative pt-8 pb-16 md:pt-14 md:pb-20 overflow-hidden bg-[#FCEEE9]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* Left Column: Core Headline & CTAs */}

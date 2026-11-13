@@ -45,7 +45,7 @@ export const HowItWorksSimpleSection: React.FC = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-16 sm:py-20 bg-[#B8E986] border-b-3 border-[#17172B]">
+    <section id="how-it-works" className="py-16 sm:py-20 bg-[#FCEEE9] border-b-3 border-[#17172B]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16 space-y-3">

@@ -8,7 +8,7 @@ import { FinalCtaSection } from '../components/landing/FinalCtaSection';
 
 export const LandingPage: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#B8E986] text-[#17172B]">
+    <div className="min-h-screen flex flex-col bg-[#FCEEE9] text-[#17172B]">
       <Navbar />
       <main className="flex-1">
         {/* Section 1: Hero */}
