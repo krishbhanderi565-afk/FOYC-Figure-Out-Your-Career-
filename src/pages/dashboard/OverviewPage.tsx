@@ -91,7 +91,7 @@ export const OverviewPage: React.FC = () => {
               </span>
               <span className="text-xs text-[#17172B]/60 font-semibold">Milestone phases finished</span>
             </div>
-            <div className="w-full bg-[#FFF8E9] h-2.5 rounded-full border border-[#17172B] mt-4 overflow-hidden">
+            <div className="w-full bg-[#F2F9E9] h-2.5 rounded-full border border-[#17172B] mt-4 overflow-hidden">
               <div
                 className="bg-[#FFE76B] h-full transition-all duration-300 border-r border-[#17172B]"
                 style={{ width: `${milestoneProgress}%` }}
@@ -112,7 +112,7 @@ export const OverviewPage: React.FC = () => {
               </span>
               <span className="text-xs text-[#17172B]/60 font-semibold">Sprint items resolved</span>
             </div>
-            <div className="w-full bg-[#FFF8E9] h-2.5 rounded-full border border-[#17172B] mt-4 overflow-hidden">
+            <div className="w-full bg-[#F2F9E9] h-2.5 rounded-full border border-[#17172B] mt-4 overflow-hidden">
               <div
                 className="bg-[#DDF5C9] h-full transition-all duration-300 border-r border-[#17172B]"
                 style={{ width: `${taskProgressPercent}%` }}
@@ -193,7 +193,7 @@ export const OverviewPage: React.FC = () => {
                     className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between gap-3 ${
                       task.completed
                         ? 'bg-[#F0FDF4] border-emerald-500/60 text-[#17172B]/50'
-                        : 'bg-[#FFFDF7] border-[#17172B] hover:bg-[#FFF8E9] shadow-[2px_2px_0px_#17172B]'
+                        : 'bg-[#FFFDF7] border-[#17172B] hover:bg-[#F2F9E9] shadow-[2px_2px_0px_#17172B]'
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">

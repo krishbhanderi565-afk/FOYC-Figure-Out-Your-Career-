@@ -193,14 +193,14 @@ export const PromptReadyPage: React.FC = () => {
                 Read-only preview
               </span>
             </div>
-            <div className="max-h-72 overflow-y-auto p-4 rounded-xl bg-[#FFF8E9] border-2 border-[#17172B] font-mono text-xs text-[#17172B] whitespace-pre-wrap leading-relaxed select-all">
+            <div className="max-h-72 overflow-y-auto p-4 rounded-xl bg-[#F2F9E9] border-2 border-[#17172B] font-mono text-xs text-[#17172B] whitespace-pre-wrap leading-relaxed select-all">
               {promptText}
             </div>
           </div>
         </Card>
 
         {/* 3 Step Guide Card */}
-        <Card variant="cream" shadowSize="md" className="p-6 space-y-4 border-2">
+        <Card variant="white" shadowSize="md" className="p-6 space-y-4 border-2 bg-white">
           <h4 className="font-extrabold text-sm uppercase tracking-wider text-[#17172B] flex items-center gap-2">
             <Info className="w-4 h-4 text-[#17172B]" />
             What happens next:

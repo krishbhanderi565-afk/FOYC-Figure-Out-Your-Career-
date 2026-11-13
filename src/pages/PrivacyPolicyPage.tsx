@@ -97,7 +97,7 @@ export const PrivacyPolicyPage: React.FC = () => {
               <li>Calculate your habit streaks and weekly review calibrations.</li>
               <li>Maintain your personalized experience across browser refreshes and authenticated sessions.</li>
             </ul>
-            <p className="text-sm font-bold text-[#17172B] bg-[#FFF8E9] p-3 rounded-xl border border-[#17172B]/30">
+            <p className="text-sm font-bold text-[#17172B] bg-[#DDF5C5] p-3 rounded-xl border border-[#17172B]/30">
               We do not sell, rent, monetize, or broker your personal reflections to any advertisers or data brokers.
             </p>
           </section>

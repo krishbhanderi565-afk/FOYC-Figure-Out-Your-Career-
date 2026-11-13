@@ -322,7 +322,7 @@ export const WeeklyReviewPage: React.FC = () => {
                         <span className="font-black text-[#17172B] uppercase tracking-wider block mb-1">
                           Key Accomplishments:
                         </span>
-                        <p className="font-medium text-[#17172B]/85 bg-[#FFF8E9] p-2.5 rounded-lg border border-[#17172B]/15">
+                        <p className="font-medium text-[#17172B]/85 bg-[#F2F9E9] p-2.5 rounded-lg border border-[#17172B]/15">
                           {rev.accomplishments}
                         </p>
                       </div>
@@ -332,7 +332,7 @@ export const WeeklyReviewPage: React.FC = () => {
                           <span className="font-black text-[#17172B] uppercase tracking-wider block mb-1">
                             Blockers Overcome:
                           </span>
-                          <p className="font-medium text-[#17172B]/85 bg-[#FFF8E9] p-2.5 rounded-lg border border-[#17172B]/15">
+                          <p className="font-medium text-[#17172B]/85 bg-[#F2F9E9] p-2.5 rounded-lg border border-[#17172B]/15">
                             {rev.struggles}
                           </p>
                         </div>
@@ -340,7 +340,7 @@ export const WeeklyReviewPage: React.FC = () => {
                           <span className="font-black text-[#17172B] uppercase tracking-wider block mb-1">
                             Principles Learned:
                           </span>
-                          <p className="font-medium text-[#17172B]/85 bg-[#FFF8E9] p-2.5 rounded-lg border border-[#17172B]/15">
+                          <p className="font-medium text-[#17172B]/85 bg-[#F2F9E9] p-2.5 rounded-lg border border-[#17172B]/15">
                             {rev.learnings}
                           </p>
                         </div>

@@ -12,12 +12,13 @@ export const Logo: React.FC<LogoProps> = ({
   size = 'md',
   variant = 'light',
 }) => {
-  // Substantially increased height classes so FOYC & tagline are prominent and crystal clear
+  // Height classes with tightly cropped logo (91% content height)
+  // These provide commanding, bold, clearly readable brand presence
   const heightClasses = {
-    sm: 'h-10 sm:h-12',
-    md: 'h-14 sm:h-18 md:h-20', // ~60px to 80px tall (noticeably larger in navbar)
-    lg: 'h-20 sm:h-24 md:h-28',
-    xl: 'h-28 sm:h-36 md:h-44', // large hero / splash screen
+    sm: 'h-8 sm:h-10',
+    md: 'h-12 sm:h-16 md:h-20', // ~48px mobile, 64px tablet, 80px desktop
+    lg: 'h-16 sm:h-20 md:h-24',
+    xl: 'h-24 sm:h-32 md:h-40', // large hero / splash screen
   }[size];
 
   return (

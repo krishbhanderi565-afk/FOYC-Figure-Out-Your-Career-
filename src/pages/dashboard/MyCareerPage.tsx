@@ -127,7 +127,7 @@ export const MyCareerPage: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setShowReassessModal(false)}
-                  className="w-8 h-8 rounded-lg bg-[#FFF8E9] border border-[#17172B] font-black text-sm flex items-center justify-center"
+                  className="w-8 h-8 rounded-lg bg-[#F2F9E9] border border-[#17172B] font-black text-sm flex items-center justify-center"
                 >
                   ✕
                 </button>
@@ -135,7 +135,7 @@ export const MyCareerPage: React.FC = () => {
 
               <form onSubmit={handleApplyReassessment} className="space-y-4">
                 {/* Current vs Proposed Diff Comparison */}
-                <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-[#FFF8E9] border-2 border-[#17172B] text-xs">
+                <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-[#F2F9E9] border-2 border-[#17172B] text-xs">
                   <div>
                     <span className="font-black uppercase text-[#17172B]/60 block">Current Focus</span>
                     <span className="font-bold text-[#17172B]">{dir.primaryTitle}</span>
@@ -258,7 +258,7 @@ export const MyCareerPage: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {dir.alternativeTitles.map((alt, idx) => (
-              <div key={idx} className="p-4 rounded-xl border-2 border-[#17172B] bg-[#FFF8E9] shadow-[2px_2px_0px_#17172B]">
+              <div key={idx} className="p-4 rounded-xl border-2 border-[#17172B] bg-[#F2F9E9] shadow-[2px_2px_0px_#17172B]">
                 <span className="text-[10px] font-black uppercase text-[#17172B]/60 block mb-1">Adjacent Role 0{idx + 1}</span>
                 <h4 className="font-black text-sm text-[#17172B]">{alt}</h4>
               </div>

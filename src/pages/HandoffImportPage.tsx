@@ -119,7 +119,7 @@ export const HandoffImportPage: React.FC = () => {
                 key={sample.id}
                 type="button"
                 onClick={() => handleLoadSample(sample.id)}
-                className="px-3 py-1 bg-[#FFF8E9] hover:bg-[#B8E986] text-xs font-bold rounded-lg border-2 border-[#17172B] shadow-[1.5px_1.5px_0px_#17172B] transition-colors"
+                className="px-3 py-1 bg-[#DDF5C5] hover:bg-[#B8E986] text-xs font-bold rounded-lg border-2 border-[#17172B] shadow-[1.5px_1.5px_0px_#17172B] transition-colors"
               >
                 {sample.role}
               </button>
@@ -169,7 +169,7 @@ export const HandoffImportPage: React.FC = () => {
             }}
             rows={13}
             placeholder={`FOYC_DASHBOARD_START\n{\n  "schema_version": "foyc_dashboard_v2",\n  "profile": {\n    "preferred_name": "Alex",\n    ...\n  },\n  "career_direction": {\n    "primary_career_direction": "Full-Stack Software Engineer",\n    ...\n  },\n  "roadmap": { ... },\n  "tasks": [ ... ],\n  "habits": [ ... ]\n}\nFOYC_DASHBOARD_END`}
-            className="w-full p-4 rounded-xl border-2 border-[#17172B] bg-[#FFF8E9]/60 font-mono text-xs sm:text-sm text-[#17172B] focus:outline-none focus:ring-2 focus:ring-[#B8E986] shadow-[2px_2px_0px_#17172B] resize-y leading-relaxed"
+            className="w-full p-4 rounded-xl border-2 border-[#17172B] bg-[#F2F9E9] font-mono text-xs sm:text-sm text-[#17172B] focus:outline-none focus:ring-2 focus:ring-[#B8E986] shadow-[2px_2px_0px_#17172B] resize-y leading-relaxed"
           />
 
           {/* Validation Error Feedback */}
@@ -200,7 +200,7 @@ export const HandoffImportPage: React.FC = () => {
         </Card>
 
         {/* Simple Instructions */}
-        <Card variant="cream" shadowSize="sm" className="p-4 mb-6 border-2 flex items-start gap-3">
+        <Card variant="white" shadowSize="sm" className="p-4 mb-6 border-2 flex items-start gap-3 bg-white">
           <HelpCircle className="w-5 h-5 text-[#17172B] shrink-0 mt-0.5" />
           <div className="text-xs font-semibold text-[#17172B]/85 space-y-1">
             <span className="font-black text-[#17172B] block uppercase tracking-wider">

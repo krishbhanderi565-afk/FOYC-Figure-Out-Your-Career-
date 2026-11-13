@@ -111,7 +111,7 @@ export const HabitTrackerPage: React.FC = () => {
                 <h3 className="font-black text-xl text-[#17172B]">Add Custom Career Habit</h3>
                 <button
                   onClick={() => setShowAddHabit(false)}
-                  className="w-8 h-8 rounded-lg bg-[#FFF8E9] border border-[#17172B] font-black text-sm flex items-center justify-center"
+                  className="w-8 h-8 rounded-lg bg-[#F2F9E9] border border-[#17172B] font-black text-sm flex items-center justify-center"
                 >
                   ✕
                 </button>
@@ -236,7 +236,7 @@ export const HabitTrackerPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-[#17172B]/10">
                 {habits.map((h, hIdx) => (
-                  <tr key={h.id} className="hover:bg-[#FFF8E9]/50 transition-colors">
+                  <tr key={h.id} className="hover:bg-[#F2F9E9]/50 transition-colors">
                     <td className="py-4 px-4">
                       <span className="font-bold text-sm text-[#17172B] block">{h.title}</span>
                       <span className="text-[10px] font-semibold text-[#17172B]/60 uppercase">
@@ -281,7 +281,7 @@ export const HabitTrackerPage: React.FC = () => {
                         <button
                           onClick={() => toggleHabit(h.id)}
                           className={`px-3 py-1 rounded-lg text-xs font-black border border-[#17172B] transition-colors ${
-                            h.completedToday ? 'bg-[#DDF5C9] text-emerald-950' : 'bg-[#FFF8E9] text-[#17172B]'
+                            h.completedToday ? 'bg-[#DDF5C9] text-emerald-950' : 'bg-[#F2F9E9] text-[#17172B]'
                           }`}
                         >
                           {h.completedToday ? 'Completed' : 'Mark Done'}

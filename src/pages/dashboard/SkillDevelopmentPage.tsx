@@ -106,7 +106,7 @@ export const SkillDevelopmentPage: React.FC = () => {
                 className={`px-3 py-1 rounded-lg text-xs font-bold border border-[#17172B] transition-all ${
                   filterPriority === p
                     ? 'bg-[#17172B] text-white shadow-[2px_2px_0px_#B8E986]'
-                    : 'bg-[#FFF8E9] text-[#17172B] hover:bg-[#FFE76B]'
+                    : 'bg-[#F2F9E9] text-[#17172B] hover:bg-[#FFE76B]'
                 }`}
               >
                 {p}
@@ -150,7 +150,7 @@ export const SkillDevelopmentPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
-                <div className="p-3 bg-[#FFF8E9] rounded-xl border border-[#17172B]/20">
+                <div className="p-3 bg-[#F2F9E9] rounded-xl border border-[#17172B]/20">
                   <span className="text-[10px] font-black uppercase tracking-wider text-[#17172B]/60 block mb-1">
                     Current Level
                   </span>

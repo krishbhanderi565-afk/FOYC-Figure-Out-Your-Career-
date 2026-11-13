@@ -89,7 +89,7 @@ export const ProjectsPage: React.FC = () => {
                 <h3 className="font-black text-xl text-[#17172B]">Add Proof-of-Work Project</h3>
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="w-8 h-8 rounded-lg bg-[#FFF8E9] border border-[#17172B] font-black text-sm flex items-center justify-center"
+                  className="w-8 h-8 rounded-lg bg-[#F2F9E9] border border-[#17172B] font-black text-sm flex items-center justify-center"
                 >
                   ✕
                 </button>
@@ -216,7 +216,7 @@ export const ProjectsPage: React.FC = () => {
                 <div>
                   <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-[#17172B]">
                     <div className="flex items-center gap-2">
-                      <div className="w-9 h-9 rounded-xl bg-[#FFF8E9] border-2 border-[#17172B] flex items-center justify-center">
+                      <div className="w-9 h-9 rounded-xl bg-[#F2F9E9] border-2 border-[#17172B] flex items-center justify-center">
                         <FolderGit2 className="w-5 h-5 text-[#17172B]" />
                       </div>
                       <span className="text-xs font-black uppercase tracking-wider text-[#17172B]/70">
@@ -255,7 +255,7 @@ export const ProjectsPage: React.FC = () => {
                       {proj.skillsDeveloped.map((sk) => (
                         <span
                           key={sk}
-                          className="px-2.5 py-0.5 rounded-md bg-[#FFF8E9] border border-[#17172B] text-xs font-bold text-[#17172B]"
+                          className="px-2.5 py-0.5 rounded-md bg-[#F2F9E9] border border-[#17172B] text-xs font-bold text-[#17172B]"
                         >
                           {sk}
                         </span>

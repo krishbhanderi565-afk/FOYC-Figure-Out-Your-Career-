@@ -16,7 +16,7 @@ export const Card: React.FC<CardProps> = ({
   ...props
 }) => {
   const variantStyles = {
-    cream: 'bg-[#FFF8E9] text-[#17172B] border-[#17172B]',
+    cream: 'bg-[#F2F9E9] text-[#17172B] border-[#17172B]',
     yellow: 'bg-[#FFE76B] text-[#17172B] border-[#17172B]',
     // Refresh pink to light parrot green for brand update
     pink: 'bg-[#DDF5C5] text-[#17172B] border-[#17172B]',
@@ -25,7 +25,7 @@ export const Card: React.FC<CardProps> = ({
     lavender: 'bg-[#E8DDFF] text-[#17172B] border-[#17172B]',
     green: 'bg-[#DDF5C9] text-[#17172B] border-[#17172B]',
     white: 'bg-white text-[#17172B] border-[#17172B]',
-    dark: 'bg-[#17172B] text-[#FFF8E9] border-[#32324D]',
+    dark: 'bg-[#17172B] text-white border-[#32324D]',
   };
 
   const shadowStyles = {

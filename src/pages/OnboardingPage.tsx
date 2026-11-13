@@ -121,7 +121,7 @@ export const OnboardingPage: React.FC = () => {
                       className={`py-3 px-2 text-xs sm:text-sm font-bold rounded-xl border-2 border-[#17172B] text-center transition-all ${
                         ageRange === item.id
                           ? 'bg-[#FFE76B] shadow-[3px_3px_0px_#17172B] translate-x-0.5 translate-y-0.5'
-                          : 'bg-[#FFFDF7] hover:bg-[#FFF8E9] text-[#17172B]/75 shadow-[1.5px_1.5px_0px_#17172B]'
+                          : 'bg-[#FFFDF7] hover:bg-[#DDF5C5] text-[#17172B]/75 shadow-[1.5px_1.5px_0px_#17172B]'
                       }`}
                     >
                       {item.label}
@@ -190,7 +190,7 @@ export const OnboardingPage: React.FC = () => {
                       className={`p-3.5 text-left rounded-xl border-2 border-[#17172B] transition-all flex items-start justify-between ${
                         status === item.id
                           ? 'bg-[#FFE76B] shadow-[3px_3px_0px_#17172B]'
-                          : 'bg-[#FFFDF7] hover:bg-[#FFF8E9] shadow-[1.5px_1.5px_0px_#17172B]'
+                          : 'bg-[#FFFDF7] hover:bg-[#DDF5C5] shadow-[1.5px_1.5px_0px_#17172B]'
                       }`}
                     >
                       <div>
@@ -240,7 +240,7 @@ export const OnboardingPage: React.FC = () => {
                       className={`p-3 rounded-xl border-2 border-[#17172B] text-center transition-all ${
                         stage === item.id
                           ? 'bg-[#DDF5C9] shadow-[3px_3px_0px_#17172B]'
-                          : 'bg-[#FFFDF7] hover:bg-[#FFF8E9] shadow-[1.5px_1.5px_0px_#17172B]'
+                          : 'bg-[#FFFDF7] hover:bg-[#DDF5C5] shadow-[1.5px_1.5px_0px_#17172B]'
                       }`}
                     >
                       <div className="font-bold text-xs text-[#17172B]">{item.label}</div>
@@ -295,7 +295,7 @@ export const OnboardingPage: React.FC = () => {
               </div>
 
               {/* Summary note box */}
-              <div className="bg-[#FFF8E9] p-5 rounded-2xl border-2 border-[#17172B] flex items-start gap-3">
+              <div className="bg-[#DDF5C5] p-5 rounded-2xl border-2 border-[#17172B] flex items-start gap-3">
                 <Clock className="w-5 h-5 text-[#17172B] shrink-0 mt-0.5" />
                 <div className="text-xs sm:text-sm font-semibold text-[#17172B]/90 leading-relaxed">
                   At <strong>{availableHours} hours/week</strong>, a typical learner can comfortably build a defensible capstone portfolio and master foundational competencies in approximately <strong>{Math.ceil(180 / availableHours)} weeks</strong>.

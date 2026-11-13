@@ -11,16 +11,23 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ children }) => {
   const [fadeExit, setFadeExit] = useState(false);
 
   useEffect(() => {
-    // Check for reduced motion
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const duration = prefersReducedMotion ? 400 : 1500;
+    // Fade out and clean up the HTML-level pre-hydration splash screen
+    const staticSplash = document.getElementById('foyc-static-splash');
+    if (staticSplash) {
+      staticSplash.style.opacity = '0';
+      staticSplash.style.pointerEvents = 'none';
+      setTimeout(() => {
+        staticSplash.remove();
+      }, 500);
+    }
 
+    // Keep splash active for 1.8 seconds so it is clearly visible and memorable
     const timer = setTimeout(() => {
       setFadeExit(true);
       setTimeout(() => {
         setShowSplash(false);
       }, 500);
-    }, duration);
+    }, 1800);
 
     return () => clearTimeout(timer);
   }, []);
@@ -36,13 +43,13 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ children }) => {
         >
           <div className="flex flex-col items-center justify-center space-y-6 px-6 max-w-lg text-center animate-scaleUp">
             {/* Prominent Large Official FOYC Logo */}
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border-3 border-[#17172B] shadow-[6px_6px_0px_#17172B] transition-transform duration-700 ease-out transform scale-100">
+            <div className="bg-white p-6 sm:p-10 rounded-3xl border-3 sm:border-4 border-[#17172B] shadow-[8px_8px_0px_#17172B] transition-transform duration-700 ease-out transform scale-100">
               <Logo size="xl" />
             </div>
 
             {/* Animated Loading Bar & Indicator */}
-            <div className="flex flex-col items-center space-y-2.5 pt-4">
-              <div className="w-48 sm:w-60 h-2 bg-white rounded-full overflow-hidden border-2 border-[#17172B] shadow-[2px_2px_0px_#17172B]">
+            <div className="flex flex-col items-center space-y-3 pt-2">
+              <div className="w-52 sm:w-72 h-2.5 bg-white rounded-full overflow-hidden border-2 border-[#17172B] shadow-[2px_2px_0px_#17172B]">
                 <div className="h-full bg-[#FFE76B] rounded-full animate-progress" />
               </div>
               <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-[#17172B]">

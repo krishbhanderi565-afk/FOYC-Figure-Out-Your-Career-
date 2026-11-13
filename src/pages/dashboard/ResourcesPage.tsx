@@ -131,7 +131,7 @@ export const ResourcesPage: React.FC = () => {
             >
               <div>
                 <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#17172B]/10">
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[#FFF8E9] border border-[#17172B]">
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[#F2F9E9] border border-[#17172B]">
                     {item.type}
                   </span>
                   {item.isVerified ? (

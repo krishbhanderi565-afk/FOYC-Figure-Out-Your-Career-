@@ -59,7 +59,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 bg-[#17172B] text-[#FFF8E9] border-r-3 border-[#17172B] flex flex-col justify-between transition-all duration-300 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 bg-[#17172B] text-white border-r-3 border-[#17172B] flex flex-col justify-between transition-all duration-300 ${
           mobileOpen ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0'
         } ${collapsed ? 'lg:w-20' : 'lg:w-72'}`}
       >
@@ -68,7 +68,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <div className="h-20 px-4 flex items-center justify-between border-b border-[#2C2C4E]">
             <Link to="/" className="flex items-center gap-2 overflow-hidden py-1">
               {!collapsed ? (
-                <Logo size="sm" variant="dark" />
+                <Logo size="md" variant="dark" />
               ) : (
                 <div className="w-10 h-10 rounded-xl bg-white border-2 border-[#B8E986] flex items-center justify-center font-black text-sm text-[#17172B]">
                   F

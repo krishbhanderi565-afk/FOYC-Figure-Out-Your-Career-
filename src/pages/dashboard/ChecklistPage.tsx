@@ -111,7 +111,7 @@ export const ChecklistPage: React.FC = () => {
                 className={`px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
                   filter === mode
                     ? 'bg-[#FFE76B] text-[#17172B] border border-[#17172B] shadow-[1.5px_1.5px_0px_#17172B]'
-                    : 'text-[#17172B]/70 hover:bg-[#FFF8E9]'
+                    : 'text-[#17172B]/70 hover:bg-[#F2F9E9]'
                 }`}
               >
                 {mode === 'all'
@@ -136,7 +136,7 @@ export const ChecklistPage: React.FC = () => {
                 <h3 className="font-black text-xl text-[#17172B]">Add Actionable Task</h3>
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="w-8 h-8 rounded-lg bg-[#FFF8E9] border border-[#17172B] font-black text-sm flex items-center justify-center"
+                  className="w-8 h-8 rounded-lg bg-[#F2F9E9] border border-[#17172B] font-black text-sm flex items-center justify-center"
                 >
                   ✕
                 </button>
@@ -268,7 +268,7 @@ export const ChecklistPage: React.FC = () => {
                       className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors mt-0.5 ${
                         t.completed
                           ? 'bg-emerald-500 border-emerald-500 text-white'
-                          : 'border-[#17172B] bg-[#FFF8E9]'
+                          : 'border-[#17172B] bg-[#F2F9E9]'
                       }`}
                     >
                       {t.completed && <Check className="w-4 h-4 stroke-[3]" />}
@@ -279,7 +279,7 @@ export const ChecklistPage: React.FC = () => {
                         {t.title}
                       </span>
                       <div className="flex flex-wrap items-center gap-2 mt-1">
-                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-[#FFF8E9] border border-[#17172B]">
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-[#F2F9E9] border border-[#17172B]">
                           {t.category}
                         </span>
                         <span className="text-[11px] font-semibold text-[#17172B]/60 flex items-center gap-1">

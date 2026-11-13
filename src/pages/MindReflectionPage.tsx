@@ -125,7 +125,7 @@ export const MindReflectionPage: React.FC = () => {
                     className={`px-3 py-1 rounded-lg text-xs font-bold border-2 border-[#17172B] flex items-center gap-1.5 transition-all ${
                       isRecording
                         ? 'bg-red-400 text-white animate-pulse'
-                        : 'bg-[#FFF8E9] hover:bg-[#FFE76B] text-[#17172B]'
+                        : 'bg-[#DDF5C5] hover:bg-[#FFE76B] text-[#17172B]'
                     }`}
                   >
                     <Mic className="w-3.5 h-3.5" />
@@ -177,7 +177,7 @@ export const MindReflectionPage: React.FC = () => {
                       key={i}
                       type="button"
                       onClick={() => handleAppendStarter(starter)}
-                      className="px-3 py-1.5 rounded-lg bg-[#FFF8E9] hover:bg-[#FFE76B] text-xs font-bold text-[#17172B] border border-[#17172B] transition-all"
+                      className="px-3 py-1.5 rounded-lg bg-[#DDF5C5] hover:bg-[#FFE76B] text-xs font-bold text-[#17172B] border border-[#17172B] transition-all"
                     >
                       + {starter}
                     </button>

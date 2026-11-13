@@ -104,7 +104,7 @@ export const HandoffPreviewPage: React.FC = () => {
                 type="text"
                 value={editableTitle}
                 onChange={(e) => setEditableTitle(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border-2 border-[#17172B] bg-[#FFF8E9]/70 font-black text-xl text-[#17172B] shadow-[2px_2px_0px_#17172B]"
+                className="w-full px-4 py-2.5 rounded-xl border-2 border-[#17172B] bg-[#F2F9E9] font-black text-xl text-[#17172B] shadow-[2px_2px_0px_#17172B]"
               />
             </div>
 
@@ -116,13 +116,13 @@ export const HandoffPreviewPage: React.FC = () => {
                 value={editableSummary}
                 onChange={(e) => setEditableSummary(e.target.value)}
                 rows={2}
-                className="w-full px-4 py-2.5 rounded-xl border-2 border-[#17172B] bg-[#FFF8E9]/70 font-medium text-sm text-[#17172B] shadow-[2px_2px_0px_#17172B]"
+                className="w-full px-4 py-2.5 rounded-xl border-2 border-[#17172B] bg-[#F2F9E9] font-medium text-sm text-[#17172B] shadow-[2px_2px_0px_#17172B]"
               />
             </div>
 
             {/* Alternatives and Strengths */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div className="bg-[#FFF8E9] p-4 rounded-xl border-2 border-[#17172B]">
+              <div className="bg-[#DDF5C5] p-4 rounded-xl border-2 border-[#17172B]">
                 <span className="text-[11px] font-black uppercase tracking-wider text-[#17172B]/70 block mb-2">
                   Alternative Paths Explored:
                 </span>
@@ -173,7 +173,7 @@ export const HandoffPreviewPage: React.FC = () => {
             {detailedSkillGaps.map((sg: any, idx: number) => (
               <div
                 key={idx}
-                className="p-3.5 rounded-xl border-2 border-[#17172B] bg-[#FFF8E9] shadow-[2px_2px_0px_#17172B] space-y-1.5"
+                className="p-3.5 rounded-xl border-2 border-[#17172B] bg-[#F2F9E9] shadow-[2px_2px_0px_#17172B] space-y-1.5"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-black text-xs text-[#17172B]">{sg.skill_name}</span>
@@ -212,7 +212,7 @@ export const HandoffPreviewPage: React.FC = () => {
               {dashboardData.milestones.map((m) => (
                 <div
                   key={m.id}
-                  className="p-3.5 rounded-xl border-2 border-[#17172B] bg-[#FFF8E9] shadow-[2px_2px_0px_#17172B]"
+                  className="p-3.5 rounded-xl border-2 border-[#17172B] bg-[#F2F9E9] shadow-[2px_2px_0px_#17172B]"
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-[#FFE76B] border border-[#17172B]">
@@ -241,7 +241,7 @@ export const HandoffPreviewPage: React.FC = () => {
               {dashboardData.tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="p-3 rounded-xl border-2 border-[#17172B] bg-[#FFF8E9] flex items-center justify-between gap-3 shadow-[1.5px_1.5px_0px_#17172B]"
+                  className="p-3 rounded-xl border-2 border-[#17172B] bg-[#F2F9E9] flex items-center justify-between gap-3 shadow-[1.5px_1.5px_0px_#17172B]"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-xs sm:text-sm text-[#17172B] leading-snug">
@@ -294,7 +294,7 @@ export const HandoffPreviewPage: React.FC = () => {
             </div>
             <div className="space-y-2 text-xs">
               {dashboardData.projects.map((p) => (
-                <div key={p.id} className="p-2.5 rounded-lg bg-[#FFF8E9] border border-[#17172B]">
+                <div key={p.id} className="p-2.5 rounded-lg bg-[#F2F9E9] border border-[#17172B]">
                   <p className="font-bold text-[#17172B]">{p.title}</p>
                   <span className="text-[10px] text-[#17172B]/60 font-semibold">{(p.skillsDeveloped || []).slice(0, 2).join(', ')}</span>
                 </div>
@@ -355,7 +355,7 @@ export const HandoffPreviewPage: React.FC = () => {
       {/* Delayed Account Save Modal (Section 13) */}
       {showAuthModal && (
         <div className="fixed inset-0 z-50 bg-[#17172B]/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#FFF8E9] border-3 border-[#17172B] rounded-2xl shadow-[6px_6px_0px_#17172B] max-w-md w-full p-6 space-y-5 animate-scaleUp">
+          <div className="bg-[#FFFFFF] border-3 border-[#17172B] rounded-2xl shadow-[6px_6px_0px_#17172B] max-w-md w-full p-6 space-y-5 animate-scaleUp">
             <div className="space-y-1">
               <span className="text-xs font-black uppercase tracking-widest text-[#315B28] bg-[#B8E986] px-2.5 py-0.5 rounded-full border border-[#17172B]">
                 Save Your Blueprint

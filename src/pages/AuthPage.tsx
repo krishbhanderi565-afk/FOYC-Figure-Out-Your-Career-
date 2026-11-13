@@ -57,7 +57,7 @@ export const AuthPage: React.FC = () => {
           </div>
 
           {/* Direction summary badge */}
-          <div className="bg-[#FFF8E9] p-3.5 rounded-xl border-2 border-[#17172B] flex items-center justify-between mb-6 shadow-[2px_2px_0px_#17172B]">
+          <div className="bg-[#DDF5C5] p-3.5 rounded-xl border-2 border-[#17172B] flex items-center justify-between mb-6 shadow-[2px_2px_0px_#17172B]">
             <div>
               <span className="text-[10px] font-black uppercase tracking-wider text-[#17172B]/60 block">
                 Approved Career Direction

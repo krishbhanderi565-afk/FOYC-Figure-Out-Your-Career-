@@ -220,7 +220,7 @@ export const SettingsPage: React.FC = () => {
       {/* Confirmation Modal */}
       {showResetModal && (
         <div className="fixed inset-0 z-50 bg-[#17172B]/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#FFF8E9] border-3 border-[#17172B] rounded-2xl shadow-[6px_6px_0px_#17172B] max-w-md w-full p-6 space-y-4 animate-scaleUp">
+          <div className="bg-[#F2F9E9] border-3 border-[#17172B] rounded-2xl shadow-[6px_6px_0px_#17172B] max-w-md w-full p-6 space-y-4 animate-scaleUp">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-red-700 font-black text-lg">
                 <AlertTriangle className="w-6 h-6" />

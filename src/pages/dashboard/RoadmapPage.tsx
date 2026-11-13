@@ -82,7 +82,7 @@ export const RoadmapPage: React.FC = () => {
                     <button
                       onClick={() => toggleMilestone(m.id)}
                       className={`w-8 h-8 rounded-xl border-2 border-[#17172B] flex items-center justify-center font-bold transition-all shadow-[2px_2px_0px_#17172B] ${
-                        m.completed ? 'bg-emerald-400 text-white' : 'bg-[#FFF8E9] hover:bg-[#FFE76B]'
+                        m.completed ? 'bg-emerald-400 text-white' : 'bg-[#F2F9E9] hover:bg-[#FFE76B]'
                       }`}
                       title={m.completed ? 'Mark pending' : 'Mark completed'}
                     >
@@ -103,7 +103,7 @@ export const RoadmapPage: React.FC = () => {
                     <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border ${priorityColors[m.priority]}`}>
                       {m.priority} Priority
                     </span>
-                    <span className="text-xs font-bold text-[#17172B] px-3 py-1 rounded-lg bg-[#FFF8E9] border border-[#17172B]">
+                    <span className="text-xs font-bold text-[#17172B] px-3 py-1 rounded-lg bg-[#F2F9E9] border border-[#17172B]">
                       ⏱️ {m.estimatedDuration}
                     </span>
                   </div>
@@ -123,7 +123,7 @@ export const RoadmapPage: React.FC = () => {
                     <Calendar className="w-4 h-4 text-[#17172B]" />
                     Target Timeline: {m.targetDate}
                   </span>
-                  <span className="bg-[#FFF8E9] px-2.5 py-1 rounded-md border border-[#17172B]">
+                  <span className="bg-[#F2F9E9] px-2.5 py-1 rounded-md border border-[#17172B]">
                     📋 {m.associatedTasksCount} associated checklist tasks
                   </span>
                   <button
