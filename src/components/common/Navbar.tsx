@@ -13,10 +13,10 @@ export const Navbar: React.FC = () => {
   const isCurrent = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#FFF8E9]/90 backdrop-blur-md border-b-2 border-[#17172B] transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        {/* Official FOYC Brand Logo */}
-        <Link to="/" className="flex items-center group focus:outline-none py-1">
+    <header className="sticky top-0 z-50 w-full bg-[#B8E986]/95 backdrop-blur-md border-b-3 border-[#17172B] transition-all">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[5.5rem] sm:min-h-[6rem] py-2 flex items-center justify-between gap-4">
+        {/* Official FOYC Brand Logo (Prominent & Increased Size) */}
+        <Link to="/" className="flex items-center group focus:outline-none py-1 hover:scale-105 transition-transform">
           <Logo size="md" />
         </Link>
 
@@ -94,7 +94,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t-2 border-[#17172B] bg-[#FFF8E9] px-6 py-6 flex flex-col gap-4 shadow-xl animate-in slide-in-from-top-4 duration-200">
+        <div className="md:hidden border-t-3 border-[#17172B] bg-[#B8E986] px-6 py-6 flex flex-col gap-4 shadow-xl animate-in slide-in-from-top-4 duration-200">
           <Link
             to="/"
             onClick={() => setMobileMenuOpen(false)}

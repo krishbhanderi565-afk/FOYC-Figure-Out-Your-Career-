@@ -8,7 +8,7 @@ import { Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export const FinalCtaSection: React.FC = () => {
   return (
-    <section className="py-16 sm:py-20 bg-[#F2F9E9] border-t-3 border-[#17172B]">
+    <section className="py-16 sm:py-20 bg-[#B8E986] border-t-3 border-[#17172B]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <Card
           variant="yellow"

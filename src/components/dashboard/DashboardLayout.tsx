@@ -8,7 +8,7 @@ export const DashboardLayout: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#FFF8E9] flex flex-col lg:flex-row pb-20 lg:pb-0">
+    <div className="min-h-screen bg-[#B8E986] flex flex-col lg:flex-row pb-20 lg:pb-0">
       {/* Sidebar (Desktop + Mobile Drawer) */}
       <DashboardSidebar
         collapsed={collapsed}

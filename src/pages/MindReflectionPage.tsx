@@ -81,7 +81,7 @@ export const MindReflectionPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8E9] flex flex-col text-[#17172B]">
+    <div className="min-h-screen bg-[#B8E986] flex flex-col text-[#17172B]">
       <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-14">

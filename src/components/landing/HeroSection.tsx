@@ -55,7 +55,7 @@ export const HeroSection: React.FC = () => {
   const current = previews[activeTab];
 
   return (
-    <section className="relative pt-8 pb-16 md:pt-14 md:pb-20 overflow-hidden bg-[#FFF8E9]">
+    <section className="relative pt-8 pb-16 md:pt-14 md:pb-20 overflow-hidden bg-[#B8E986]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* Left Column: Core Headline & CTAs */}
@@ -150,7 +150,7 @@ export const HeroSection: React.FC = () => {
                 </div>
 
                 {/* Role Switcher Pills */}
-                <div className="grid grid-cols-4 gap-1.5 bg-[#FFF8E9] p-1.5 rounded-xl border-2 border-[#17172B]">
+                <div className="grid grid-cols-4 gap-1.5 bg-white p-1.5 rounded-xl border-2 border-[#17172B]">
                   {[
                     { id: 'swe', label: 'Engineer' },
                     { id: 'ai', label: 'Applied AI' },
@@ -188,7 +188,7 @@ export const HeroSection: React.FC = () => {
                   </div>
 
                   {/* Immediate Next Step */}
-                  <div className="p-3 rounded-xl bg-[#FFF8E9] border-2 border-[#17172B] space-y-1">
+                  <div className="p-3 rounded-xl bg-white border-2 border-[#17172B] space-y-1">
                     <span className="text-[10px] font-black uppercase tracking-wider text-[#17172B]/70 flex items-center gap-1">
                       <Target className="w-3.5 h-3.5 text-[#17172B]" /> Priority Milestone
                     </span>

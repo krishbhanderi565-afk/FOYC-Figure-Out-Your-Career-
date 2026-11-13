@@ -18,7 +18,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const { dashboardData, activeProfessionId, loadSampleProfession } = useCareer();
 
   return (
-    <header className="sticky top-0 z-30 bg-[#FFF8E9]/95 backdrop-blur-md border-b-2 border-[#17172B] px-4 sm:px-8 py-4 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-30 bg-[#B8E986]/95 backdrop-blur-md border-b-3 border-[#17172B] px-4 sm:px-8 py-4 flex items-center justify-between gap-4">
       {/* Left: Mobile hamburger & title */}
       <div className="flex items-center gap-3">
         <button
