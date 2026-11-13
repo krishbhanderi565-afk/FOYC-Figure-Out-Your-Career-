@@ -43,6 +43,18 @@ import {
   getReviews,
   createReview,
 } from '../controllers/reviewController.js';
+import {
+  saveAssessmentDraft,
+  getAssessment,
+  finalizeReport,
+  transferClarityToDashboard,
+} from '../controllers/clarityController.js';
+import {
+  savePossibilityDraft,
+  getPossibilityExploration,
+  finalizePossibilityReport,
+  transferPossibilityToDashboard,
+} from '../controllers/possibilityController.js';
 import { isLiveSupabaseActive } from '../config/supabase.js';
 
 const router = Router();
@@ -105,5 +117,17 @@ router.delete('/projects/:projectId', requireAuth, deleteProject);
 // 11. Weekly Reviews
 router.get('/reviews', requireAuth, getReviews);
 router.post('/reviews', requireAuth, createReview);
+
+// 12. Clarity Compass
+router.post('/clarity/assessment', saveAssessmentDraft);
+router.get('/clarity/assessment', getAssessment);
+router.post('/clarity/finalize', finalizeReport);
+router.post('/clarity/to-dashboard', requireAuth, transferClarityToDashboard);
+
+// 13. Possibility Explorer
+router.post('/possibility/exploration', savePossibilityDraft);
+router.get('/possibility/exploration', getPossibilityExploration);
+router.post('/possibility/finalize', finalizePossibilityReport);
+router.post('/possibility/to-dashboard', requireAuth, transferPossibilityToDashboard);
 
 export default router;

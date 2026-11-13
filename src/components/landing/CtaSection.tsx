@@ -42,9 +42,9 @@ export const CtaSection: React.FC = () => {
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link to="/dashboard" className="w-full sm:w-auto">
-              <Button variant="secondary" size="lg" fullWidth className="text-lg py-4 px-9">
-                Explore Demo Dashboard
+            <Link to="/career-comparison" className="w-full sm:w-auto">
+              <Button variant="secondary" size="lg" fullWidth className="text-lg py-4 px-9 bg-white text-[#171717] border-2 border-[#171717] shadow-[3px_3px_0px_#171717]">
+                Compare Career Paths
               </Button>
             </Link>
           </div>

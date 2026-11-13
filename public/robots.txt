@@ -1,5 +1,10 @@
 User-agent: *
 Allow: /
+Allow: /clarity-compass
+Allow: /possibility-explorer
+Allow: /career-comparison
+Allow: /habit-tracker
+Allow: /about
 Allow: /onboarding
 Allow: /reflection
 Allow: /prompt-ready
@@ -9,5 +14,6 @@ Allow: /terms
 
 Disallow: /dashboard/
 Disallow: /api/
+Disallow: /auth/
 
 Sitemap: https://figureoutyourcareer.com/sitemap.xml

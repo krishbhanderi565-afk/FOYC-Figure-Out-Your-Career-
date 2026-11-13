@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, ShieldCheck, Compass } from 'lucide-react';
+import { ArrowUpRight, ShieldCheck, Compass, Sparkles } from 'lucide-react';
 import { Logo } from './Logo';
 
 export const Footer: React.FC = () => {
@@ -29,8 +29,20 @@ export const Footer: React.FC = () => {
           <div className="md:col-span-2 flex flex-col gap-2.5">
             <span className="font-bold text-xs uppercase tracking-wider text-[#A8B99A]">Journey</span>
             <Link to="/" className="text-xs text-white/80 hover:text-white transition-colors">Home</Link>
+            <Link to="/clarity-compass" className="text-xs text-[#FFE76B] font-bold hover:underline transition-colors flex items-center gap-1">
+              <Compass className="w-3 h-3" />
+              <span>Clarity Compass</span>
+            </Link>
+            <Link to="/possibility-explorer" className="text-xs text-[#FFE76B] font-bold hover:underline transition-colors flex items-center gap-1">
+              <Sparkles className="w-3 h-3" />
+              <span>Possibility Explorer</span>
+            </Link>
+            <Link to="/career-comparison" className="text-xs text-[#FFE76B] font-bold hover:underline transition-colors flex items-center gap-1">
+              <span>Career Path Comparison</span>
+            </Link>
             <Link to="/explore" className="text-xs text-white/80 hover:text-white transition-colors">Explore Paths</Link>
             <Link to="/about" className="text-xs text-white/80 hover:text-white transition-colors">About FOYC</Link>
+            <Link to="/habit-tracker" className="text-xs text-white/80 hover:text-white transition-colors">Habit Tracker</Link>
             <Link to="/onboarding" className="text-xs text-white/80 hover:text-white transition-colors">Start Discovery</Link>
             <Link to="/reflection" className="text-xs text-white/80 hover:text-white transition-colors">Mind Reflection</Link>
             <Link to="/prompt-ready" className="text-xs text-white/80 hover:text-white transition-colors">ChatGPT Coach Prompt</Link>

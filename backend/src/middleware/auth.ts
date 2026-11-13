@@ -4,6 +4,7 @@ import { getSupabaseAdminClient } from '../config/supabase.js';
 export interface AuthenticatedRequest extends Request {
   userId?: string;
   userEmail?: string;
+  sessionId?: string;
 }
 
 export const requireAuth = async (

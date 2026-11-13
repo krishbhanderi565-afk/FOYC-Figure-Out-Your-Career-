@@ -1,15 +1,22 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Compass, Play } from 'lucide-react';
-import { Highlight } from '../common/Highlight';
 import { Button } from '../common/Button';
 
 export const HeroSection: React.FC = () => {
+  const scrollToHowItWorks = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const el = document.getElementById('how-it-works');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
-    <section className="relative pt-8 pb-14 md:pt-12 md:pb-16 overflow-hidden bg-[#FDF5EB]">
+    <section className="relative pt-8 pb-12 sm:pt-12 sm:pb-16 md:pt-16 md:pb-20 overflow-hidden bg-[#FDF5EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Left Column: Headline, Subtitle and CTAs matching the reference */}
+          {/* Left Column: Headline, Subtitle and CTAs matching the brand reference */}
           <div className="lg:col-span-6 space-y-6 text-left">
             {/* Top Pill Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 border-[#171717] bg-white shadow-[2px_2px_0px_#171717]">
@@ -35,13 +42,13 @@ export const HeroSection: React.FC = () => {
               FOYC helps you understand your interests, explore career possibilities and turn your confusion into a personalized action plan.
             </p>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-1 sm:pt-2">
+            {/* Action Buttons: Perfectly Balanced 48px Height, Matching Alignment */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
               <Link to="/onboarding" className="w-full sm:w-auto">
                 <Button
                   variant="primary"
                   size="lg"
-                  className="w-full sm:w-auto gap-2.5 text-sm sm:text-base font-black px-6 py-3 rounded-full bg-[#FFE76B] hover:bg-[#FADB3D] text-[#171717] border-2 border-[#171717] shadow-[3px_3px_0px_#171717] transition-all hover:-translate-y-0.5 justify-center min-h-[48px]"
+                  className="w-full sm:w-auto gap-2.5 text-sm sm:text-base font-black px-6 h-12 rounded-full bg-[#FFE76B] hover:bg-[#FADB3D] text-[#171717] border-2 border-[#171717] shadow-[3px_3px_0px_#171717] transition-all hover:-translate-y-0.5 justify-center"
                 >
                   <span>Find My Direction</span>
                   <ArrowRight className="w-4 h-4 stroke-[2.5]" />
@@ -50,23 +57,24 @@ export const HeroSection: React.FC = () => {
 
               <a
                 href="#how-it-works"
-                className="inline-flex items-center justify-center sm:justify-start gap-2.5 px-4 py-2.5 sm:py-3 text-sm sm:text-base font-bold text-[#171717] hover:text-[#526B50] transition-colors group min-h-[44px]"
+                onClick={scrollToHowItWorks}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-5 h-12 rounded-full border-2 border-[#171717] bg-white hover:bg-[#FAF8F5] text-sm sm:text-base font-bold text-[#171717] hover:text-[#526B50] shadow-[3px_3px_0px_#171717] transition-all hover:-translate-y-0.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#171717]"
               >
-                <div className="w-8 h-8 rounded-full bg-[#171717] text-white flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
-                  <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                <div className="w-6 h-6 rounded-full bg-[#171717] text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Play className="w-3 h-3 fill-current ml-0.5 text-white" />
                 </div>
                 <span>How FOYC Works</span>
               </a>
             </div>
           </div>
 
-          {/* Right Column: High-Res Hero Illustration matching reference image */}
-          <div className="lg:col-span-6 flex justify-center items-center mt-2 lg:mt-0">
+          {/* Right Column: High-Res Hero Illustration with matching light saffron backdrop */}
+          <div className="lg:col-span-6 flex justify-center items-center mt-4 lg:mt-0">
             <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-none">
               <img
                 src="/assets/foyc_hero_illustration.jpg"
                 alt="FOYC Career Discovery Illustration — Explore Technology, Business, Science, Data & Analytics, and Arts"
-                className="w-full h-auto max-h-[340px] sm:max-h-[440px] lg:max-h-[560px] object-contain rounded-2xl mx-auto drop-shadow-sm"
+                className="w-full h-auto max-h-[360px] sm:max-h-[460px] lg:max-h-[580px] object-contain rounded-2xl mx-auto drop-shadow-sm"
                 loading="eager"
               />
             </div>
@@ -76,3 +84,4 @@ export const HeroSection: React.FC = () => {
     </section>
   );
 };
+export default HeroSection;

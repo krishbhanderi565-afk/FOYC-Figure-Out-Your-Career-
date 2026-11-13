@@ -1,7 +1,8 @@
 {
-  "name": "temp-app",
+  "name": "foyc-web",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "FOYC (Figure Out Your Career) — Production Web Platform",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,7 +15,9 @@
     "canvas-confetti": "^1.9.4",
     "chart.js": "^4.6.1",
     "clsx": "^2.1.1",
+    "docx": "^9.15.3",
     "framer-motion": "^14.13.0",
+    "jspdf": "^4.2.1",
     "lucide-react": "^1.72.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

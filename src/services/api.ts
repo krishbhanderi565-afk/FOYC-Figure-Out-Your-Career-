@@ -324,4 +324,111 @@ export const api = {
       return { success: true, localOnly: true };
     }
   },
+
+  // Clarity Compass Persistence
+  saveClarityAssessment: async (data: any) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/clarity/assessment`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      });
+      return await res.json();
+    } catch {
+      return { success: true, localOnly: true };
+    }
+  },
+
+  getClarityAssessment: async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/clarity/assessment`, {
+        headers: getHeaders(),
+      });
+      return await res.json();
+    } catch {
+      return null;
+    }
+  },
+
+  finalizeClarityReport: async (data: any) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/clarity/finalize`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      });
+      return await res.json();
+    } catch {
+      return { success: true, localOnly: true };
+    }
+  },
+
+  transferClarityToDashboard: async (final_report: any) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/clarity/to-dashboard`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ final_report }),
+      });
+      return await res.json();
+    } catch {
+      return { success: false, error: 'Network request failed' };
+    }
+  },
+
+  // Possibility Explorer Persistence
+  savePossibilityExploration: async (data: any) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/possibility/exploration`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      });
+      return await res.json();
+    } catch {
+      return { success: true, localOnly: true };
+    }
+  },
+
+  getPossibilityExploration: async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/possibility/exploration`, {
+        headers: getHeaders(),
+      });
+      return await res.json();
+    } catch {
+      return null;
+    }
+  },
+
+  finalizePossibilityReport: async (data: any) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/possibility/finalize`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      });
+      return await res.json();
+    } catch {
+      return { success: true, localOnly: true };
+    }
+  },
+
+  transferPossibilityToDashboard: async (data: {
+    selected_possibility: any;
+    secondary_possibility?: any;
+    target_timeline_months?: number;
+    user_notes?: string;
+  }) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/possibility/to-dashboard`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      });
+      return await res.json();
+    } catch {
+      return { success: false, error: 'Network request failed' };
+    }
+  },
 };

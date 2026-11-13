@@ -26,6 +26,30 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600;1,800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://figureoutyourcareer.com/#organization",
+            "name": "FOYC — Figure Out Your Career",
+            "url": "https://figureoutyourcareer.com/",
+            "logo": "https://figureoutyourcareer.com/assets/foyc_logo.png",
+            "description": "Figure Out Your Career helps people understand their interests, explore career possibilities, and build structured roadmaps."
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://figureoutyourcareer.com/#website",
+            "url": "https://figureoutyourcareer.com/",
+            "name": "FOYC",
+            "publisher": { "@id": "https://figureoutyourcareer.com/#organization" },
+            "description": "From Career Confusion to Clear Momentum"
+          }
+        ]
+      }
+    </script>
   </head>
   <body class="bg-[#FDF5EB] text-[#171717] antialiased selection:bg-[#FFE76B] selection:text-[#171717] min-h-screen">
     <!-- Immediate Static Splash Screen (Visible before React hydration) -->

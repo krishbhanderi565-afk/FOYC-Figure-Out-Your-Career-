@@ -19,6 +19,8 @@ import {
   Clock,
   LayoutDashboard,
   Filter,
+  Sparkles,
+  GitCompare,
 } from 'lucide-react';
 import { useCareer } from '../context/CareerContext';
 import { SAMPLE_HANDOFFS } from '../utils/sampleHandoffs';
@@ -141,6 +143,81 @@ export const ExplorePage: React.FC = () => {
           <p className="text-base sm:text-lg text-[#333333] font-medium mt-3 leading-relaxed">
             Browse structured career trajectories supported by FOYC's personalized roadmap engine. Inspect required skills, capstone projects, and preview real action plans.
           </p>
+
+          {/* FOYC Discovery Studio Features (3 Core Tools) */}
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Feature 01: Clarity Compass */}
+            <div className="p-5 rounded-2xl bg-white border-2 border-[#171717] shadow-[3px_3px_0px_#171717] flex flex-col justify-between">
+              <div className="flex items-start gap-3.5 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-[#526B50] text-white flex items-center justify-center shrink-0 mt-0.5">
+                  <Compass className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-[#FDF5EB] text-[#526B50] border border-[#526B50]/30">
+                    Tool 01 • Assessment
+                  </span>
+                  <h2 className="text-sm font-extrabold text-[#171717] mt-1">Clarity Compass</h2>
+                  <p className="text-xs text-[#555] mt-1 leading-relaxed">
+                    Identify what is causing confusion, uncover blind spots, and resolve uncertainty.
+                  </p>
+                </div>
+              </div>
+              <Link to="/clarity-compass" className="w-full mt-2">
+                <Button variant="primary" size="sm" className="w-full bg-[#FFE76B] text-[#171717] border-2 border-[#171717] shadow-[2px_2px_0px_#171717] font-bold text-xs gap-1.5 justify-center">
+                  <span>Start Clarity Compass</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </Link>
+            </div>
+
+            {/* Feature 02: Possibility Explorer */}
+            <div className="p-5 rounded-2xl bg-white border-2 border-[#171717] shadow-[3px_3px_0px_#171717] flex flex-col justify-between">
+              <div className="flex items-start gap-3.5 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-[#FFE76B] text-[#171717] flex items-center justify-center shrink-0 mt-0.5 border border-[#171717]">
+                  <Sparkles className="w-5 h-5 text-[#171717]" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-[#FFE76B]/40 text-[#171717] border border-[#171717]/30">
+                    Tool 02 • Discovery
+                  </span>
+                  <h2 className="text-sm font-extrabold text-[#171717] mt-1">Possibility Explorer</h2>
+                  <p className="text-xs text-[#555] mt-1 leading-relaxed">
+                    Discover unconventional, emerging, and high-growth trajectories tailored to your context.
+                  </p>
+                </div>
+              </div>
+              <Link to="/possibility-explorer" className="w-full mt-2">
+                <Button variant="primary" size="sm" className="w-full bg-[#526B50] text-white border-2 border-[#171717] shadow-[2px_2px_0px_#171717] font-bold text-xs gap-1.5 justify-center hover:bg-[#3f533d]">
+                  <span>Explore Possibilities</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </Link>
+            </div>
+
+            {/* Feature 03: Career Path Comparison */}
+            <div className="p-5 rounded-2xl bg-white border-2 border-[#171717] shadow-[3px_3px_0px_#171717] flex flex-col justify-between">
+              <div className="flex items-start gap-3.5 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shrink-0 mt-0.5 border border-[#171717]">
+                  <GitCompare className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-[#EFF6FF] text-[#2563EB] border border-[#2563EB]/30">
+                    Tool 03 • Trade-offs
+                  </span>
+                  <h2 className="text-sm font-extrabold text-[#171717] mt-1">Career Comparison</h2>
+                  <p className="text-xs text-[#555] mt-1 leading-relaxed">
+                    Evaluate 2 to 4 paths side-by-side on AI resilience, income velocity, and learning curves.
+                  </p>
+                </div>
+              </div>
+              <Link to="/career-comparison" className="w-full mt-2">
+                <Button variant="primary" size="sm" className="w-full bg-[#171717] text-white border-2 border-[#171717] shadow-[2px_2px_0px_#171717] font-bold text-xs gap-1.5 justify-center hover:bg-[#333333]">
+                  <span>Compare Career Paths</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Controls: Search & Category Filter */}

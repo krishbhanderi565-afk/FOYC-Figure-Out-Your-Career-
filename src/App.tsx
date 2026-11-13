@@ -24,6 +24,9 @@ import { SkillDevelopmentPage } from './pages/dashboard/SkillDevelopmentPage';
 import { ChecklistPage } from './pages/dashboard/ChecklistPage';
 import { HabitTrackerPage as DashboardHabitTrackerPage } from './pages/dashboard/HabitTrackerPage';
 import { HabitTrackerPage } from './pages/HabitTrackerPage';
+import { ClarityCompassPage } from './pages/ClarityCompassPage';
+import { PossibilityExplorerPage } from './pages/PossibilityExplorerPage';
+import { CareerComparisonPage } from './pages/CareerComparisonPage';
 import { ProjectsPage } from './pages/dashboard/ProjectsPage';
 import { ResourcesPage } from './pages/dashboard/ResourcesPage';
 import { WeeklyReviewPage } from './pages/dashboard/WeeklyReviewPage';
@@ -41,6 +44,13 @@ export function App() {
             <Route path="/explore" element={<ExplorePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/habit-tracker" element={<HabitTrackerPage />} />
+            <Route path="/clarity-compass" element={<ClarityCompassPage />} />
+            <Route path="/compass" element={<Navigate to="/clarity-compass" replace />} />
+            <Route path="/possibility-explorer" element={<PossibilityExplorerPage />} />
+            <Route path="/possibilities" element={<Navigate to="/possibility-explorer" replace />} />
+            <Route path="/career-comparison" element={<CareerComparisonPage />} />
+            <Route path="/career-path-comparison" element={<Navigate to="/career-comparison" replace />} />
+            <Route path="/compare" element={<Navigate to="/career-comparison" replace />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/reflection" element={<MindReflectionPage />} />
             <Route path="/mind" element={<Navigate to="/reflection" replace />} />
