@@ -10,16 +10,19 @@ export interface ComparisonInput {
 }
 
 export function generateComparisonPrompt(input: ComparisonInput): string {
-  const pathList = input.paths.map((p, idx) => `${idx + 1}. **${p.title}** ${p.notes ? `(${p.notes})` : ''}`).join('\n');
+  const paths = Array.isArray(input?.paths) ? input.paths : [];
+  const selectedDimensions = Array.isArray(input?.selectedDimensions) ? input.selectedDimensions : [];
+
+  const pathList = paths.map((p, idx) => `${idx + 1}. **${p.title}** ${p.notes ? `(${p.notes})` : ''}`).join('\n');
   const dimensionsList = DEFAULT_DIMENSIONS
-    .filter(d => input.selectedDimensions.includes(d.id))
+    .filter(d => selectedDimensions.length === 0 || selectedDimensions.includes(d.id))
     .map(d => `- **${d.label}**: ${d.description}`)
     .join('\n');
 
   return `### SYSTEM ROLE: FOYC CAREER COMPARISON & DECISION STRATEGIST
 
 You are acting as an objective, world-class Career Decision Strategist for FOYC (Figure Out Your Career).
-Your goal is to conduct a rigorous, zero-fluff comparison between ${input.paths.length} distinct career trajectories for the user.
+Your goal is to conduct a rigorous, zero-fluff comparison between ${paths.length} distinct career trajectories for the user.
 
 ---
 ### USER CONTEXT & BACKGROUND:

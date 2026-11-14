@@ -541,8 +541,8 @@ function synthesizePersonalizedResources(primaryTitle: string): ResourceItem[] {
  */
 export function parseHandoffText(
   pastedText: string,
-  existingProfile: UserProfile,
-  existingReflection: UserReflection
+  existingProfile: Partial<UserProfile> = {},
+  existingReflection: Partial<UserReflection> = {}
 ): ParseResult {
   const warnings: string[] = [];
   const errors: string[] = [];
@@ -671,15 +671,15 @@ export function parseHandoffText(
 
   // Stage 8: Transform into CareerDashboardData for State & Persistence
   const safeProfile: UserProfile = {
-    preferredName: d.profile?.preferred_name || existingProfile.preferredName || 'Explorer',
-    ageRange: existingProfile.ageRange || '18-22',
-    country: d.profile?.country || existingProfile.country || 'Global',
-    educationStatus: (d.profile?.current_education_or_profession as any) || existingProfile.educationStatus || 'college-student',
-    currentField: d.profile?.current_field || existingProfile.currentField || 'Career Exploration',
-    careerStage: (d.profile?.current_career_stage as any) || existingProfile.careerStage || 'exploring',
-    workExperience: d.profile?.work_experience || existingProfile.workExperience || 'Not specified',
-    preferredLanguage: existingProfile.preferredLanguage || 'English',
-    availableHoursPerWeek: existingProfile.availableHoursPerWeek || 15,
+    preferredName: d.profile?.preferred_name || existingProfile?.preferredName || 'Explorer',
+    ageRange: existingProfile?.ageRange || '18-22',
+    country: d.profile?.country || existingProfile?.country || 'Global',
+    educationStatus: (d.profile?.current_education_or_profession as any) || existingProfile?.educationStatus || 'college-student',
+    currentField: d.profile?.current_field || existingProfile?.currentField || 'Career Exploration',
+    careerStage: (d.profile?.current_career_stage as any) || existingProfile?.careerStage || 'exploring',
+    workExperience: d.profile?.work_experience || existingProfile?.workExperience || 'Not specified',
+    preferredLanguage: existingProfile?.preferredLanguage || 'English',
+    availableHoursPerWeek: existingProfile?.availableHoursPerWeek || 15,
   };
 
   const safeDirection = {
@@ -792,9 +792,17 @@ export function parseHandoffText(
     safeResources = synthesizePersonalizedResources(safeDirection.primaryTitle);
   }
 
+  const safeReflection: UserReflection = {
+    mindText: existingReflection?.mindText || '',
+    questionnaireAnswers: existingReflection?.questionnaireAnswers || {},
+    keyInterests: existingReflection?.keyInterests || [],
+    keyStruggles: existingReflection?.keyStruggles || [],
+    dreamVision: existingReflection?.dreamVision || '',
+  };
+
   const finalDashboardData: CareerDashboardData = {
     profile: safeProfile,
-    reflection: existingReflection,
+    reflection: safeReflection,
     direction: safeDirection as any,
     milestones: safeMilestones,
     tasks: safeTasks,

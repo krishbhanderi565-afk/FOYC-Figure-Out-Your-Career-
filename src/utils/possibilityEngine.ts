@@ -13,21 +13,26 @@ export function generatePossibilityPrompt(
   data: PossibilityQuestionnaireData,
   userName: string = 'Explorer'
 ): string {
-  const stageOption = LIFE_STAGE_OPTIONS.find((s) => s.key === data.lifeStage);
-  const stageName = data.lifeStage === 'other' && data.lifeStageOther.trim()
+  const safeInterests = Array.isArray(data?.interests) ? data.interests : [];
+  const safeSkillsPossessed = Array.isArray(data?.skillsPossessed) ? data.skillsPossessed : [];
+  const safeSkillsToDevelop = Array.isArray(data?.skillsToDevelop) ? data.skillsToDevelop : [];
+  const safeAmbitions = Array.isArray(data?.ambitions) ? data.ambitions : [];
+
+  const stageOption = LIFE_STAGE_OPTIONS.find((s) => s.key === data?.lifeStage);
+  const stageName = data?.lifeStage === 'other' && data?.lifeStageOther?.trim()
     ? data.lifeStageOther.trim()
     : stageOption?.label || 'Career Explorer';
 
   const backgroundDetails: string[] = [];
-  if (data.educationLevel) backgroundDetails.push(`Education Level: ${data.educationLevel}`);
-  if (data.degreeOrCourse || data.fieldOfStudy) {
-    backgroundDetails.push(`Field / Degree: ${data.degreeOrCourse || ''} ${data.fieldOfStudy ? `(${data.fieldOfStudy})` : ''}`.trim());
+  if (data?.educationLevel) backgroundDetails.push(`Education Level: ${data.educationLevel}`);
+  if (data?.degreeOrCourse || data?.fieldOfStudy) {
+    backgroundDetails.push(`Field / Degree: ${data?.degreeOrCourse || ''} ${data?.fieldOfStudy ? `(${data?.fieldOfStudy})` : ''}`.trim());
   }
-  if (data.currentRole || data.industry) {
-    backgroundDetails.push(`Current Role: ${data.currentRole || 'In Transition'} ${data.industry ? `in ${data.industry}` : ''}`.trim());
+  if (data?.currentRole || data?.industry) {
+    backgroundDetails.push(`Current Role: ${data?.currentRole || 'In Transition'} ${data?.industry ? `in ${data?.industry}` : ''}`.trim());
   }
-  if (data.yearsExperience) backgroundDetails.push(`Practical Experience: ${data.yearsExperience}`);
-  if (data.certificationsOrAchievements) backgroundDetails.push(`Credentials / Milestones: ${data.certificationsOrAchievements}`);
+  if (data?.yearsExperience) backgroundDetails.push(`Practical Experience: ${data.yearsExperience}`);
+  if (data?.certificationsOrAchievements) backgroundDetails.push(`Credentials / Milestones: ${data.certificationsOrAchievements}`);
 
   return `You are acting as the Senior Multidisciplinary Career Exploration Advisor, Opportunity Researcher, and Strategic Life-Planning Guide collaborating with ${userName} through FOYC (Figure Out Your Career).
 
@@ -40,28 +45,28 @@ export function generatePossibilityPrompt(
 ${backgroundDetails.length > 0 ? backgroundDetails.map((b) => `  * ${b}`).join('\n') : '  * Self-directed learning & exploratory phase'}
 
 - Natural Curiosities & Interests:
-${data.interests.length > 0 ? data.interests.map((i) => `  * ${i}`).join('\n') : '  * Broad interdisciplinary interests'}
-${data.interestsOther ? `  * Additional interest notes: "${data.interestsOther}"` : ''}
-${data.curiosityFreeText ? `  * Free-form curiosity reflection: "${data.curiosityFreeText}"` : ''}
+${safeInterests.length > 0 ? safeInterests.map((i) => `  * ${i}`).join('\n') : '  * Broad interdisciplinary interests'}
+${data?.interestsOther ? `  * Additional interest notes: "${data.interestsOther}"` : ''}
+${data?.curiosityFreeText ? `  * Free-form curiosity reflection: "${data.curiosityFreeText}"` : ''}
 
 - Capabilities & Skills:
-  * Skills Currently Possessed: ${data.skillsPossessed.length > 0 ? data.skillsPossessed.join(', ') : 'Foundational problem solving & communication'}
-  * Skills Eager to Develop: ${data.skillsToDevelop.length > 0 ? data.skillsToDevelop.join(', ') : 'High-leverage industry capabilities'}
+  * Skills Currently Possessed: ${safeSkillsPossessed.length > 0 ? safeSkillsPossessed.join(', ') : 'Foundational problem solving & communication'}
+  * Skills Eager to Develop: ${safeSkillsToDevelop.join(', ') || 'High-leverage industry capabilities'}
 
 - Core Ambitions & 3–5 Year Horizon:
-${data.ambitions.length > 0 ? data.ambitions.map((a) => `  * ${a}`).join('\n') : '  * Seeking clarity on personal direction'}
-${data.visionThreeToFiveYears ? `  * Bigger 3–5 Year Vision: "${data.visionThreeToFiveYears}"` : ''}
+${safeAmbitions.length > 0 ? safeAmbitions.map((a) => `  * ${a}`).join('\n') : '  * Seeking clarity on personal direction'}
+${data?.visionThreeToFiveYears ? `  * Bigger 3–5 Year Vision: "${data.visionThreeToFiveYears}"` : ''}
 
 - Practical Boundaries & Real-Life Reality:
-  * Weekly Learning Time: ${data.timeAvailableWeekly || '5–15 hrs/week'}
-  * Learning Budget: ${data.budgetPreference || 'Free / low-cost resources'}
-  * Immediate Income Pressure: ${data.needImmediateIncome ? 'YES — Needs revenue or income pathway quickly' : 'NO — Has runway for learning & experimentation'}
-  * Preferred Work Setting: ${data.workEnvironment || 'Flexible / Open'}
-  * Willingness to Relocate: ${data.willingnessToRelocate || 'Open'}
-  * Risk Tolerance: ${data.riskTolerance || 'Moderate'}
-  * Family / Responsibilities: ${data.familyResponsibilities || 'Standard daily obligations'}
+  * Weekly Learning Time: ${data?.timeAvailableWeekly || '5–15 hrs/week'}
+  * Learning Budget: ${data?.budgetPreference || 'Free / low-cost resources'}
+  * Immediate Income Pressure: ${data?.needImmediateIncome ? 'YES — Needs revenue or income pathway quickly' : 'NO — Has runway for learning & experimentation'}
+  * Preferred Work Setting: ${data?.workEnvironment || 'Flexible / Open'}
+  * Willingness to Relocate: ${data?.willingnessToRelocate || 'Open'}
+  * Risk Tolerance: ${data?.riskTolerance || 'Moderate'}
+  * Family / Responsibilities: ${data?.familyResponsibilities || 'Standard daily obligations'}
 
-${data.additionalNotes ? `Unfiltered Additional Thoughts:\n"${data.additionalNotes}"\n` : ''}
+${data?.additionalNotes ? `Unfiltered Additional Thoughts:\n"${data.additionalNotes}"\n` : ''}
 
 ==================================================
 2. EXPLORATION OBJECTIVE
