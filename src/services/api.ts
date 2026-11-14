@@ -1,4 +1,5 @@
 import { UserProfile, UserReflection, CareerDashboardData, TaskItem } from '../types/career';
+import { supabaseService } from './supabaseService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
 
@@ -12,6 +13,12 @@ const getHeaders = () => {
   };
 };
 
+const getUserId = async (): Promise<string | null> => {
+  const cloudUserId = await supabaseService.getCurrentUserId();
+  if (cloudUserId) return cloudUserId;
+  return localStorage.getItem('foyc_user_id') || null;
+};
+
 export const api = {
   // Health & Target Project Verification
   checkHealth: async () => {
@@ -19,12 +26,23 @@ export const api = {
       const res = await fetch(`${API_BASE_URL}/health`);
       return await res.json();
     } catch {
-      return { status: 'offline-client-mode', targetProjectId: 'rlrzdvebvbtegxixyfrb' };
+      return {
+        status: supabaseService.isConfigured() ? 'live-supabase-client-mode' : 'offline-client-mode',
+        targetProjectId: 'rlrzdvebvbtegxixyfrb',
+        supabaseConfigured: supabaseService.isConfigured(),
+      };
     }
   },
 
   // Profile Management
   getProfile: async () => {
+    if (supabaseService.isConfigured()) {
+      const userId = await getUserId();
+      if (userId) {
+        const cloudProfile = await supabaseService.getProfile(userId);
+        if (cloudProfile) return cloudProfile;
+      }
+    }
     try {
       const res = await fetch(`${API_BASE_URL}/profile`, {
         headers: getHeaders(),
@@ -36,6 +54,21 @@ export const api = {
   },
 
   updateProfile: async (profileData: any) => {
+    if (supabaseService.isConfigured()) {
+      const userId = await getUserId();
+      if (userId) {
+        await supabaseService.upsertProfile(userId, {
+          fullName: profileData.fullName || profileData.preferredName,
+          preferredName: profileData.preferredName || profileData.fullName,
+          email: profileData.email,
+          country: profileData.country,
+          currentField: profileData.currentField || profileData.profession,
+          educationStatus: profileData.educationStatus || profileData.education,
+          careerStage: profileData.careerStage,
+          availableHoursPerWeek: profileData.availableHoursPerWeek || profileData.availableHours,
+        });
+      }
+    }
     try {
       const res = await fetch(`${API_BASE_URL}/profile`, {
         method: 'PUT',
@@ -107,6 +140,15 @@ export const api = {
   },
 
   getDashboardData: async () => {
+    if (supabaseService.isConfigured()) {
+      const userId = await getUserId();
+      if (userId) {
+        const cloudData = await supabaseService.getDashboardData(userId);
+        if (cloudData) {
+          return { success: true, data: cloudData, source: 'supabase' };
+        }
+      }
+    }
     try {
       const res = await fetch(`${API_BASE_URL}/dashboard`, {
         headers: getHeaders(),
@@ -118,6 +160,15 @@ export const api = {
   },
 
   transferPlanToAccount: async (approvedPlanDraft: CareerDashboardData) => {
+    if (supabaseService.isConfigured()) {
+      const userId = await getUserId();
+      if (userId) {
+        const res = await supabaseService.transferPlanToAccount(userId, approvedPlanDraft);
+        if (res.success) {
+          return { success: true, source: 'supabase', planId: res.planId };
+        }
+      }
+    }
     try {
       const res = await fetch(`${API_BASE_URL}/dashboard/transfer`, {
         method: 'POST',
@@ -155,7 +206,13 @@ export const api = {
     }
   },
 
-  toggleMilestone: async (milestoneId: string) => {
+  toggleMilestone: async (milestoneId: string, completed?: boolean) => {
+    if (supabaseService.isConfigured()) {
+      const userId = await getUserId();
+      if (userId) {
+        await supabaseService.updateMilestoneStatus(userId, milestoneId, completed ?? true);
+      }
+    }
     try {
       const res = await fetch(`${API_BASE_URL}/milestones/${milestoneId}/toggle`, {
         method: 'POST',
@@ -180,6 +237,15 @@ export const api = {
   },
 
   createTask: async (task: Omit<TaskItem, 'id'>) => {
+    if (supabaseService.isConfigured()) {
+      const userId = await getUserId();
+      if (userId) {
+        const id = await supabaseService.createTask(userId, task);
+        if (id) {
+          return { success: true, task: { ...task, id } };
+        }
+      }
+    }
     try {
       const res = await fetch(`${API_BASE_URL}/tasks`, {
         method: 'POST',
@@ -193,6 +259,12 @@ export const api = {
   },
 
   updateTask: async (taskId: string, updates: Partial<TaskItem>) => {
+    if (supabaseService.isConfigured()) {
+      const userId = await getUserId();
+      if (userId && updates.completed !== undefined) {
+        await supabaseService.updateTaskStatus(userId, taskId, updates.completed);
+      }
+    }
     try {
       const res = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
         method: 'PUT',
@@ -206,6 +278,12 @@ export const api = {
   },
 
   deleteTask: async (taskId: string) => {
+    if (supabaseService.isConfigured()) {
+      const userId = await getUserId();
+      if (userId) {
+        await supabaseService.deleteTask(userId, taskId);
+      }
+    }
     try {
       await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
         method: 'DELETE',
@@ -264,12 +342,19 @@ export const api = {
     }
   },
 
-  toggleHabit: async (habitId: string, dateStr?: string) => {
+  toggleHabit: async (habitId: string, dateStr?: string, completed?: boolean) => {
+    const targetDate = dateStr || new Date().toISOString().split('T')[0];
+    if (supabaseService.isConfigured()) {
+      const userId = await getUserId();
+      if (userId) {
+        await supabaseService.logHabitCompletion(userId, habitId, targetDate, completed ?? true);
+      }
+    }
     try {
       const res = await fetch(`${API_BASE_URL}/habits/${habitId}/toggle`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ date: dateStr }),
+        body: JSON.stringify({ date: targetDate }),
       });
       return await res.json();
     } catch {

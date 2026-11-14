@@ -355,7 +355,7 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setIsAuthenticated(true);
           setUserEmail(session.user.email || null);
           setUserId(session.user.id);
-          const name = session.user.user_metadata?.full_name || session.user.email?.split('@')[0];
+          const name = session.user.user_metadata?.full_name || session.user.user_metadata?.preferred_name || session.user.email?.split('@')[0];
           setUserName(name || null);
           const avatar = session.user.user_metadata?.avatar_url || null;
           setUserAvatar(avatar);
@@ -363,7 +363,16 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           localStorage.setItem('foyc_auth', 'true');
           if (session.user.email) localStorage.setItem('foyc_user_email', session.user.email);
           if (name) localStorage.setItem('foyc_user_name', name);
+          localStorage.setItem('foyc_user_id', session.user.id);
           if (session.access_token) localStorage.setItem('foyc_auth_token', session.access_token);
+          
+          // Sync profile to Supabase
+          api.updateProfile({
+            fullName: name,
+            preferredName: name,
+            email: session.user.email,
+          }).catch(() => {});
+
           syncFromCloud();
         }
       });
@@ -373,7 +382,7 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setIsAuthenticated(true);
           setUserEmail(session.user.email || null);
           setUserId(session.user.id);
-          const name = session.user.user_metadata?.full_name || session.user.email?.split('@')[0];
+          const name = session.user.user_metadata?.full_name || session.user.user_metadata?.preferred_name || session.user.email?.split('@')[0];
           setUserName(name || null);
           const avatar = session.user.user_metadata?.avatar_url || null;
           setUserAvatar(avatar);
@@ -381,7 +390,16 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           localStorage.setItem('foyc_auth', 'true');
           if (session.user.email) localStorage.setItem('foyc_user_email', session.user.email);
           if (name) localStorage.setItem('foyc_user_name', name);
+          localStorage.setItem('foyc_user_id', session.user.id);
           if (session.access_token) localStorage.setItem('foyc_auth_token', session.access_token);
+          
+          // Sync profile to Supabase
+          api.updateProfile({
+            fullName: name,
+            preferredName: name,
+            email: session.user.email,
+          }).catch(() => {});
+
           syncFromCloud();
         }
       });
@@ -684,7 +702,10 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           email,
           password,
           options: {
-            data: { full_name: fullName || email.split('@')[0] },
+            data: {
+              full_name: fullName || email.split('@')[0],
+              preferred_name: fullName || email.split('@')[0],
+            },
           },
         });
         if (error) return { success: false, error: error.message };
@@ -696,10 +717,25 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setUserName(name);
           localStorage.setItem('foyc_auth', 'true');
           localStorage.setItem('foyc_user_email', email);
+          localStorage.setItem('foyc_user_id', data.user.id);
           if (name) localStorage.setItem('foyc_user_name', name);
           if (data.session?.access_token) {
             localStorage.setItem('foyc_auth_token', data.session.access_token);
           }
+
+          // Direct sync to Supabase profiles
+          await api.updateProfile({
+            fullName: name,
+            preferredName: name,
+            email,
+          }).catch(() => {});
+
+          // If user drafted a plan before signing up, transfer it to their account in Supabase
+          const activeTitle = dashboardData?.direction?.primaryTitle || dashboardData?.primaryCareer?.title;
+          if (activeTitle && localStorage.getItem('foyc_dashboard_generated') === 'true') {
+            await api.transferPlanToAccount(dashboardData).catch(() => {});
+          }
+
           await syncFromCloud();
           return { success: true };
         }
@@ -737,9 +773,24 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           localStorage.setItem('foyc_auth', 'true');
           localStorage.setItem('foyc_user_email', email);
           localStorage.setItem('foyc_user_name', name);
+          localStorage.setItem('foyc_user_id', data.user.id);
           if (data.session?.access_token) {
             localStorage.setItem('foyc_auth_token', data.session.access_token);
           }
+
+          // Direct sync to Supabase profiles
+          await api.updateProfile({
+            fullName: name,
+            preferredName: name,
+            email,
+          }).catch(() => {});
+
+          // If user drafted a plan before logging in, transfer it to their account in Supabase
+          const activeTitle = dashboardData?.direction?.primaryTitle || dashboardData?.primaryCareer?.title;
+          if (activeTitle && localStorage.getItem('foyc_dashboard_generated') === 'true') {
+            await api.transferPlanToAccount(dashboardData).catch(() => {});
+          }
+
           await syncFromCloud();
           return { success: true };
         }
