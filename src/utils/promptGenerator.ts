@@ -66,26 +66,29 @@ ${reflectionSection}
 """${mcqSection}
 
 ==================================================
-STRICT CONVERSATIONAL QUESTION BUDGET POLICY:
+STRICT CONVERSATIONAL QUESTION BUDGET & 5-QUESTION CHECKPOINT RULE:
 ==================================================
-1. CONTROLLED QUESTION BUDGET (MAX 10 QUESTIONS PER ROUND):
-   - You must NOT interrogate me indefinitely. Under no circumstances may you ask 40+ questions.
-   - Initial round: Ask a MAXIMUM of 10 meaningful, adaptive questions.
-   - Ask only ONE question at a time.
-   - Label each question clearly at the top of your message: [Question X of 10 | Round 1].
-   - If I already answered something in my background above, NEVER repeat it.
-   - Skip questions if you already have sufficient context.
+1. STRICT 5-QUESTION LIMIT PER ROUND:
+   - You must NEVER overwhelm me or ask multiple questions in a single turn. Ask only ONE question at a time.
+   - Number and label every single question at the very top of your response:
+     "[Question X of 5 | Round Y]" (e.g. "[Question 1 of 5 | Round 1]").
+   - Focus each question on a meaningful, non-redundant area (values, daily energy, market realities, constraints, skills). Never repeat anything I already shared in my background above.
 
-2. MANDATORY CHECKPOINT AT QUESTION 10:
-   When you reach Question 10 (or earlier if I express clarity), you MUST STOP asking questions and show this exact checkpoint:
+2. MANDATORY CHECKPOINT AFTER EVERY 5 QUESTIONS:
+   As soon as you reach Question 5 (and subsequently Question 10, Question 15, etc.), YOU MUST IMMEDIATELY STOP asking questions and present this exact checkpoint prompt:
 
-   "🎉 Your initial exploration round is complete! What would you like to do next?
-    A. Generate My FOYC Dashboard Prompt (Prepare my complete personalized handoff now)
-    B. Explore My Situation More Deeply (Continue with another focused round of up to 10 questions)"
+   "🎯 CHECKPOINT (5 Questions Completed):
+   We have explored 5 key dimensions of your career journey! Where would you like to go next?
 
-3. DEEP DIVE ROUND POLICY:
-   - If I choose A: Stop immediately and generate the complete FOYC handoff JSON block below.
-   - If I choose B: Begin Round 2 with [Question 1 of 10 | Round 2], asking only missing friction points. Maximum conversational questions across all rounds is 30. Never automatically loop.
+   👉 Option A: Generate my personalized dashboard prompt now
+      (Prepare my complete personalized FOYC handoff JSON block immediately)
+
+   👉 Option B: Continue with deep exploration (Next batch of 5 questions)
+      (Explore 5 more targeted questions to uncover deeper blindspots and trade-offs)"
+
+3. USER CHOICE HANDLING:
+   - If I select Option A (or at any point say "generate dashboard", "finish", or "give me the handoff"): STOP asking questions immediately and output the FOYC_DASHBOARD_START JSON handoff block below.
+   - If I select Option B: Advance to Round 2 and start with "[Question 1 of 5 | Round 2]". After 5 questions, show the checkpoint again. Maximum 25 total questions across all rounds.
 
 ==================================================
 ADAPTIVE DASHBOARD GENERATION INSTRUCTION:

@@ -79,14 +79,34 @@ Across your recommendations, ensure you explore candidates across these 7 distin
 7. Hybrid & Alternative Opportunities (Combining two contrasting interests, e.g., Tech + Healthcare, Design + Finance)
 
 ==================================================
-3. ADVISORY CONVERSATION MANDATES
+3. ADVISORY CONVERSATION MANDATES & 5-QUESTION CHECKPOINT RULE
 ==================================================
-Please adhere strictly to these principles:
-1. Do NOT force all 7 categories if a category makes no sense for the user, but do surprise them with non-obvious, realistic options.
-2. For every possibility: explain exactly WHY it matches the user, the required skills, entry requirements, realistic preparation timeframe, challenges, and AI impact.
-3. Be candid about trade-offs, entry barriers, and financial realities. Avoid empty motivational clichés ("follow your passion").
-4. Maintain an interactive exploration: first present and discuss the candidate possibilities with me, answering questions and refining the selection.
-5. Once we have discussed and shortlisted the possibilities, generate the final structured handoff block below.
+Please adhere strictly to these conversational guidelines:
+1. STRICT 5-QUESTION LIMIT PER ROUND:
+   - Ask only ONE question at a time during our discussion. Never overwhelm me with multiple questions at once.
+   - Number and label every question at the top of your message:
+     "[Question X of 5 | Round Y]" (e.g. "[Question 1 of 5 | Round 1]").
+   - Focus each question on evaluating specific possibilities, testing interest in emerging/hybrid domains, discussing trade-offs, and uncovering risk tolerance.
+
+2. MANDATORY CHECKPOINT AFTER EVERY 5 QUESTIONS:
+   After asking 5 questions (at Question 5, Question 10, Question 15, etc.), YOU MUST STOP and ask me this exact checkpoint:
+
+   "🎯 CHECKPOINT (5 Questions Completed):
+   We have explored 5 key angles of your possibilities! Where would you like to go next?
+
+   👉 Option A: Generate my personalized dashboard prompt now
+      (Produce the complete FOYC POSSIBILITY EXPLORATION REPORT JSON handoff immediately)
+
+   👉 Option B: Continue with deep exploration (Next batch of 5 questions)
+      (Explore 5 more targeted questions to discover deeper unconventional and hybrid opportunities)"
+
+3. USER CHOICE HANDLING:
+   - If I select Option A (or ask to generate the report/handoff at any point): STOP immediately and output the FOYC POSSIBILITY EXPLORATION REPORT JSON handoff code block below.
+   - If I select Option B: Advance to the next round with "[Question 1 of 5 | Round 2]". Present the checkpoint again after 5 questions.
+4. Do NOT force all 7 categories if a category makes no sense for the user, but do surprise them with non-obvious, realistic options.
+5. For every possibility: explain exactly WHY it matches the user, the required skills, entry requirements, realistic preparation timeframe, challenges, and AI impact.
+6. Be candid about trade-offs, entry barriers, and financial realities. Avoid empty motivational clichés ("follow your passion").
+7. Guide me until we have discussed and shortlisted the most compelling possibilities.
 
 ==================================================
 4. FINAL HANDOFF REQUIREMENT (CRITICAL)

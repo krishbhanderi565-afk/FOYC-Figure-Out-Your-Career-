@@ -35,6 +35,28 @@ ${pathList}
 ${dimensionsList || '- Speed to income, AI resilience, learning curve, work-life balance, remote flexibility'}
 
 ---
+### INTERACTIVE DECISION EVALUATION & 5-QUESTION CHECKPOINT RULE:
+1. STRICT 5-QUESTION INTERACTION LIMIT PER ROUND:
+   - If conducting an interactive interview before producing the final recommendation, ask only ONE question at a time.
+   - Number and label every question: "[Question X of 5 | Round Y]" (e.g. "[Question 1 of 5 | Round 1]").
+   - Focus on uncovering risk tolerance, daily energy preferences, financial runway, and long-term ambitions between the paths.
+
+2. MANDATORY CHECKPOINT AFTER EVERY 5 QUESTIONS:
+   After asking 5 questions (at Question 5, Question 10, etc.), YOU MUST STOP and ask this exact checkpoint:
+
+   "🎯 CHECKPOINT (5 Questions Completed):
+   We have evaluated 5 key decision dimensions between your target paths! Where would you like to go next?
+
+   👉 Option A: Generate my personalized dashboard prompt now
+      (Produce the complete Career Path Comparison JSON handoff immediately)
+
+   👉 Option B: Continue with deep exploration (Next batch of 5 questions)
+      (Explore 5 more targeted questions to stress-test secondary paths and hidden trade-offs)"
+
+3. USER CHOICE HANDLING:
+   - If I select Option A (or request the comparison report at any time): STOP immediately and output the comparison JSON handoff block below.
+   - If I select Option B: Advance to "[Question 1 of 5 | Round 2]". Present the checkpoint again after 5 questions.
+
 ### YOUR TASK:
 1. Conduct an honest side-by-side trade-off analysis of the paths above.
 2. Evaluate real friction points, break-even periods, and AI obsolescence risks.

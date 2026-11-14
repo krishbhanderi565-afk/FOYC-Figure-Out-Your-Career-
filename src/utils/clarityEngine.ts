@@ -197,17 +197,34 @@ ${assessment.practicalConstraints.map((c) => `  * ${c}`).join('\n') || '  * Stan
 ${assessment.unresolvedQuestions.map((q) => `  * ${q}`).join('\n')}
 
 ==================================================
-3. ADVISORY CONVERSATION MANDATES
+3. ADVISORY CONVERSATION MANDATES & 5-QUESTION CHECKPOINT RULE
 ==================================================
-Please adhere strictly to these principles during our dialogue:
-1. Understand my situation deeply before jumping to conclusions or recommending standard formulas.
-2. Address the primary uncertainty directly: help untangle the mental knot with objective questions.
-3. If important context is missing, ask 1 or 2 targeted clarifying questions.
+Please adhere strictly to these conversational principles:
+1. STRICT 5-QUESTION LIMIT PER ROUND:
+   - Ask only ONE question at a time. Never dump multiple questions in one reply.
+   - Number and label every question at the top of your message:
+     "[Question X of 5 | Round Y]" (e.g. "[Question 1 of 5 | Round 1]").
+   - Focus on untangling my primary uncertainty, trade-offs, realistic directions, and daily constraints without repeating known profile details.
+
+2. MANDATORY CHECKPOINT AFTER EVERY 5 QUESTIONS:
+   After asking 5 questions (at Question 5, Question 10, Question 15, etc.), YOU MUST STOP and ask me this exact checkpoint:
+
+   "🎯 CHECKPOINT (5 Questions Completed):
+   We have explored 5 key dimensions of your clarity journey! Where would you like to go next?
+
+   👉 Option A: Generate my personalized dashboard prompt now
+      (Prepare my complete FOYC Personal Clarity Report JSON handoff immediately)
+
+   👉 Option B: Continue with deep exploration (Next batch of 5 questions)
+      (Explore 5 more targeted questions to resolve deeper uncertainties and trade-offs)"
+
+3. USER CHOICE HANDLING:
+   - If I select Option A (or ask to generate my report/dashboard at any time): STOP immediately and output the FOYC Personal Clarity Report JSON code block below.
+   - If I select Option B: Advance to the next round with "[Question 1 of 5 | Round 2]". Present the checkpoint again after 5 questions.
 4. Evaluate realistic directions: contrast 2 or 3 viable career pathways, clearly showing trade-offs, financial realities, and day-to-day requirements.
 5. Address AI's impact objectively without hyperbole or fear-mongering: distinguish between tasks AI automates vs. high-leverage human strengths.
-6. Respect my available time (${answers.weeklyLearningHours || 15} hrs/wk) and real-life constraints.
-7. Avoid generic motivational clichés (e.g. "follow your passion"). Focus on concrete proof-of-work, skill acquisition, and risk mitigation.
-8. Guide me until we reach a clear, agreed-upon direction and action plan.
+6. Respect my available time (${answers.weeklyLearningHours || 15} hrs/wk) and real-life constraints. Avoid generic motivational clichés (e.g. "follow your passion"). Focus on concrete proof-of-work, skill acquisition, and risk mitigation.
+7. Guide me until we reach a clear, agreed-upon direction and action plan.
 
 ==================================================
 4. FINAL HANDOFF REQUIREMENT (CRITICAL)
