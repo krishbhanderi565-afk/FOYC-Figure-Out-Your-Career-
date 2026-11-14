@@ -26,6 +26,7 @@ import { CareerComparisonReport, DEFAULT_DIMENSIONS } from '../types/comparison'
 import { generateComparisonPrompt, parseComparisonHandoff } from '../utils/comparisonEngine';
 import { generateComparisonPdf, generateComparisonDocx } from '../utils/comparisonDocExport';
 import { openChatGPTWithPrompt } from '../utils/chatGptLauncher';
+import { useCareer } from '../context/CareerContext';
 
 const POPULAR_COMPARISON_PRESETS = [
   { p1: 'AI & Full Stack Developer', p2: 'AI Product Manager' },
@@ -36,7 +37,38 @@ const POPULAR_COMPARISON_PRESETS = [
 
 export const CareerComparisonPage: React.FC = () => {
   const navigate = useNavigate();
+  const { applyHandoffText, userName } = useCareer();
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+
+  const handleBuildDirectDashboard = (targetTitle: string) => {
+    const primaryDesc = report?.recommendation?.strategicRationale || 'Strategic trajectory selected from career path comparison.';
+    const altPaths = (report?.comparedPaths || []).map(p => ({
+      title: p.title,
+      description: p.summary || '',
+      overlap_score: p.scores ? Math.round(Object.values(p.scores).reduce((a, b) => a + b, 0) * 1.5) : 85,
+    }));
+
+    const synthesized = `\`\`\`json
+{
+  "schema_version": "2.0",
+  "profile": {
+    "preferred_name": "${userName || 'Explorer'}",
+    "current_career_stage": "Career Pivot",
+    "work_experience": "${currentBackground.replace(/"/g, '\\"') || 'Prior professional background'}"
+  },
+  "career_direction": {
+    "primary_career_direction": "${targetTitle.replace(/"/g, '\\"')}",
+    "career_description": "${primaryDesc.replace(/"/g, '\\"')}",
+    "confidence_level": ${report?.recommendation?.confidenceScore || 90},
+    "alternative_career_paths": ${JSON.stringify(altPaths)}
+  },
+  "next7DayExperiment": ${JSON.stringify(report?.next7DayExperiment || null)}
+}
+\`\`\``;
+
+    applyHandoffText(synthesized);
+    navigate('/dashboard');
+  };
 
   // Step 1: Paths
   const [paths, setPaths] = useState<{ title: string; notes?: string }[]>([
@@ -830,9 +862,7 @@ export const CareerComparisonPage: React.FC = () => {
                       <Button
                         variant="secondary"
                         size="sm"
-                        onClick={() => {
-                          navigate('/onboarding', { state: { targetCareer: p.title } });
-                        }}
+                        onClick={() => handleBuildDirectDashboard(p.title)}
                         className="text-xs font-bold gap-1 border-[#171717] hover:bg-[#FFE76B]"
                       >
                         <span>Build Dashboard</span>
@@ -880,11 +910,7 @@ export const CareerComparisonPage: React.FC = () => {
                 <Button
                   variant="primary"
                   size="lg"
-                  onClick={() => {
-                    navigate('/onboarding', {
-                      state: { targetCareer: report.recommendation.primaryPathTitle },
-                    });
-                  }}
+                  onClick={() => handleBuildDirectDashboard(report.recommendation.primaryPathTitle)}
                   className="font-black bg-[#FFE76B] text-[#171717] border-2 border-white shadow-[3px_3px_0px_#FFFFFF] hover:bg-[#FADB3D]"
                 >
                   <span>Build My Career Dashboard Now</span>

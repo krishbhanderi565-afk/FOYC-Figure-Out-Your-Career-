@@ -703,13 +703,24 @@ export const OverviewPage: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-5 gap-2 relative z-10">
-                    {[
-                      { title: 'Foundation', status: 'Completed', state: 'done' },
-                      { title: 'Skill Development', status: 'Completed', state: 'done' },
-                      { title: 'Practical Application', status: 'In Progress', state: 'current' },
-                      { title: 'Professional Readiness', status: 'Upcoming', state: 'upcoming' },
-                      { title: 'Career Growth', status: 'Upcoming', state: 'upcoming' },
-                    ].map((step, idx) => (
+                    {(milestones.length > 0
+                      ? milestones.slice(0, 5).map((m, idx) => {
+                          const isDone = m.completed;
+                          const isCurrent = !isDone && (idx === 0 || milestones.slice(0, idx).every((prev) => prev.completed));
+                          return {
+                            title: m.stage || (m.title.length > 18 ? m.title.slice(0, 16) + '...' : m.title),
+                            status: isDone ? 'Completed' : isCurrent ? 'In Progress' : 'Upcoming',
+                            state: isDone ? 'done' : isCurrent ? 'current' : 'upcoming',
+                          };
+                        })
+                      : [
+                          { title: 'Foundation', status: 'Completed', state: 'done' },
+                          { title: 'Skill Development', status: 'Completed', state: 'done' },
+                          { title: 'Practical Application', status: 'In Progress', state: 'current' },
+                          { title: 'Professional Readiness', status: 'Upcoming', state: 'upcoming' },
+                          { title: 'Career Growth', status: 'Upcoming', state: 'upcoming' },
+                        ]
+                    ).map((step, idx) => (
                       <div key={idx} className="flex flex-col items-center text-center space-y-2">
                         {/* Node circle */}
                         <div
@@ -797,11 +808,20 @@ export const OverviewPage: React.FC = () => {
 
                   {/* Right: 3 actionable tasks */}
                   <div className="sm:col-span-7 space-y-2">
-                    {[
-                      { id: 't1', title: 'Complete UI/UX course', due: 'Due Today', pill: 'bg-emerald-100 text-emerald-800' },
-                      { id: 't2', title: 'Build portfolio draft', due: 'Due Fri', pill: 'bg-blue-100 text-blue-800' },
-                      { id: 't3', title: 'Join career community', due: 'Due Sun', pill: 'bg-purple-100 text-purple-800' },
-                    ].map((task) => (
+                    {(tasks.length > 0
+                      ? tasks.slice(0, 3).map((t, idx) => ({
+                          id: t.id,
+                          title: t.title,
+                          due: t.dueDate || (idx === 0 ? 'Due Today' : idx === 1 ? 'Due Fri' : 'Due Sun'),
+                          pill: idx === 0 ? 'bg-emerald-100 text-emerald-800' : idx === 1 ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800',
+                          completed: t.completed,
+                        }))
+                      : [
+                          { id: 't1', title: 'Complete foundational course module', due: 'Due Today', pill: 'bg-emerald-100 text-emerald-800', completed: true },
+                          { id: 't2', title: 'Build portfolio proof of work', due: 'Due Fri', pill: 'bg-blue-100 text-blue-800', completed: false },
+                          { id: 't3', title: 'Join practitioner community', due: 'Due Sun', pill: 'bg-purple-100 text-purple-800', completed: false },
+                        ]
+                    ).map((task) => (
                       <div
                         key={task.id}
                         className="p-2.5 rounded-2xl bg-white/70 border border-stone-200/70 hover:border-emerald-300 flex items-center justify-between gap-2 shadow-2xs transition-colors cursor-pointer"
@@ -814,7 +834,7 @@ export const OverviewPage: React.FC = () => {
                             onChange={() => toggleTask(task.id)}
                             className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-400 cursor-pointer"
                           />
-                          <span className="text-xs font-bold text-stone-800 truncate">
+                          <span className={`text-xs font-bold truncate ${task.completed ? 'line-through text-stone-400' : 'text-stone-800'}`}>
                             {task.title}
                           </span>
                         </div>

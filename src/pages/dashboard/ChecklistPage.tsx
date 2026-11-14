@@ -36,16 +36,16 @@ export const ChecklistPage: React.FC = () => {
   const [newDueDate, setNewDueDate] = useState('This week');
 
   const rawTasks = dashboardData?.tasks || [];
-  const tasks = rawTasks.length > 0
-    ? rawTasks
-    : (isDemoMode
-        ? [
-            { id: 't1', title: 'Learn Python Basics', category: 'Technical' as const, priority: 'high' as const, dueDate: 'Due: Nov 5', completed: true },
-            { id: 't2', title: 'Complete Data Analysis Course', category: 'Soft Skills' as const, priority: 'medium' as const, dueDate: 'Due: Nov 10', completed: true },
-            { id: 't3', title: 'Improve Communication Skills', category: 'Technical' as const, priority: 'high' as const, dueDate: 'Due: Nov 15', completed: false },
-            { id: 't4', title: 'Explore UI/UX Design Fundamentals', category: 'Portfolio' as const, priority: 'medium' as const, dueDate: 'Due: Nov 20', completed: false },
-          ]
-        : []);
+  const careerTitle = dashboardData?.direction?.primaryTitle || 'Target Career';
+  const defaultTasks: TaskItem[] = [
+    { id: 't1', title: `Audit core toolstack and framework for ${careerTitle}`, category: 'Technical', priority: 'high', dueDate: 'Due: This Week', completed: true },
+    { id: 't2', title: 'Complete foundational tutorial and document key takeaways', category: 'Technical', priority: 'high', dueDate: 'Due: Friday', completed: false },
+    { id: 't3', title: 'Draft problem statement for 1st portfolio capstone project', category: 'Portfolio', priority: 'high', dueDate: 'Due: Next Week', completed: false },
+    { id: 't4', title: 'Connect with 2 active practitioners on LinkedIn or practitioner forum', category: 'Networking', priority: 'medium', dueDate: 'Due: Next Week', completed: false },
+    { id: 't5', title: 'Build functional prototype and deploy publicly', category: 'Technical', priority: 'high', dueDate: 'Due: In 2 Weeks', completed: false },
+    { id: 't6', title: 'Conduct weekly retrospective and calibrate habit consistency', category: 'Portfolio', priority: 'medium', dueDate: 'Due: Sunday', completed: false },
+  ];
+  const tasks = rawTasks.length > 0 ? rawTasks : defaultTasks;
 
   const completedCount = tasks.filter((t) => t.completed).length;
   const totalCount = tasks.length || (isDemoMode ? 10 : 0);

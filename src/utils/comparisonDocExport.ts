@@ -48,10 +48,14 @@ export async function generateComparisonPdf(report: CareerComparisonReport): Pro
   doc.setTextColor(23, 23, 23);
   doc.text('STRATEGIC CAREER COMPARISON REPORT', margin, 60);
 
+  const paths = Array.isArray(report?.comparedPaths) ? report.comparedPaths : [];
+  const rec = report?.recommendation || ({} as any);
+  const execSummary = report?.executiveSummary || 'Objective side-by-side trade-off evaluation.';
+
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.setTextColor(80, 80, 80);
-  doc.text(`Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} • Paths Evaluated: ${report.comparedPaths.length}`, margin, 82);
+  doc.text(`Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} • Paths Evaluated: ${paths.length}`, margin, 82);
 
   y = 135;
 
@@ -69,12 +73,12 @@ export async function generateComparisonPdf(report: CareerComparisonReport): Pro
 
   doc.setFontSize(16);
   doc.setTextColor(23, 23, 23);
-  doc.text(`${report.recommendation.primaryPathTitle} (${report.recommendation.confidenceScore}% Confidence)`, margin + 16, y + 46);
+  doc.text(`${rec.primaryPathTitle || paths[0]?.title || 'Recommended Path'} (${rec.confidenceScore || 85}% Confidence)`, margin + 16, y + 46);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9.5);
   doc.setTextColor(60, 60, 60);
-  const rationaleLines = doc.splitTextToSize(report.recommendation.strategicRationale, contentWidth - 32);
+  const rationaleLines = doc.splitTextToSize(rec.strategicRationale || 'Highest risk-adjusted feasibility and strategic alignment.', contentWidth - 32);
   doc.text(rationaleLines.slice(0, 2), margin + 16, y + 66);
 
   y += 110;
@@ -167,6 +171,10 @@ export async function generateComparisonPdf(report: CareerComparisonReport): Pro
 }
 
 export async function generateComparisonDocx(report: CareerComparisonReport): Promise<void> {
+  const paths = Array.isArray(report?.comparedPaths) ? report.comparedPaths : [];
+  const rec = report?.recommendation || ({} as any);
+  const execSummary = report?.executiveSummary || 'Objective side-by-side trade-off evaluation.';
+
   const doc = new Document({
     sections: [
       {
@@ -183,7 +191,7 @@ export async function generateComparisonDocx(report: CareerComparisonReport): Pr
           new Paragraph({
             children: [
               new TextRun({
-                text: `Generated: ${new Date().toLocaleDateString()} | Paths: ${report.comparedPaths.map(p => p.title).join(' vs ')}`,
+                text: `Generated: ${new Date().toLocaleDateString()} | Paths: ${paths.map(p => p.title).join(' vs ') || 'Options'}`,
                 italics: true,
               }),
             ],
@@ -196,10 +204,10 @@ export async function generateComparisonDocx(report: CareerComparisonReport): Pr
           new Paragraph({
             children: [
               new TextRun({
-                text: `${report.recommendation.primaryPathTitle} (${report.recommendation.confidenceScore}% Confidence)\n`,
+                text: `${rec.primaryPathTitle || paths[0]?.title || 'Recommended Path'} (${rec.confidenceScore || 85}% Confidence)\n`,
                 bold: true,
               }),
-              new TextRun({ text: report.recommendation.strategicRationale }),
+              new TextRun({ text: rec.strategicRationale || 'Highest strategic feasibility and alignment.' }),
             ],
           }),
           new Paragraph({ text: '' }),
@@ -207,18 +215,18 @@ export async function generateComparisonDocx(report: CareerComparisonReport): Pr
             text: 'Executive Strategic Summary',
             heading: HeadingLevel.HEADING_2,
           }),
-          new Paragraph({ text: report.executiveSummary }),
+          new Paragraph({ text: execSummary }),
           new Paragraph({ text: '' }),
           new Paragraph({
             text: 'Paths Evaluated',
             heading: HeadingLevel.HEADING_2,
           }),
-          ...report.comparedPaths.flatMap((p) => [
+          ...paths.flatMap((p) => [
             new Paragraph({
               children: [
-                new TextRun({ text: `• ${p.title} (${p.category}) - Horizon: ${p.timeHorizon}\n`, bold: true }),
-                new TextRun({ text: `${p.summary}\n` }),
-                new TextRun({ text: `Pros: ${p.pros.join(', ')}\n`, color: '2E7D32' }),
+                new TextRun({ text: `• ${p.title} (${p.category || 'Career Field'}) - Horizon: ${p.timeHorizon || '6-12 months'}\n`, bold: true }),
+                new TextRun({ text: `${p.summary || ''}\n` }),
+                new TextRun({ text: `Pros: ${(p.pros || []).join(', ')}\n`, color: '2E7D32' }),
                 new TextRun({ text: `Risks: ${p.cons.join(', ')}\n`, color: 'C62828' }),
                 new TextRun({ text: `Best Fit: ${p.bestFitIf}\n`, italics: true }),
               ],

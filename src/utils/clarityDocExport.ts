@@ -94,8 +94,13 @@ export async function generateClarityPdf(report: ClarityHandoff): Promise<void> 
 
   // Section 1: Executive Summary
   renderSectionHeader('Executive Summary', '01');
-  renderParagraph(report.executive_summary.summary);
-  if (report.executive_summary.key_insight) {
+  const execSummary = typeof report.executive_summary === 'string'
+    ? report.executive_summary
+    : report.executive_summary?.summary || 'Executive summary exploring clarity and high-alignment opportunities.';
+  renderParagraph(execSummary);
+
+  const keyInsight = typeof report.executive_summary === 'object' ? report.executive_summary?.key_insight : '';
+  if (keyInsight) {
     checkPageBreak(30);
     doc.setFillColor(255, 253, 248);
     doc.setDrawColor(255, 231, 107);
@@ -103,25 +108,27 @@ export async function generateClarityPdf(report: ClarityHandoff): Promise<void> 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(23, 23, 23);
-    doc.text(`Key Insight: ${report.executive_summary.key_insight}`, margin + 8, y + 16);
+    doc.text(`Key Insight: ${keyInsight}`, margin + 8, y + 16);
     y += 34;
   }
 
   // Section 2: Understanding You
   renderSectionHeader('Understanding You', '02');
-  renderParagraph(`Background: ${report.understanding_you.education_and_background}`);
-  renderParagraph(`Interests: ${report.understanding_you.interests.join(', ') || 'Exploratory'}`);
-  renderParagraph(`Core Strengths: ${report.understanding_you.strengths_possessed.join(', ')}`);
-  renderParagraph(`Skills to Develop: ${report.understanding_you.skills_to_develop.join(', ')}`);
-  renderParagraph(`Work Style Preferences: ${report.understanding_you.work_preferences}`);
+  const und = report.understanding_you || ({} as any);
+  renderParagraph(`Background: ${und.education_and_background || 'Personal background exploration'}`);
+  renderParagraph(`Interests: ${(Array.isArray(und.interests) ? und.interests : []).join(', ') || 'Exploratory'}`);
+  renderParagraph(`Core Strengths: ${(Array.isArray(und.strengths_possessed) ? und.strengths_possessed : []).join(', ') || 'Foundational competencies'}`);
+  renderParagraph(`Skills to Develop: ${(Array.isArray(und.skills_to_develop) ? und.skills_to_develop : []).join(', ') || 'High-leverage industry capabilities'}`);
+  renderParagraph(`Work Style Preferences: ${und.work_preferences || 'Flexible / Adaptive'}`);
 
   // Section 3: Strategic Direction
   renderSectionHeader('Strategic Direction', '03');
-  renderParagraph(`Selected Trajectory: ${report.strategic_direction.selected_direction}`, 10.5, true);
-  renderParagraph(`Rationale: ${report.strategic_direction.rationale}`);
-  if (report.strategic_direction.next_decisions_to_investigate?.length) {
+  const strat = report.strategic_direction || ({} as any);
+  renderParagraph(`Selected Trajectory: ${strat.selected_direction || strat.primary_title || 'Selected Career Direction'}`, 10.5, true);
+  renderParagraph(`Rationale: ${strat.rationale || 'High alignment with your personal competencies and career ambitions.'}`);
+  if (strat.next_decisions_to_investigate?.length) {
     renderParagraph(
-      `Next Decision Checkpoints: ${report.strategic_direction.next_decisions_to_investigate.join(' • ')}`
+      `Next Decision Checkpoints: ${strat.next_decisions_to_investigate.join(' • ')}`
     );
   }
 
@@ -174,10 +181,12 @@ export async function generateClarityPdf(report: ClarityHandoff): Promise<void> 
 
   // Section 8: Personal Commitment & Next Step
   renderSectionHeader('Personal Commitment & Reassessment', '08');
-  renderParagraph(`Immediate Next Step: ${report.personal_commitment.first_concrete_step}`, 10, true);
-  renderParagraph(`Commitment Statement: "${report.personal_commitment.commitment_statement}"`);
+  const commit = report.personal_commitment || ({} as any);
+  const reassess = report.reassessment || ({} as any);
+  renderParagraph(`Immediate Next Step: ${commit.first_concrete_step || 'Begin Phase 1 foundational deliverables'}`, 10, true);
+  renderParagraph(`Commitment Statement: "${commit.commitment_statement || 'I commit to continuous progress and daily proof of work.'}"`);
   renderParagraph(
-    `Recommended Reassessment Date: ${report.reassessment.recommended_date} — "${report.reassessment.reflection_prompt}"`
+    `Recommended Reassessment Date: ${reassess.recommended_date || new Date().toISOString().split('T')[0]} — "${reassess.reflection_prompt || 'Review milestone progress and calibrate weekly habits.'}"`
   );
 
   // Footer on all pages
@@ -204,6 +213,15 @@ export async function generateClarityPdf(report: ClarityHandoff): Promise<void> 
  * Creates an editable Microsoft Word (.docx) document
  */
 export async function generateClarityDocx(report: ClarityHandoff): Promise<void> {
+  const und = report.understanding_you || ({} as any);
+  const strat = report.strategic_direction || ({} as any);
+  const commit = report.personal_commitment || ({} as any);
+  const reassess = report.reassessment || ({} as any);
+  const execSummary = typeof report.executive_summary === 'string'
+    ? report.executive_summary
+    : report.executive_summary?.summary || 'Executive summary exploring clarity and high-alignment opportunities.';
+  const keyInsight = typeof report.executive_summary === 'object' ? report.executive_summary?.key_insight || '' : '';
+
   const doc = new Document({
     sections: [
       {
@@ -225,20 +243,24 @@ export async function generateClarityDocx(report: ClarityHandoff): Promise<void>
             alignment: AlignmentType.CENTER,
           }),
           new Paragraph({
-            text: `Current Stage: ${report.current_stage}  |  Primary Uncertainty: ${report.primary_uncertainty}`,
+            text: `Current Stage: ${report.current_stage || 'Career Exploration'}  |  Primary Uncertainty: ${report.primary_uncertainty || 'Career Direction'}`,
             alignment: AlignmentType.CENTER,
           }),
           new Paragraph({ text: '' }),
 
           // 1. Executive Summary
           new Paragraph({ text: '1. Executive Summary', heading: HeadingLevel.HEADING_1 }),
-          new Paragraph({ text: report.executive_summary.summary }),
-          new Paragraph({
-            children: [
-              new TextRun({ text: 'Key Insight: ', bold: true }),
-              new TextRun({ text: report.executive_summary.key_insight, italics: true }),
-            ],
-          }),
+          new Paragraph({ text: execSummary }),
+          ...(keyInsight
+            ? [
+                new Paragraph({
+                  children: [
+                    new TextRun({ text: 'Key Insight: ', bold: true }),
+                    new TextRun({ text: keyInsight, italics: true }),
+                  ],
+                }),
+              ]
+            : []),
           new Paragraph({ text: '' }),
 
           // 2. Understanding You
@@ -246,31 +268,31 @@ export async function generateClarityDocx(report: ClarityHandoff): Promise<void>
           new Paragraph({
             children: [
               new TextRun({ text: 'Background: ', bold: true }),
-              new TextRun(report.understanding_you.education_and_background),
+              new TextRun(und.education_and_background || 'Personal background exploration'),
             ],
           }),
           new Paragraph({
             children: [
               new TextRun({ text: 'Interests: ', bold: true }),
-              new TextRun(report.understanding_you.interests.join(', ') || 'Exploratory'),
+              new TextRun((Array.isArray(und.interests) ? und.interests : []).join(', ') || 'Exploratory'),
             ],
           }),
           new Paragraph({
             children: [
               new TextRun({ text: 'Core Strengths: ', bold: true }),
-              new TextRun(report.understanding_you.strengths_possessed.join(', ')),
+              new TextRun((Array.isArray(und.strengths_possessed) ? und.strengths_possessed : []).join(', ') || 'General capabilities'),
             ],
           }),
           new Paragraph({
             children: [
               new TextRun({ text: 'Skills to Develop: ', bold: true }),
-              new TextRun(report.understanding_you.skills_to_develop.join(', ')),
+              new TextRun((Array.isArray(und.skills_to_develop) ? und.skills_to_develop : []).join(', ') || 'High-leverage industry skills'),
             ],
           }),
           new Paragraph({
             children: [
               new TextRun({ text: 'Work & Lifestyle Preferences: ', bold: true }),
-              new TextRun(report.understanding_you.work_preferences),
+              new TextRun(und.work_preferences || 'Flexible / Adaptive'),
             ],
           }),
           new Paragraph({ text: '' }),
@@ -280,16 +302,20 @@ export async function generateClarityDocx(report: ClarityHandoff): Promise<void>
           new Paragraph({
             children: [
               new TextRun({ text: 'Target Trajectory: ', bold: true }),
-              new TextRun({ text: report.strategic_direction.selected_direction, bold: true }),
+              new TextRun({ text: strat.selected_direction || strat.primary_title || 'Selected Career Direction', bold: true }),
             ],
           }),
-          new Paragraph({ text: report.strategic_direction.rationale }),
-          new Paragraph({
-            children: [
-              new TextRun({ text: 'Decisions to Investigate: ', bold: true }),
-              new TextRun(report.strategic_direction.next_decisions_to_investigate.join(' • ')),
-            ],
-          }),
+          new Paragraph({ text: strat.rationale || 'High alignment with your personal competencies and career ambitions.' }),
+          ...(strat.next_decisions_to_investigate?.length
+            ? [
+                new Paragraph({
+                  children: [
+                    new TextRun({ text: 'Decisions to Investigate: ', bold: true }),
+                    new TextRun(strat.next_decisions_to_investigate.join(' • ')),
+                  ],
+                }),
+              ]
+            : []),
           new Paragraph({ text: '' }),
 
           // 4. Explored Directions Table
@@ -304,21 +330,21 @@ export async function generateClarityDocx(report: ClarityHandoff): Promise<void>
                   new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Trade-offs & Friction', bold: true })] })] }),
                 ],
               }),
-              ...report.explored_directions.map(
+              ...(Array.isArray(report.explored_directions) ? report.explored_directions : []).map(
                 (dir) =>
                   new TableRow({
                     children: [
                       new TableCell({
                         children: [
                           new Paragraph({ children: [new TextRun({ text: dir.title, bold: true })] }),
-                          new Paragraph({ text: dir.reasoning }),
+                          new Paragraph({ text: dir.reasoning || '' }),
                         ],
                       }),
                       new TableCell({
-                        children: dir.pros.map((p) => new Paragraph({ text: `• ${p}` })),
+                        children: (Array.isArray(dir.pros) ? dir.pros : []).map((p) => new Paragraph({ text: `• ${p}` })),
                       }),
                       new TableCell({
-                        children: dir.cons.map((c) => new Paragraph({ text: `• ${c}` })),
+                        children: (Array.isArray(dir.cons) ? dir.cons : []).map((c) => new Paragraph({ text: `• ${c}` })),
                       }),
                     ],
                   })
@@ -329,10 +355,10 @@ export async function generateClarityDocx(report: ClarityHandoff): Promise<void>
 
           // 5. Roadmap Timeline
           new Paragraph({ text: '5. Career Roadmap', heading: HeadingLevel.HEADING_1 }),
-          ...report.roadmap.flatMap((r) => [
-            new Paragraph({ text: `${r.timeframe} — ${r.title}`, heading: HeadingLevel.HEADING_2 }),
-            new Paragraph({ text: r.description }),
-            ...r.milestones.map((m) => new Paragraph({ text: `  [ ] ${m}` })),
+          ...(Array.isArray(report.roadmap) ? report.roadmap : []).flatMap((r) => [
+            new Paragraph({ text: `${r.timeframe || 'Phase'} — ${r.title || 'Execution Phase'}`, heading: HeadingLevel.HEADING_2 }),
+            new Paragraph({ text: r.description || '' }),
+            ...(Array.isArray(r.milestones) ? r.milestones : []).map((m) => new Paragraph({ text: `  [ ] ${m}` })),
             new Paragraph({ text: '' }),
           ]),
 
@@ -348,16 +374,16 @@ export async function generateClarityDocx(report: ClarityHandoff): Promise<void>
                   new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Learning Action & Proof', bold: true })] })] }),
                 ],
               }),
-              ...report.skills_plan.map(
+              ...(Array.isArray(report.skills_plan) ? report.skills_plan : []).map(
                 (sk) =>
                   new TableRow({
                     children: [
                       new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: sk.skill_name, bold: true })] })] }),
-                      new TableCell({ children: [new Paragraph({ text: sk.importance })] }),
+                      new TableCell({ children: [new Paragraph({ text: sk.importance || 'Core Priority' })] }),
                       new TableCell({
                         children: [
-                          new Paragraph({ text: `Action: ${sk.learning_activity}` }),
-                          new Paragraph({ text: `Proof: ${sk.evidence_of_progress}` }),
+                          new Paragraph({ text: `Action: ${sk.learning_activity || 'Hands-on practice'}` }),
+                          new Paragraph({ text: `Proof: ${sk.evidence_of_progress || 'Portfolio item'}` }),
                         ],
                       }),
                     ],
@@ -369,10 +395,10 @@ export async function generateClarityDocx(report: ClarityHandoff): Promise<void>
 
           // 7. Action Checklist
           new Paragraph({ text: '7. Action Checklist', heading: HeadingLevel.HEADING_1 }),
-          ...report.action_checklist.map(
+          ...(Array.isArray(report.action_checklist) ? report.action_checklist : []).map(
             (act) =>
               new Paragraph({
-                text: `${act.completed ? '[X]' : '[ ]'} (${act.timeframe}) ${act.task}`,
+                text: `${act.completed ? '[X]' : '[ ]'} (${act.timeframe || 'Immediate'}) ${act.task || act.text || 'Action item'}`,
               })
           ),
           new Paragraph({ text: '' }),
@@ -382,19 +408,19 @@ export async function generateClarityDocx(report: ClarityHandoff): Promise<void>
           new Paragraph({
             children: [
               new TextRun({ text: 'First Action: ', bold: true }),
-              new TextRun(report.personal_commitment.first_concrete_step),
+              new TextRun(commit.first_concrete_step || 'Start Phase 1 roadmap tasks'),
             ],
           }),
           new Paragraph({
             children: [
               new TextRun({ text: 'Commitment Statement: ', bold: true }),
-              new TextRun({ text: `"${report.personal_commitment.commitment_statement}"`, italics: true }),
+              new TextRun({ text: `"${commit.commitment_statement || 'I commit to steady execution and building real proof of work.'}"`, italics: true }),
             ],
           }),
           new Paragraph({
             children: [
               new TextRun({ text: 'Reassessment Target Date: ', bold: true }),
-              new TextRun(report.reassessment.recommended_date),
+              new TextRun(reassess.recommended_date || new Date().toISOString().split('T')[0]),
             ],
           }),
         ],

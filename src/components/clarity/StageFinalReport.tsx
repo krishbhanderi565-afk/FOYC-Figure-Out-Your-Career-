@@ -245,7 +245,7 @@ export const StageFinalReport: React.FC<StageFinalReportProps> = ({
               {report.user_profile?.name ? `${report.user_profile.name}'s Clarity Blueprint` : 'Your Personal Clarity Blueprint'}
             </h1>
             <p className="text-xs md:text-sm font-semibold text-[#171717]/80 mt-1">
-              Target: <strong className="text-[#171717]">{report.selected_direction?.primary_title}</strong> • Generated on {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              Target: <strong className="text-[#171717]">{report.selected_direction?.primary_title || (report as any).selected_direction?.selected_direction || (report as any).strategic_direction?.selected_direction || 'Strategic Trajectory'}</strong> • Generated on {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </p>
           </div>
 
@@ -308,7 +308,9 @@ export const StageFinalReport: React.FC<StageFinalReportProps> = ({
               <h2 className="text-lg font-bold text-[#171717]">Executive Summary & Core Thesis</h2>
             </div>
             <p className="text-sm md:text-base text-[#222] leading-relaxed">
-              {report.executive_summary}
+              {typeof report.executive_summary === 'string'
+                ? report.executive_summary
+                : (report.executive_summary as any)?.summary || 'Executive summary synthesized from your clarity exploration.'}
             </p>
           </div>
 

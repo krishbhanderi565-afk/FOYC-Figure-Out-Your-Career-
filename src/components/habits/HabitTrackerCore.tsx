@@ -102,19 +102,26 @@ export const HabitTrackerCore: React.FC<HabitTrackerCoreProps> = ({
 
   // Storage state derived directly from CareerContext for 100% sync
   const habits: HabitModel[] = useMemo(() => {
-    if (!dashboardData.habits || dashboardData.habits.length === 0) {
-      return [];
-    }
-    return dashboardData.habits.map((h, i) => ({
+    const careerTitle = dashboardData.direction?.primaryTitle || 'Career Target';
+    const habitSource = (dashboardData.habits && dashboardData.habits.length > 0)
+      ? dashboardData.habits
+      : [
+          { id: 'h-synth-1', title: `45m Deep Practice: ${careerTitle}`, target: 45, unit: 'mins', color: '#526B50', schedule: 'everyday', frequency: 'daily' },
+          { id: 'h-synth-2', title: 'Read 20m Industry Case Studies & Architecture', target: 20, unit: 'mins', color: '#3B82F6', schedule: 'everyday', frequency: 'daily' },
+          { id: 'h-synth-3', title: 'Build or Refine 1 Proof-of-Work Artifact', target: 1, unit: 'items', color: '#8B5CF6', schedule: 'everyday', frequency: 'daily' },
+          { id: 'h-synth-4', title: 'Sunday Weekly Career Review & Calibration', target: 30, unit: 'mins', color: '#F59E0B', schedule: 'weekend', frequency: 'weekly' },
+        ];
+
+    return habitSource.map((h, i) => ({
       id: h.id,
       name: h.title,
       type: (h.target ? 'time' : 'binary') as any,
       target: h.target ?? null,
       unit: h.unit ?? null,
       color: h.color || COLOR_PALETTE[i % COLOR_PALETTE.length],
-      schedule: h.schedule || (h.frequency === 'weekly' ? 'weekend' : 'everyday'),
+      schedule: (h.schedule as any) || (h.frequency === 'weekly' ? 'weekend' : 'everyday'),
     }));
-  }, [dashboardData.habits]);
+  }, [dashboardData.habits, dashboardData.direction?.primaryTitle]);
 
   const logs: Record<string, Record<string, any>> = useMemo(() => {
     const res: Record<string, Record<string, any>> = {};

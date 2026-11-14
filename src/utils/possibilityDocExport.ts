@@ -53,10 +53,16 @@ export async function generatePossibilityPdf(report: PossibilityHandoff): Promis
   doc.setTextColor(23, 23, 23); // #171717
   doc.text('MY POSSIBILITY REPORT', margin, 62);
 
+  const prof = report?.profile || ({} as any);
+  const expSummary = report?.exploration_summary || ({} as any);
+  const possibilities = Array.isArray(report?.possibilities) ? report.possibilities : [];
+  const recommendedExps = Array.isArray(report?.recommended_experiments) ? report.recommended_experiments : [];
+  const nextSteps = Array.isArray(report?.next_steps) ? report.next_steps : [];
+
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.setTextColor(90, 90, 90);
-  const subtitle = `Explorer: ${report.profile.user_name || 'Explorer'} • Stage: ${report.profile.life_stage} • Generated on ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  const subtitle = `Explorer: ${prof.user_name || 'Explorer'} • Stage: ${prof.life_stage || 'Career Exploration'} • Generated on ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
   doc.text(subtitle, margin, 85);
 
   y = 135;
@@ -72,15 +78,15 @@ export async function generatePossibilityPdf(report: PossibilityHandoff): Promis
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.setTextColor(40, 40, 40);
-  const summaryLines = doc.splitTextToSize(report.exploration_summary.summary || 'Summary of explored possibilities.', contentWidth);
+  const summaryLines = doc.splitTextToSize(expSummary.summary || 'Summary of explored possibilities.', contentWidth);
   doc.text(summaryLines, margin, y);
   y += summaryLines.length * 13 + 12;
 
   // Key Discoveries Callout Box
-  if (report.exploration_summary.key_discoveries?.length > 0) {
+  if (expSummary.key_discoveries?.length > 0) {
     checkPageBreak(90);
     doc.setFillColor(244, 243, 239);
-    doc.roundedRect(margin, y, contentWidth, 24 + report.exploration_summary.key_discoveries.length * 14, 6, 6, 'F');
+    doc.roundedRect(margin, y, contentWidth, 24 + expSummary.key_discoveries.length * 14, 6, 6, 'F');
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
@@ -91,7 +97,7 @@ export async function generatePossibilityPdf(report: PossibilityHandoff): Promis
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(30, 30, 30);
-    report.exploration_summary.key_discoveries.forEach((disc) => {
+    expSummary.key_discoveries.forEach((disc: string) => {
       const dLines = doc.splitTextToSize(`• ${disc}`, contentWidth - 24);
       doc.text(dLines, margin + 12, y);
       y += dLines.length * 12 + 2;
@@ -108,12 +114,12 @@ export async function generatePossibilityPdf(report: PossibilityHandoff): Promis
   y += 18;
 
   const baselineItems = [
-    `Education & Credentials: ${report.profile.education || 'Self-directed pathway'}`,
-    `Current Context & Experience: ${report.profile.experience || 'In active career exploration'}`,
-    `Core Natural Curiosities: ${(report.profile.interests || []).join(', ') || 'Interdisciplinary'}`,
-    `Skills Brought to the Table: ${(report.profile.skills_possessed || []).join(', ') || 'General problem solving'}`,
-    `Skills Targeted to Develop: ${(report.profile.skills_to_develop || []).join(', ') || 'Industry capabilities'}`,
-    `Time Commitment & Budget: ${report.profile.practical_boundaries?.learning_hours_per_week || '5–15 hrs/wk'} • ${report.profile.practical_boundaries?.budget || 'Low cost'}`,
+    `Education & Credentials: ${prof.education || 'Self-directed pathway'}`,
+    `Current Context & Experience: ${prof.experience || 'In active career exploration'}`,
+    `Core Natural Curiosities: ${(prof.interests || []).join(', ') || 'Interdisciplinary'}`,
+    `Skills Brought to the Table: ${(prof.skills_possessed || []).join(', ') || 'General problem solving'}`,
+    `Skills Targeted to Develop: ${(prof.skills_to_develop || []).join(', ') || 'Industry capabilities'}`,
+    `Time Commitment & Budget: ${prof.practical_boundaries?.learning_hours_per_week || '5–15 hrs/wk'} • ${prof.practical_boundaries?.budget || 'Low cost'}`,
   ];
 
   doc.setFont('helvetica', 'normal');
@@ -255,6 +261,12 @@ export async function generatePossibilityPdf(report: PossibilityHandoff): Promis
  * Client-side Editable Word Document (.docx) Generator
  */
 export async function generatePossibilityDocx(report: PossibilityHandoff): Promise<void> {
+  const prof = report?.profile || ({} as any);
+  const expSummary = report?.exploration_summary || ({} as any);
+  const possibilities = Array.isArray(report?.possibilities) ? report.possibilities : [];
+  const recommendedExps = Array.isArray(report?.recommended_experiments) ? report.recommended_experiments : [];
+  const nextSteps = Array.isArray(report?.next_steps) ? report.next_steps : [];
+
   const doc = new Document({
     sections: [
       {
@@ -271,9 +283,9 @@ export async function generatePossibilityDocx(report: PossibilityHandoff): Promi
           new Paragraph({
             children: [
               new TextRun({ text: 'Explorer: ', bold: true }),
-              new TextRun(`${report.profile.user_name || 'Explorer'} | `),
+              new TextRun(`${prof.user_name || 'Explorer'} | `),
               new TextRun({ text: 'Stage: ', bold: true }),
-              new TextRun(`${report.profile.life_stage} | `),
+              new TextRun(`${prof.life_stage || 'Career Exploration'} | `),
               new TextRun({ text: 'Date: ', bold: true }),
               new TextRun(new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })),
             ],
@@ -282,12 +294,12 @@ export async function generatePossibilityDocx(report: PossibilityHandoff): Promi
 
           // 1. Executive Summary
           new Paragraph({ text: '1. Executive Summary & Core Landscape', heading: HeadingLevel.HEADING_1 }),
-          new Paragraph({ text: report.exploration_summary.summary || 'Summary of explored possibilities.' }),
+          new Paragraph({ text: expSummary.summary || 'Summary of explored possibilities.' }),
           new Paragraph({ text: '' }),
 
           // Key discoveries
-          ...(report.exploration_summary.key_discoveries || []).map(
-            (k) =>
+          ...(expSummary.key_discoveries || []).map(
+            (k: string) =>
               new Paragraph({
                 children: [
                   new TextRun({ text: '✦ Key Discovery: ', bold: true }),
@@ -302,31 +314,31 @@ export async function generatePossibilityDocx(report: PossibilityHandoff): Promi
           new Paragraph({
             children: [
               new TextRun({ text: 'Education: ', bold: true }),
-              new TextRun(report.profile.education || 'Self-directed pathway'),
+              new TextRun(prof.education || 'Self-directed pathway'),
             ],
           }),
           new Paragraph({
             children: [
               new TextRun({ text: 'Current Context: ', bold: true }),
-              new TextRun(report.profile.experience || 'In career exploration'),
+              new TextRun(prof.experience || 'In career exploration'),
             ],
           }),
           new Paragraph({
             children: [
               new TextRun({ text: 'Interests: ', bold: true }),
-              new TextRun((report.profile.interests || []).join(', ')),
+              new TextRun((prof.interests || []).join(', ') || 'Interdisciplinary'),
             ],
           }),
           new Paragraph({
             children: [
               new TextRun({ text: 'Skills Possessed: ', bold: true }),
-              new TextRun((report.profile.skills_possessed || []).join(', ')),
+              new TextRun((prof.skills_possessed || []).join(', ') || 'General problem solving'),
             ],
           }),
           new Paragraph({
             children: [
               new TextRun({ text: 'Skills to Develop: ', bold: true }),
-              new TextRun((report.profile.skills_to_develop || []).join(', ')),
+              new TextRun((prof.skills_to_develop || []).join(', ') || 'High-demand industry skills'),
             ],
           }),
           new Paragraph({ text: '' }),
@@ -344,33 +356,33 @@ export async function generatePossibilityDocx(report: PossibilityHandoff): Promi
                   new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Why It Matches & AI Impact', bold: true })] })] }),
                 ],
               }),
-              ...report.possibilities.map(
+              ...possibilities.map(
                 (pos) =>
                   new TableRow({
                     children: [
                       new TableCell({
                         children: [
                           new Paragraph({ children: [new TextRun({ text: pos.name, bold: true })] }),
-                          new Paragraph({ text: pos.description }),
+                          new Paragraph({ text: pos.description || '' }),
                         ],
                       }),
                       new TableCell({
                         children: [
-                          new Paragraph({ children: [new TextRun({ text: pos.category, bold: true })] }),
-                          new Paragraph({ text: `Fit: ${pos.fit_level}` }),
+                          new Paragraph({ children: [new TextRun({ text: pos.category || 'Alternative Path', bold: true })] }),
+                          new Paragraph({ text: `Fit: ${pos.fit_level || 'Strong Fit'}` }),
                         ],
                       }),
                       new TableCell({
                         children: [
                           new Paragraph({ text: `Skills: ${(pos.required_skills || []).join(', ')}` }),
-                          new Paragraph({ text: `Time: ${pos.estimated_preparation_time}` }),
-                          new Paragraph({ text: `Cost: ${pos.estimated_cost}` }),
+                          new Paragraph({ text: `Time: ${pos.estimated_preparation_time || '3–6 months'}` }),
+                          new Paragraph({ text: `Cost: ${pos.estimated_cost || 'Low'}` }),
                         ],
                       }),
                       new TableCell({
                         children: [
-                          new Paragraph({ text: pos.why_it_matches }),
-                          new Paragraph({ text: `AI Note: ${pos.ai_impact}` }),
+                          new Paragraph({ text: pos.why_it_matches || '' }),
+                          new Paragraph({ text: `AI Note: ${pos.ai_impact || 'AI-assisted workflows'}` }),
                         ],
                       }),
                     ],
@@ -382,12 +394,12 @@ export async function generatePossibilityDocx(report: PossibilityHandoff): Promi
 
           // 4. Practical Experiments
           new Paragraph({ text: '4. Practical Experiments (Try Before You Commit)', heading: HeadingLevel.HEADING_1 }),
-          ...report.recommended_experiments.map(
+          ...recommendedExps.map(
             (exp) =>
               new Paragraph({
                 children: [
-                  new TextRun({ text: `[${exp.type}] ${exp.title} (${exp.estimated_time}): `, bold: true }),
-                  new TextRun(exp.description),
+                  new TextRun({ text: `[${exp.type || 'Project'}] ${exp.title} (${exp.estimated_time || '3 hrs'}): `, bold: true }),
+                  new TextRun(exp.description || ''),
                 ],
               })
           ),
@@ -395,10 +407,10 @@ export async function generatePossibilityDocx(report: PossibilityHandoff): Promi
 
           // 5. Action Checklist
           new Paragraph({ text: '5. Action Checklist & Next Steps', heading: HeadingLevel.HEADING_1 }),
-          ...report.next_steps.map(
+          ...nextSteps.map(
             (step) =>
               new Paragraph({
-                text: `${step.completed ? '[X]' : '[ ]'} (${step.timeframe}) ${step.task}`,
+                text: `${step.completed ? '[X]' : '[ ]'} (${step.timeframe || 'Immediate'}) ${step.task || 'Action item'}`,
               })
           ),
         ],
@@ -410,7 +422,7 @@ export async function generatePossibilityDocx(report: PossibilityHandoff): Promi
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${report.profile.user_name || 'My'}_FOYC_Possibility_Report.docx`;
+  a.download = `${prof.user_name || 'My'}_FOYC_Possibility_Report.docx`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

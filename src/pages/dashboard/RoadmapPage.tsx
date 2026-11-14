@@ -39,17 +39,15 @@ export const RoadmapPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'journey' | 'canvas'>('journey');
 
   const rawMilestones = dashboardData?.milestones || [];
-  const milestones = rawMilestones.length > 0
-    ? rawMilestones
-    : (isDemoMode
-        ? [
-            { id: 'm1', title: 'Complete Your Profile', stage: 'Foundation', description: 'Help us understand your core competencies and trajectory.', targetDate: 'Month 1', estimatedDuration: '2 weeks', completed: true, associatedTasksCount: 4, priority: 'high' as const },
-            { id: 'm2', title: 'Build Core Skills', stage: 'Skill Development', description: 'Take 3 relevant courses and practice real case studies.', targetDate: 'Month 2-3', estimatedDuration: '6 weeks', completed: false, associatedTasksCount: 6, priority: 'high' as const },
-            { id: 'm3', title: 'Gain Practical Experience', stage: 'Practical Application', description: 'Work on production-grade capstone projects and client deliverables.', targetDate: 'Month 4-6', estimatedDuration: '8 weeks', completed: false, associatedTasksCount: 5, priority: 'medium' as const },
-            { id: 'm4', title: 'Grow Your Network', stage: 'Career Readiness', description: 'Connect with senior industry peers, mentors and potential collaborators.', targetDate: 'Month 7-9', estimatedDuration: '4 weeks', completed: false, associatedTasksCount: 3, priority: 'medium' as const },
-            { id: 'm5', title: 'Achieve Your Goal', stage: 'Career Growth', description: 'Land your desired role, launch your venture or secure target contracts.', targetDate: 'Month 10-12', estimatedDuration: '12 weeks', completed: false, associatedTasksCount: 8, priority: 'high' as const },
-          ]
-        : []);
+  const careerTitle = dashboardData?.direction?.primaryTitle || 'Target Career';
+  const defaultMilestones = [
+    { id: 'm1', title: 'Foundation & Toolchain Calibration', stage: 'Foundation', description: `Establish core workflow principles and setup environment for ${careerTitle}.`, targetDate: 'Month 1', estimatedDuration: '3 weeks', completed: true, associatedTasksCount: 3, priority: 'high' as const },
+    { id: 'm2', title: 'Build Core Competencies & Skills', stage: 'Skill Development', description: 'Master high-leverage tools, modern practices, and industry standards.', targetDate: 'Month 2-3', estimatedDuration: '6 weeks', completed: false, associatedTasksCount: 5, priority: 'high' as const },
+    { id: 'm3', title: 'Build Practical Proof-of-Work Artifacts', stage: 'Practical Application', description: 'Build and document 2 comprehensive capstone projects solving real problems.', targetDate: 'Month 4-6', estimatedDuration: '8 weeks', completed: false, associatedTasksCount: 4, priority: 'high' as const },
+    { id: 'm4', title: 'Professional Positioning & Showcase', stage: 'Professional Readiness', description: 'Polish portfolio showcase, resume, and connect with senior practitioners.', targetDate: 'Month 7-9', estimatedDuration: '4 weeks', completed: false, associatedTasksCount: 3, priority: 'medium' as const },
+    { id: 'm5', title: 'Career Transition & Market Launch', stage: 'Career Growth', description: 'Initiate outreach, interview pipelines, or client consulting projects.', targetDate: 'Month 10-12', estimatedDuration: '12 weeks', completed: false, associatedTasksCount: 5, priority: 'high' as const },
+  ];
+  const milestones = rawMilestones.length > 0 ? rawMilestones : defaultMilestones;
 
   const tasks = dashboardData?.tasks || [];
 
