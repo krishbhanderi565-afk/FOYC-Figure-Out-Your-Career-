@@ -57,9 +57,9 @@ export function App() {
             <Route path="/prompt-ready" element={<PromptReadyPage />} />
             <Route path="/import" element={<HandoffImportPage />} />
             <Route path="/import-preview" element={<HandoffPreviewPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/signup" element={<AuthPage />} />
-            <Route path="/login" element={<AuthPage />} />
+            <Route path="/auth" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/signup" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/login" element={<Navigate to="/dashboard" replace />} />
             <Route path="/profile" element={<Navigate to="/dashboard/settings" replace />} />
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/terms" element={<TermsPage />} />

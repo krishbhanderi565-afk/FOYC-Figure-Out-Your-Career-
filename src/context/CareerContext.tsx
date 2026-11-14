@@ -5,18 +5,23 @@ import {
   CareerDashboardData,
   TaskItem,
   HabitItem,
-  Milestone
+  Milestone,
 } from '../types/career';
 import { parseHandoffText } from '../utils/handoffParser';
 import { SAMPLE_HANDOFFS } from '../utils/sampleHandoffs';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { api } from '../services/api';
 import {
   DashboardConfiguration,
   DashboardThemeId,
   DEFAULT_DASHBOARD_CONFIG,
   DASHBOARD_THEMES,
 } from '../types/moduleRegistry';
+import {
+  localStorageService,
+  FoycLocalData,
+  DEFAULT_LOCAL_PROFILE,
+  DEFAULT_LOCAL_REFLECTION,
+  DEFAULT_LOCAL_DASHBOARD_DATA,
+} from '../services/localStorageService';
 
 export interface HabitInput {
   title: string;
@@ -54,11 +59,13 @@ export interface CareerContextType {
   addMilestone: (milestone: Omit<Milestone, 'id'>) => Promise<Milestone>;
   updateMilestone: (milestoneId: string, updates: Partial<Milestone>) => Promise<void>;
   deleteMilestone: (milestoneId: string) => Promise<void>;
-  isAuthenticated: boolean;
+
+  // Local-First Identity & Storage Controls
+  isAuthenticated: boolean; // Always true — zero login wall
   userEmail: string | null;
-  userName: string | null;
+  userName: string;
   userAvatar: string | null;
-  userId: string | null;
+  userId: string;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ success: boolean; error?: string }>;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
@@ -67,6 +74,12 @@ export interface CareerContextType {
   loginDemo: (email?: string) => void;
   logoutDemo: () => void;
   resetToDefault: () => void;
+
+  // Local Data Backup & Restore
+  exportLocalBackup: () => string;
+  importLocalBackup: (backup: any, mode?: 'replace' | 'merge') => boolean;
+  clearLocalData: () => void;
+
   // Adaptive Dashboard & Theme Engine
   dashboardConfig: DashboardConfiguration;
   updateDashboardConfig: (updates: Partial<DashboardConfiguration>) => Promise<void>;
@@ -79,74 +92,16 @@ export interface CareerContextType {
   userState: DashboardUserState;
 }
 
-const DEFAULT_PROFILE: UserProfile = {
-  preferredName: '',
-  ageRange: '18-22',
-  country: 'Global',
-  educationStatus: 'college-student',
-  currentField: 'Undecided / Exploring',
-  careerStage: 'exploring',
-  workExperience: '',
-  preferredLanguage: 'English',
-  availableHoursPerWeek: 15,
-};
-
-const DEFAULT_REFLECTION: UserReflection = {
-  mindText: '',
-  keyInterests: [],
-  keyStruggles: [],
-};
-
-const DEFAULT_DIRECTION = {
-  primaryTitle: '',
-  summary: '',
-  matchReason: '',
-  longTermGoal: '',
-  shortTermObjective: '',
-  alternativeTitles: [],
-  strengths: [],
-  existingSkills: [],
-  skillGaps: [],
-  reassessmentQuestions: [],
-  assumptions: [],
-  lastReassessedDate: '',
-};
-
-export const EMPTY_DASHBOARD_DATA: CareerDashboardData = {
-  profile: DEFAULT_PROFILE,
-  reflection: DEFAULT_REFLECTION,
-  direction: DEFAULT_DIRECTION,
-  primaryCareer: {
-    title: '',
-    field: '',
-    overview: '',
-    whyFit: '',
-    estimatedTimelineMonths: 6,
-    requiredSkills: [],
-  },
-  milestones: [],
-  tasks: [],
-  habits: [],
-  projects: [],
-  resources: [],
-};
-
-// First sample handoff data used strictly for DEMO MODE
-const sampleDemoParsed = parseHandoffText(
-  SAMPLE_HANDOFFS[0].rawText,
-  DEFAULT_PROFILE,
-  DEFAULT_REFLECTION
-).data as CareerDashboardData;
+// Sample fallback for instant demo exploration
+const sampleDemoParsed = parseHandoffText(SAMPLE_HANDOFFS[0].rawText, DEFAULT_LOCAL_PROFILE, DEFAULT_LOCAL_REFLECTION).data as CareerDashboardData;
 
 export function applyThemeVariables(themeId: DashboardThemeId) {
   const theme = DASHBOARD_THEMES[themeId] || DASHBOARD_THEMES.green;
   const root = document.documentElement;
 
-  // Modern Reference Theme Tokens
-  root.style.setProperty('--theme-bg-gradient', theme.bgGradient);
-  root.style.setProperty('--theme-bg-canvas', theme.bgCanvas);
+  root.style.setProperty('--theme-name', theme.name);
+  root.style.setProperty('--theme-bg', theme.bgCanvas);
   root.style.setProperty('--theme-sidebar-bg', theme.sidebarBg);
-  root.style.setProperty('--theme-sidebar-border', theme.sidebarBorder);
   root.style.setProperty('--theme-sidebar-active-bg', theme.sidebarActiveBg);
   root.style.setProperty('--theme-sidebar-active-text', theme.sidebarActiveText);
   root.style.setProperty('--theme-card-bg', theme.cardBg);
@@ -164,7 +119,7 @@ export function applyThemeVariables(themeId: DashboardThemeId) {
   root.style.setProperty('--theme-chart-2', theme.chartLine2);
   root.style.setProperty('--theme-chart-3', theme.chartLine3);
 
-  // Backward-compatible legacy variables
+  // Backward-compatible variables
   root.style.setProperty('--foyc-theme-primary', theme.primaryColor);
   root.style.setProperty('--foyc-theme-primary-hover', theme.primaryHover);
   root.style.setProperty('--foyc-theme-badge', theme.badgeColor);
@@ -185,290 +140,88 @@ export function applyThemeVariables(themeId: DashboardThemeId) {
 const CareerContext = createContext<CareerContextType | undefined>(undefined);
 
 export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [profile, setProfile] = useState<UserProfile>(() => {
-    try {
-      const saved = localStorage.getItem('foyc_profile');
-      return saved ? JSON.parse(saved) : DEFAULT_PROFILE;
-    } catch {
-      return DEFAULT_PROFILE;
-    }
-  });
+  // Load unified storage on mount
+  const initialStore = useMemo(() => localStorageService.load(), []);
 
-  const [reflection, setReflection] = useState<UserReflection>(() => {
-    try {
-      const saved = localStorage.getItem('foyc_reflection');
-      return saved ? JSON.parse(saved) : DEFAULT_REFLECTION;
-    } catch {
-      return DEFAULT_REFLECTION;
-    }
-  });
+  const [profile, setProfile] = useState<UserProfile>(initialStore.profile);
+  const [reflection, setReflection] = useState<UserReflection>(initialStore.reflection);
+  const [dashboardConfig, setDashboardConfig] = useState<DashboardConfiguration>(initialStore.dashboard.configuration);
+  const [hasGeneratedDashboard, setHasGeneratedDashboard] = useState<boolean>(initialStore.dashboard.hasGenerated);
+  const [currentTheme, setCurrentThemeState] = useState<DashboardThemeId>(initialStore.preferences.theme || 'green');
 
   const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
     return localStorage.getItem('foyc_demo_mode') === 'true';
-  });
-
-  const [dashboardConfig, setDashboardConfig] = useState<DashboardConfiguration>(() => {
-    try {
-      const saved = localStorage.getItem('foyc_dashboard_config');
-      return saved ? JSON.parse(saved) : DEFAULT_DASHBOARD_CONFIG;
-    } catch {
-      return DEFAULT_DASHBOARD_CONFIG;
-    }
   });
 
   const [dashboardData, setDashboardData] = useState<CareerDashboardData>(() => {
     if (localStorage.getItem('foyc_demo_mode') === 'true') {
       return sampleDemoParsed;
     }
-    try {
-      const hasGenerated = localStorage.getItem('foyc_dashboard_generated') === 'true';
-      const saved = localStorage.getItem('foyc_dashboard_data');
-      if (saved && hasGenerated) {
-        const parsed = JSON.parse(saved);
-        if (parsed?.habits && Array.isArray(parsed.habits)) {
-          parsed.habits = parsed.habits.map((h: any) => ({
-            ...h,
-            history: h.history || {},
-            currentStreak: typeof h.currentStreak === 'number' ? h.currentStreak : 0,
-            bestStreak: typeof h.bestStreak === 'number' ? h.bestStreak : 0,
-          }));
-        }
-        return parsed;
-      }
-      return EMPTY_DASHBOARD_DATA;
-    } catch {
-      return EMPTY_DASHBOARD_DATA;
-    }
+    return initialStore.dashboard.data;
   });
 
-  const [activeProfessionId, setActiveProfessionId] = useState<string>(() => {
-    return localStorage.getItem('foyc_active_profession') || 'software-engineer';
-  });
+  const [activeProfessionId, setActiveProfessionId] = useState<string>('software-engineer');
+  const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
 
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('foyc_auth') === 'true';
-  });
-
-  const [userEmail, setUserEmail] = useState<string | null>(() => {
-    return localStorage.getItem('foyc_user_email') || null;
-  });
-
-  const [userName, setUserName] = useState<string | null>(() => {
-    return localStorage.getItem('foyc_user_name') || null;
-  });
-
-  const [userAvatar, setUserAvatar] = useState<string | null>(() => {
-    return localStorage.getItem('foyc_user_avatar') || null;
-  });
-
-  const [userId, setUserId] = useState<string | null>(() => {
-    return localStorage.getItem('foyc_user_id') || null;
-  });
-
-  const [isDataLoading, setIsDataLoading] = useState(false);
-
-  // Apply theme whenever dashboardConfig.theme changes
+  // Apply initial theme variables
   useEffect(() => {
-    if (dashboardConfig?.theme) {
-      applyThemeVariables(dashboardConfig.theme);
-    }
-  }, [dashboardConfig?.theme]);
+    applyThemeVariables(currentTheme);
+  }, [currentTheme]);
 
-  // Derive whether real dashboard has been generated
-  const hasGeneratedDashboard = useMemo(() => {
-    if (isDemoMode) return true;
-    const title = dashboardData?.direction?.primaryTitle || dashboardData?.primaryCareer?.title;
-    return Boolean(
-      title &&
-      title.trim().length > 0 &&
-      localStorage.getItem('foyc_dashboard_generated') === 'true'
-    );
-  }, [dashboardData, isDemoMode]);
+  // Dynamic user display name from local profile
+  const userName = profile.preferredName?.trim() || 'Explorer';
+  const userEmail = null;
+  const userAvatar = null;
+  const userId = 'local-user';
+  const isAuthenticated = true; // Always unlocked for seamless instant access
 
-  // User lifecycle state: State A ('new_user'), State B ('exploration_completed'), State C ('dashboard_generated')
+  // User journey state derivation
   const userState: DashboardUserState = useMemo(() => {
-    if (isDemoMode || hasGeneratedDashboard) {
+    if (hasGeneratedDashboard || dashboardData?.direction?.primaryTitle) {
       return 'dashboard_generated';
     }
-    const hasReflection = Boolean(
-      (reflection?.mindText && reflection.mindText.trim().length > 15) ||
-      (profile?.currentField && profile.currentField !== 'Undecided / Exploring')
-    );
-    if (hasReflection) {
+    if (reflection.mindText || (reflection.questionnaireAnswers && Object.keys(reflection.questionnaireAnswers).length > 0)) {
       return 'exploration_completed';
     }
     return 'new_user';
-  }, [isDemoMode, hasGeneratedDashboard, reflection, profile]);
+  }, [hasGeneratedDashboard, dashboardData, reflection]);
 
-  // Cross-device synchronization function: Cloud is the permanent source of truth
-  const syncFromCloud = useCallback(async () => {
-    try {
-      setIsDataLoading(true);
-      const [profileRes, dashRes, configRes] = await Promise.all([
-        api.getProfile(),
-        api.getDashboardData(),
-        api.getDashboardConfig(),
-      ]);
-
-      if (profileRes?.profile) {
-        setProfile((prev) => ({
-          ...prev,
-          preferredName: profileRes.profile.fullName || profileRes.profile.preferredName || prev.preferredName,
-          country: profileRes.profile.country || prev.country,
-          educationStatus: (profileRes.profile.education || profileRes.profile.educationStatus || prev.educationStatus) as any,
-          currentField: profileRes.profile.profession || prev.currentField,
-          careerStage: (profileRes.profile.careerStage || prev.careerStage) as any,
-        }));
-        if (profileRes.profile.fullName) {
-          setUserName(profileRes.profile.fullName);
-          localStorage.setItem('foyc_user_name', profileRes.profile.fullName);
-        }
-      }
-
-      const activeTitle = dashboardData?.direction?.primaryTitle || dashboardData?.primaryCareer?.title;
-      if (localStorage.getItem('foyc_pending_draft_transfer') === 'true' && activeTitle) {
-        localStorage.removeItem('foyc_pending_draft_transfer');
-        await api.transferPlanToAccount(dashboardData);
-      }
-
-      const cloudTitle = dashRes?.data?.direction?.primaryTitle || dashRes?.data?.primaryCareer?.title;
-      if (dashRes?.success && dashRes.data && cloudTitle) {
-        setDashboardData(dashRes.data);
-        localStorage.setItem('foyc_dashboard_generated', 'true');
-        localStorage.setItem('foyc_dashboard_data', JSON.stringify(dashRes.data));
-      }
-
-      if (configRes?.success && configRes.config) {
-        setDashboardConfig(configRes.config);
-        localStorage.setItem('foyc_dashboard_config', JSON.stringify(configRes.config));
-        if (configRes.config.theme) {
-          applyThemeVariables(configRes.config.theme);
-        }
-      }
-    } catch {
-    } finally {
-      setIsDataLoading(false);
-    }
-  }, [dashboardData]);
-
-  // Check Supabase session on mount
-  useEffect(() => {
-    if (isSupabaseConfigured()) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) {
-          setIsAuthenticated(true);
-          setUserEmail(session.user.email || null);
-          setUserId(session.user.id);
-          const name = session.user.user_metadata?.full_name || session.user.user_metadata?.preferred_name || session.user.email?.split('@')[0];
-          setUserName(name || null);
-          const avatar = session.user.user_metadata?.avatar_url || null;
-          setUserAvatar(avatar);
-          if (avatar) localStorage.setItem('foyc_user_avatar', avatar);
-          localStorage.setItem('foyc_auth', 'true');
-          if (session.user.email) localStorage.setItem('foyc_user_email', session.user.email);
-          if (name) localStorage.setItem('foyc_user_name', name);
-          localStorage.setItem('foyc_user_id', session.user.id);
-          if (session.access_token) localStorage.setItem('foyc_auth_token', session.access_token);
-          
-          // Sync profile to Supabase
-          api.updateProfile({
-            fullName: name,
-            preferredName: name,
-            email: session.user.email,
-          }).catch(() => {});
-
-          syncFromCloud();
-        }
-      });
-
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (session?.user) {
-          setIsAuthenticated(true);
-          setUserEmail(session.user.email || null);
-          setUserId(session.user.id);
-          const name = session.user.user_metadata?.full_name || session.user.user_metadata?.preferred_name || session.user.email?.split('@')[0];
-          setUserName(name || null);
-          const avatar = session.user.user_metadata?.avatar_url || null;
-          setUserAvatar(avatar);
-          if (avatar) localStorage.setItem('foyc_user_avatar', avatar);
-          localStorage.setItem('foyc_auth', 'true');
-          if (session.user.email) localStorage.setItem('foyc_user_email', session.user.email);
-          if (name) localStorage.setItem('foyc_user_name', name);
-          localStorage.setItem('foyc_user_id', session.user.id);
-          if (session.access_token) localStorage.setItem('foyc_auth_token', session.access_token);
-          
-          // Sync profile to Supabase
-          api.updateProfile({
-            fullName: name,
-            preferredName: name,
-            email: session.user.email,
-          }).catch(() => {});
-
-          syncFromCloud();
-        }
-      });
-
-      return () => {
-        subscription.unsubscribe();
-      };
-    } else if (isAuthenticated) {
-      syncFromCloud();
-    }
-  }, [isAuthenticated, syncFromCloud]);
-
-  useEffect(() => {
-    localStorage.setItem('foyc_profile', JSON.stringify(profile));
-  }, [profile]);
-
-  useEffect(() => {
-    localStorage.setItem('foyc_reflection', JSON.stringify(reflection));
-  }, [reflection]);
-
-  useEffect(() => {
-    const hasData = dashboardData?.direction?.primaryTitle || dashboardData?.primaryCareer?.title;
-    if (!isDemoMode && hasData) {
-      localStorage.setItem('foyc_dashboard_data', JSON.stringify(dashboardData));
-    }
-  }, [dashboardData, isDemoMode]);
-
-  useEffect(() => {
-    localStorage.setItem('foyc_active_profession', activeProfessionId);
-  }, [activeProfessionId]);
-
-  useEffect(() => {
-    localStorage.setItem('foyc_dashboard_config', JSON.stringify(dashboardConfig));
-  }, [dashboardConfig]);
-
+  // Profile & Reflection updates
   const updateProfile = (data: Partial<UserProfile>) => {
-    setProfile((prev) => ({ ...prev, ...data }));
-    api.updateProfile(data).catch(() => {});
+    setProfile((prev) => {
+      const next = { ...prev, ...data };
+      localStorageService.updateProfile(next);
+      return next;
+    });
   };
 
   const updateReflection = (data: Partial<UserReflection>) => {
-    setReflection((prev) => ({ ...prev, ...data }));
+    setReflection((prev) => {
+      const next = { ...prev, ...data };
+      localStorageService.updateReflection(next);
+      return next;
+    });
   };
 
   const updateDashboardConfig = async (updates: Partial<DashboardConfiguration>) => {
     setDashboardConfig((prev) => {
       const next = { ...prev, ...updates, updated_at: new Date().toISOString() };
-      localStorage.setItem('foyc_dashboard_config', JSON.stringify(next));
+      localStorageService.updateDashboard(undefined, next);
       if (updates.theme) {
         applyThemeVariables(updates.theme);
+        setCurrentThemeState(updates.theme);
       }
       return next;
     });
-
-    if (isAuthenticated && !isDemoMode) {
-      try {
-        await api.saveDashboardConfig(updates);
-      } catch {}
-    }
   };
 
   const setTheme = (theme: DashboardThemeId) => {
-    updateDashboardConfig({ theme });
+    applyThemeVariables(theme);
+    setCurrentThemeState(theme);
+    localStorageService.updatePreferences({ theme });
   };
 
+  // Demo Mode Switchers
   const enterDemoMode = () => {
     setIsDemoMode(true);
     localStorage.setItem('foyc_demo_mode', 'true');
@@ -478,44 +231,33 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const exitDemoMode = () => {
     setIsDemoMode(false);
     localStorage.removeItem('foyc_demo_mode');
-    const hasGenerated = localStorage.getItem('foyc_dashboard_generated') === 'true';
-    const saved = localStorage.getItem('foyc_dashboard_data');
-    if (hasGenerated && saved) {
-      try {
-        setDashboardData(JSON.parse(saved));
-      } catch {
-        setDashboardData(EMPTY_DASHBOARD_DATA);
-      }
-    } else {
-      setDashboardData(EMPTY_DASHBOARD_DATA);
-    }
+    const stored = localStorageService.load();
+    setDashboardData(stored.dashboard.data);
   };
 
+  // Apply Structured Handoff
   const applyHandoffText = (text: string) => {
     const res = parseHandoffText(text, profile, reflection);
     if (res.success && res.data) {
       const parsed = res.data as CareerDashboardData;
       setDashboardData(parsed);
-      localStorage.setItem('foyc_dashboard_generated', 'true');
-      localStorage.setItem('foyc_dashboard_data', JSON.stringify(parsed));
+      setHasGeneratedDashboard(true);
       setIsDemoMode(false);
       localStorage.removeItem('foyc_demo_mode');
 
-      // If handoff included custom dashboard_configuration, apply it
+      const newConfig = parsed.dashboard_configuration || dashboardConfig;
       if (parsed.dashboard_configuration) {
         setDashboardConfig(parsed.dashboard_configuration);
-        localStorage.setItem('foyc_dashboard_config', JSON.stringify(parsed.dashboard_configuration));
         if (parsed.dashboard_configuration.theme) {
           applyThemeVariables(parsed.dashboard_configuration.theme);
-        }
-        if (isAuthenticated) {
-          api.saveDashboardConfig(parsed.dashboard_configuration).catch(() => {});
+          setCurrentThemeState(parsed.dashboard_configuration.theme);
         }
       }
 
-      if (isAuthenticated) {
-        api.transferPlanToAccount(parsed).catch(() => {});
-      }
+      // Persist centrally in unified local store
+      localStorageService.updateDashboard(parsed, newConfig, true);
+      localStorageService.recordActivity('Generated Personalized Dashboard', parsed.direction?.primaryTitle);
+
       return { success: true, errors: [] };
     }
     return { success: false, errors: res.errors };
@@ -526,199 +268,170 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (sample) {
       const res = parseHandoffText(sample.rawText, profile, reflection);
       if (res.success && res.data) {
-        setDashboardData(res.data as CareerDashboardData);
+        const parsed = res.data as CareerDashboardData;
+        setDashboardData(parsed);
         setActiveProfessionId(professionId);
+        localStorageService.updateDashboard(parsed, undefined, true);
       }
     }
   };
 
-  const toggleTask = async (taskId: string) => {
-    let nextStatus = false;
-    setDashboardData((prev) => ({
-      ...prev,
-      tasks: prev.tasks.map((t) => {
-        if (t.id === taskId) {
-          nextStatus = !t.completed;
-          return { ...t, completed: nextStatus };
-        }
-        return t;
-      }),
-    }));
-    if (!isDemoMode) {
-      try {
-        await api.updateTask(taskId, { completed: nextStatus });
-      } catch {}
-    }
+  // Task / Checklist Operations
+  const toggleTask = (taskId: string) => {
+    setDashboardData((prev) => {
+      const nextTasks = prev.tasks.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t));
+      const nextData = { ...prev, tasks: nextTasks };
+      if (!isDemoMode) {
+        localStorageService.updateDashboard(nextData);
+      }
+      return nextData;
+    });
   };
 
-  const addTask = async (taskInput: Omit<TaskItem, 'id'>) => {
-    const tempId = `t-${Date.now()}`;
+  const addTask = (taskInput: Omit<TaskItem, 'id'>) => {
     const newTask: TaskItem = {
       ...taskInput,
-      id: tempId,
+      id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
     };
-    setDashboardData((prev) => ({
-      ...prev,
-      tasks: [newTask, ...prev.tasks],
-    }));
-    if (!isDemoMode) {
-      try {
-        const res = await api.createTask(taskInput);
-        if (res?.task?.id) {
-          setDashboardData((prev) => ({
-            ...prev,
-            tasks: prev.tasks.map((t) => (t.id === tempId ? { ...t, id: res.task.id } : t)),
-          }));
-        }
-      } catch {}
-    }
-  };
-
-  const deleteTask = async (taskId: string) => {
-    setDashboardData((prev) => ({
-      ...prev,
-      tasks: prev.tasks.filter((t) => t.id !== taskId),
-    }));
-    if (!isDemoMode) {
-      try {
-        await api.deleteTask(taskId);
-      } catch {}
-    }
+    setDashboardData((prev) => {
+      const nextTasks = [newTask, ...prev.tasks];
+      const nextData = { ...prev, tasks: nextTasks };
+      if (!isDemoMode) {
+        localStorageService.updateDashboard(nextData);
+      }
+      return nextData;
+    });
   };
 
   const updateTask = async (taskId: string, updates: Partial<TaskItem>) => {
-    setDashboardData((prev) => ({
-      ...prev,
-      tasks: prev.tasks.map((t) => (t.id === taskId ? { ...t, ...updates } : t)),
-    }));
-    if (!isDemoMode) {
-      try {
-        await api.updateTask(taskId, updates);
-      } catch {}
-    }
+    setDashboardData((prev) => {
+      const nextTasks = prev.tasks.map((t) => (t.id === taskId ? { ...t, ...updates } : t));
+      const nextData = { ...prev, tasks: nextTasks };
+      if (!isDemoMode) {
+        localStorageService.updateDashboard(nextData);
+      }
+      return nextData;
+    });
   };
 
+  const deleteTask = (taskId: string) => {
+    setDashboardData((prev) => {
+      const nextTasks = prev.tasks.filter((t) => t.id !== taskId);
+      const nextData = { ...prev, tasks: nextTasks };
+      if (!isDemoMode) {
+        localStorageService.updateDashboard(nextData);
+      }
+      return nextData;
+    });
+  };
+
+  // Milestone / Goal Operations
   const addMilestone = async (milestoneInput: Omit<Milestone, 'id'>): Promise<Milestone> => {
-    const tempId = `ms-${Date.now()}`;
     const newMs: Milestone = {
       ...milestoneInput,
-      id: tempId,
+      id: `ms-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
     };
-    setDashboardData((prev) => ({
-      ...prev,
-      milestones: [...prev.milestones, newMs],
-    }));
-    if (!isDemoMode) {
-      try {
-        const res = await api.createMilestone(milestoneInput);
-        if (res?.milestone?.id) {
-          setDashboardData((prev) => ({
-            ...prev,
-            milestones: prev.milestones.map((m) => (m.id === tempId ? { ...m, id: res.milestone.id } : m)),
-          }));
-          return { ...newMs, id: res.milestone.id };
-        }
-      } catch {}
-    }
+    setDashboardData((prev) => {
+      const nextMs = [...prev.milestones, newMs];
+      const nextData = { ...prev, milestones: nextMs };
+      if (!isDemoMode) {
+        localStorageService.updateDashboard(nextData);
+      }
+      return nextData;
+    });
     return newMs;
   };
 
   const updateMilestone = async (milestoneId: string, updates: Partial<Milestone>) => {
-    setDashboardData((prev) => ({
-      ...prev,
-      milestones: prev.milestones.map((m) => (m.id === milestoneId ? { ...m, ...updates } : m)),
-    }));
-    if (!isDemoMode) {
-      try {
-        await api.updateMilestone(milestoneId, updates);
-      } catch {}
-    }
+    setDashboardData((prev) => {
+      const nextMs = prev.milestones.map((m) => (m.id === milestoneId ? { ...m, ...updates } : m));
+      const nextData = { ...prev, milestones: nextMs };
+      if (!isDemoMode) {
+        localStorageService.updateDashboard(nextData);
+      }
+      return nextData;
+    });
   };
 
   const deleteMilestone = async (milestoneId: string) => {
-    setDashboardData((prev) => ({
-      ...prev,
-      milestones: prev.milestones.filter((m) => m.id !== milestoneId),
-      tasks: prev.tasks.filter((t) => t.milestoneId !== milestoneId),
-    }));
-    if (!isDemoMode) {
-      try {
-        await api.deleteMilestone(milestoneId);
-      } catch {}
-    }
+    setDashboardData((prev) => {
+      const nextMs = prev.milestones.filter((m) => m.id !== milestoneId);
+      const nextTasks = prev.tasks.filter((t) => t.milestoneId !== milestoneId);
+      const nextData = { ...prev, milestones: nextMs, tasks: nextTasks };
+      if (!isDemoMode) {
+        localStorageService.updateDashboard(nextData);
+      }
+      return nextData;
+    });
   };
 
-  // Habit Management: Add, Update, Delete, Toggle
+  const toggleMilestone = (milestoneId: string) => {
+    setDashboardData((prev) => {
+      const nextMs = prev.milestones.map((m) => (m.id === milestoneId ? { ...m, completed: !m.completed } : m));
+      const nextData = { ...prev, milestones: nextMs };
+      if (!isDemoMode) {
+        localStorageService.updateDashboard(nextData);
+      }
+      return nextData;
+    });
+  };
+
+  // Habit Operations
   const addHabit = async (habitInput: HabitInput): Promise<HabitItem> => {
-    const newId = `h-${Date.now()}`;
     const newHabit: HabitItem = {
-      id: newId,
+      id: `h-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       title: habitInput.title.trim(),
       frequency: habitInput.frequency || 'daily',
-      targetDaysPerWeek: habitInput.targetDaysPerWeek || 5,
+      targetDaysPerWeek: habitInput.targetDaysPerWeek || 7,
       currentStreak: 0,
       bestStreak: 0,
       completedToday: false,
       history: {},
       category: habitInput.category || 'Skill',
-      schedule: habitInput.schedule || (habitInput.frequency === 'weekly' ? 'weekend' : 'everyday'),
-      unit: habitInput.unit || null,
-      target: habitInput.target || null,
-      color: habitInput.color || '#526B50',
+      schedule: habitInput.schedule || 'everyday',
+      color: habitInput.color || '#10B981',
     };
 
-    setDashboardData((prev) => ({
-      ...prev,
-      habits: [...prev.habits, newHabit],
-    }));
-
-    if (!isDemoMode) {
-      try {
-        await api.createHabit({
-          title: newHabit.title,
-          frequency: newHabit.frequency,
-          targetDaysPerWeek: newHabit.targetDaysPerWeek,
-          category: newHabit.category,
-        });
-      } catch {}
-    }
+    setDashboardData((prev) => {
+      const nextHabits = [newHabit, ...prev.habits];
+      const nextData = { ...prev, habits: nextHabits };
+      if (!isDemoMode) {
+        localStorageService.updateDashboard(nextData);
+      }
+      return nextData;
+    });
 
     return newHabit;
   };
 
   const updateHabit = async (habitId: string, updates: Partial<HabitItem>): Promise<void> => {
-    setDashboardData((prev) => ({
-      ...prev,
-      habits: prev.habits.map((h) => (h.id === habitId ? { ...h, ...updates } : h)),
-    }));
-
-    if (!isDemoMode) {
-      try {
-        await api.updateHabit(habitId, updates);
-      } catch {}
-    }
+    setDashboardData((prev) => {
+      const nextHabits = prev.habits.map((h) => (h.id === habitId ? { ...h, ...updates } : h));
+      const nextData = { ...prev, habits: nextHabits };
+      if (!isDemoMode) {
+        localStorageService.updateDashboard(nextData);
+      }
+      return nextData;
+    });
   };
 
   const deleteHabit = async (habitId: string): Promise<void> => {
-    setDashboardData((prev) => ({
-      ...prev,
-      habits: prev.habits.filter((h) => h.id !== habitId),
-    }));
-
-    if (!isDemoMode) {
-      try {
-        await api.deleteHabit(habitId);
-      } catch {}
-    }
+    setDashboardData((prev) => {
+      const nextHabits = prev.habits.filter((h) => h.id !== habitId);
+      const nextData = { ...prev, habits: nextHabits };
+      if (!isDemoMode) {
+        localStorageService.updateDashboard(nextData);
+      }
+      return nextData;
+    });
   };
 
   const toggleHabit = async (habitId: string, dateStr?: string): Promise<void> => {
     const today = dateStr || new Date().toISOString().split('T')[0];
     const isToday = today === new Date().toISOString().split('T')[0];
 
-    setDashboardData((prev) => ({
-      ...prev,
-      habits: (prev.habits || []).map((h) => {
+    setDashboardData((prev) => {
+      const nextHabits = (prev.habits || []).map((h) => {
         if (h.id === habitId) {
           const hist = h.history || {};
           const wasCompleted = !!hist[today];
@@ -736,283 +449,112 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           };
         }
         return h;
-      }),
-    }));
-
-    if (!isDemoMode) {
-      try {
-        await api.toggleHabit(habitId, today);
-      } catch {}
-    }
-  };
-
-  const toggleMilestone = async (milestoneId: string) => {
-    setDashboardData((prev) => ({
-      ...prev,
-      milestones: prev.milestones.map((m) =>
-        m.id === milestoneId ? { ...m, completed: !m.completed } : m
-      ),
-    }));
-    if (!isDemoMode) {
-      try {
-        await api.toggleMilestone(milestoneId);
-      } catch {}
-    }
-  };
-
-  // Auth Functions
-  const signUp = async (email: string, password: string, fullName?: string): Promise<{ success: boolean; error?: string }> => {
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName || email.split('@')[0],
-              preferred_name: fullName || email.split('@')[0],
-            },
-          },
-        });
-        if (error) return { success: false, error: error.message };
-        if (data.user) {
-          setIsAuthenticated(true);
-          setUserEmail(data.user.email || email);
-          setUserId(data.user.id);
-          const name = fullName || data.user.user_metadata?.full_name || email.split('@')[0];
-          setUserName(name);
-          localStorage.setItem('foyc_auth', 'true');
-          localStorage.setItem('foyc_user_email', email);
-          localStorage.setItem('foyc_user_id', data.user.id);
-          if (name) localStorage.setItem('foyc_user_name', name);
-          if (data.session?.access_token) {
-            localStorage.setItem('foyc_auth_token', data.session.access_token);
-          }
-
-          // Direct sync to Supabase profiles
-          await api.updateProfile({
-            fullName: name,
-            preferredName: name,
-            email,
-          }).catch(() => {});
-
-          // If user drafted a plan before signing up, transfer it to their account in Supabase
-          const activeTitle = dashboardData?.direction?.primaryTitle || dashboardData?.primaryCareer?.title;
-          if (activeTitle && localStorage.getItem('foyc_dashboard_generated') === 'true') {
-            await api.transferPlanToAccount(dashboardData).catch(() => {});
-          }
-
-          await syncFromCloud();
-          return { success: true };
-        }
-      } catch (err: any) {
-        return { success: false, error: err.message || 'Signup failed' };
+      });
+      const nextData = { ...prev, habits: nextHabits };
+      if (!isDemoMode) {
+        localStorageService.updateDashboard(nextData);
       }
+      return nextData;
+    });
+  };
+
+  // Local Backup and Restore Controls
+  const exportLocalBackup = (): string => {
+    return localStorageService.exportBackup();
+  };
+
+  const importLocalBackup = (backupData: any, mode: 'replace' | 'merge' = 'replace'): boolean => {
+    const success = localStorageService.importBackup(backupData, mode);
+    if (success) {
+      const reloaded = localStorageService.load();
+      setProfile(reloaded.profile);
+      setReflection(reloaded.reflection);
+      setDashboardConfig(reloaded.dashboard.configuration);
+      setDashboardData(reloaded.dashboard.data);
+      setCurrentThemeState(reloaded.preferences.theme);
+      setHasGeneratedDashboard(reloaded.dashboard.hasGenerated);
+      applyThemeVariables(reloaded.preferences.theme);
     }
-
-    // Local / Dev fallback
-    setIsAuthenticated(true);
-    setUserEmail(email);
-    setUserName(fullName || email.split('@')[0]);
-    setUserId(`user-${Date.now()}`);
-    localStorage.setItem('foyc_auth', 'true');
-    localStorage.setItem('foyc_user_email', email);
-    if (fullName) localStorage.setItem('foyc_user_name', fullName);
-    await syncFromCloud();
-    return { success: true };
+    return success;
   };
 
-  const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) return { success: false, error: error.message };
-        if (data.user) {
-          setIsAuthenticated(true);
-          setUserEmail(data.user.email || email);
-          setUserId(data.user.id);
-          const name = data.user.user_metadata?.full_name || email.split('@')[0];
-          setUserName(name);
-          const avatar = data.user.user_metadata?.avatar_url || null;
-          setUserAvatar(avatar);
-          if (avatar) localStorage.setItem('foyc_user_avatar', avatar);
-          localStorage.setItem('foyc_auth', 'true');
-          localStorage.setItem('foyc_user_email', email);
-          localStorage.setItem('foyc_user_name', name);
-          localStorage.setItem('foyc_user_id', data.user.id);
-          if (data.session?.access_token) {
-            localStorage.setItem('foyc_auth_token', data.session.access_token);
-          }
-
-          // Direct sync to Supabase profiles
-          await api.updateProfile({
-            fullName: name,
-            preferredName: name,
-            email,
-          }).catch(() => {});
-
-          // If user drafted a plan before logging in, transfer it to their account in Supabase
-          const activeTitle = dashboardData?.direction?.primaryTitle || dashboardData?.primaryCareer?.title;
-          if (activeTitle && localStorage.getItem('foyc_dashboard_generated') === 'true') {
-            await api.transferPlanToAccount(dashboardData).catch(() => {});
-          }
-
-          await syncFromCloud();
-          return { success: true };
-        }
-      } catch (err: any) {
-        return { success: false, error: err.message || 'Login failed' };
-      }
-    }
-
-    // Local / Dev fallback
-    setIsAuthenticated(true);
-    setUserEmail(email);
-    const name = email.split('@')[0];
-    setUserName(name);
-    setUserId(`user-${Date.now()}`);
-    localStorage.setItem('foyc_auth', 'true');
-    localStorage.setItem('foyc_user_email', email);
-    localStorage.setItem('foyc_user_name', name);
-    await syncFromCloud();
-    return { success: true };
-  };
-
-  const signOut = async (): Promise<void> => {
-    if (isSupabaseConfigured()) {
-      try {
-        await supabase.auth.signOut();
-      } catch {}
-    }
-    setIsAuthenticated(false);
-    setUserEmail(null);
-    setUserName(null);
-    setUserAvatar(null);
-    setUserId(null);
-    setIsDemoMode(false);
-    localStorage.removeItem('foyc_auth');
-    localStorage.removeItem('foyc_user_email');
-    localStorage.removeItem('foyc_user_name');
-    localStorage.removeItem('foyc_user_avatar');
-    localStorage.removeItem('foyc_auth_token');
-    localStorage.removeItem('foyc_user_id');
-    localStorage.removeItem('foyc_dashboard_data');
-    localStorage.removeItem('foyc_dashboard_generated');
-    localStorage.removeItem('foyc_demo_mode');
-    setDashboardData(EMPTY_DASHBOARD_DATA);
-  };
-
-  const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
-    if (isSupabaseConfigured()) {
-      try {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.origin + '/dashboard',
-          },
-        });
-        if (error) return { success: false, error: error.message };
-        return { success: true };
-      } catch (err: any) {
-        return { success: false, error: err.message || 'Google authentication failed' };
-      }
-    }
-    return {
-      success: false,
-      error: 'Google OAuth provider is not yet enabled in Supabase. Please sign in with email and password.',
-    };
-  };
-
-  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
-    if (isSupabaseConfigured()) {
-      try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin + '/auth',
-        });
-        if (error) return { success: false, error: error.message };
-        return { success: true };
-      } catch (err: any) {
-        return { success: false, error: err.message || 'Reset password request failed' };
-      }
-    }
-    return { success: true };
-  };
-
-  const loginDemo = (email = 'alex.chen@example.com') => {
-    setIsAuthenticated(true);
-    setUserEmail(email);
-    setUserName('Alex Chen');
-    enterDemoMode();
-    localStorage.setItem('foyc_auth', 'true');
-    localStorage.setItem('foyc_user_email', email);
-    localStorage.setItem('foyc_user_name', 'Alex Chen');
-  };
-
-  const logoutDemo = () => {
-    exitDemoMode();
-    signOut();
+  const clearLocalData = () => {
+    localStorageService.clearAllData();
+    const fresh = localStorageService.load();
+    setProfile(fresh.profile);
+    setReflection(fresh.reflection);
+    setDashboardConfig(fresh.dashboard.configuration);
+    setDashboardData(fresh.dashboard.data);
+    setCurrentThemeState(fresh.preferences.theme);
+    setHasGeneratedDashboard(false);
+    applyThemeVariables(fresh.preferences.theme);
   };
 
   const resetToDefault = () => {
-    setProfile(DEFAULT_PROFILE);
-    setReflection(DEFAULT_REFLECTION);
-    setDashboardData(EMPTY_DASHBOARD_DATA);
-    localStorage.removeItem('foyc_dashboard_generated');
-    localStorage.removeItem('foyc_dashboard_data');
+    clearLocalData();
   };
 
-  return (
-    <CareerContext.Provider
-      value={{
-        profile,
-        reflection,
-        dashboardData,
-        activeProfessionId,
-        isDataLoading,
-        syncFromCloud,
-        updateProfile,
-        updateReflection,
-        applyHandoffText,
-        loadSampleProfession,
-        toggleTask,
-        addTask,
-        updateTask,
-        deleteTask,
-        addHabit,
-        updateHabit,
-        deleteHabit,
-        toggleHabit,
-        toggleMilestone,
-        addMilestone,
-        updateMilestone,
-        deleteMilestone,
-        isAuthenticated,
-        userEmail,
-        userName,
-        userAvatar,
-        userId,
-        signUp,
-        signIn,
-        signOut,
-        signInWithGoogle,
-        resetPassword,
-        loginDemo,
-        logoutDemo,
-        resetToDefault,
-        dashboardConfig,
-        updateDashboardConfig,
-        currentTheme: dashboardConfig.theme || 'green',
-        setTheme,
-        isDemoMode,
-        enterDemoMode,
-        exitDemoMode,
-        hasGeneratedDashboard,
-        userState,
-      }}
-    >
-      {children}
-    </CareerContext.Provider>
-  );
+  // Safe mock auth functions for backwards compatibility
+  const signUp = async () => ({ success: true });
+  const signIn = async () => ({ success: true });
+  const signOut = async () => {};
+  const signInWithGoogle = async () => ({ success: true });
+  const resetPassword = async () => ({ success: true });
+  const loginDemo = () => {};
+  const logoutDemo = () => {};
+  const syncFromCloud = async () => {};
+
+  const contextValue: CareerContextType = {
+    profile,
+    reflection,
+    dashboardData,
+    activeProfessionId,
+    isDataLoading,
+    syncFromCloud,
+    updateProfile,
+    updateReflection,
+    applyHandoffText,
+    loadSampleProfession,
+    toggleTask,
+    addTask,
+    updateTask,
+    deleteTask,
+    addHabit,
+    updateHabit,
+    deleteHabit,
+    toggleHabit,
+    toggleMilestone,
+    addMilestone,
+    updateMilestone,
+    deleteMilestone,
+    isAuthenticated,
+    userEmail,
+    userName,
+    userAvatar,
+    userId,
+    signUp,
+    signIn,
+    signOut,
+    signInWithGoogle,
+    resetPassword,
+    loginDemo,
+    logoutDemo,
+    resetToDefault,
+    exportLocalBackup,
+    importLocalBackup,
+    clearLocalData,
+    dashboardConfig,
+    updateDashboardConfig,
+    currentTheme,
+    setTheme,
+    isDemoMode,
+    enterDemoMode,
+    exitDemoMode,
+    hasGeneratedDashboard,
+    userState,
+  };
+
+  return <CareerContext.Provider value={contextValue}>{children}</CareerContext.Provider>;
 };
 
 export const useCareer = () => {

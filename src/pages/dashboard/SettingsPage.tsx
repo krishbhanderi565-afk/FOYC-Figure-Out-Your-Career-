@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCareer } from '../../context/CareerContext';
-import { DashboardHeader } from '../../components/dashboard/DashboardHeader';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
-import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { DASHBOARD_THEMES, DashboardThemeId } from '../../types/moduleRegistry';
 import {
   Download,
+  Upload,
   Shield,
   Trash2,
   Check,
@@ -18,46 +17,46 @@ import {
   AlertTriangle,
   X,
   FileCode,
-  Lock,
-  Mail,
-  GraduationCap,
-  Briefcase,
-  Compass,
-  FileText,
-  LogOut,
-  KeyRound,
   CheckCircle2,
   Palette,
   Sparkles,
+  Database,
+  RefreshCw,
+  HardDrive,
 } from 'lucide-react';
+import { localStorageService } from '../../services/localStorageService';
 
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { profile, updateProfile, dashboardData, resetToDefault, userEmail, userName, isAuthenticated, signOut, currentTheme, setTheme } = useCareer();
+  const {
+    profile,
+    updateProfile,
+    dashboardData,
+    currentTheme,
+    setTheme,
+    exportLocalBackup,
+    importLocalBackup,
+    clearLocalData,
+  } = useCareer();
 
   // Personal profile state
-  const [fullName, setFullName] = useState(userName || profile.preferredName || '');
+  const [fullName, setFullName] = useState(profile.preferredName || '');
   const [country, setCountry] = useState(profile.country || 'Global');
   const [education, setEducation] = useState<string>(profile.educationStatus || 'college-student');
   const [profession, setProfession] = useState<string>(profile.currentField || 'Software Engineering');
   const [careerStage, setCareerStage] = useState<string>(profile.careerStage || 'exploring');
   const [summary, setSummary] = useState(profile.workExperience || '');
-  const [timezone, setTimezone] = useState('Asia/Kolkata');
-  const [language, setLanguage] = useState('en');
-  const [emailReminders, setEmailReminders] = useState(true);
-  const [habitPings, setHabitPings] = useState(true);
   const [savedNotice, setSavedNotice] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [showSignOutModal, setShowSignOutModal] = useState(false);
 
-  // Change password state
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordNotice, setPasswordNotice] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [passwordLoading, setPasswordLoading] = useState(false);
+  // Data management state
+  const [showClearModal, setShowClearModal] = useState(false);
+  const [importNotice, setImportNotice] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [pendingImportData, setPendingImportData] = useState<any | null>(null);
+  const [importMode, setImportMode] = useState<'replace' | 'merge'>('replace');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
+  const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     updateProfile({
       preferredName: fullName,
@@ -71,501 +70,435 @@ export const SettingsPage: React.FC = () => {
     setTimeout(() => setSavedNotice(false), 3000);
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPasswordError(null);
-    setPasswordNotice(null);
+  const handleExport = () => {
+    exportLocalBackup();
+  };
 
-    if (!newPassword || newPassword.length < 6) {
-      setPasswordError('New password must be at least 6 characters long.');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setPasswordError('New passwords do not match. Please verify.');
-      return;
-    }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImportError(null);
+    setImportNotice(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setPasswordLoading(true);
-
-    if (isSupabaseConfigured()) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
       try {
-        const { error } = await supabase.auth.updateUser({ password: newPassword });
-        if (error) {
-          setPasswordError(error.message);
-        } else {
-          setPasswordNotice('Password updated successfully! Your account credentials have been synchronized.');
-          setNewPassword('');
-          setConfirmPassword('');
+        const content = event.target?.result as string;
+        const validation = localStorageService.validateBackup(content);
+        if (!validation.valid || !validation.data) {
+          setImportError(validation.error || 'The selected file is not a valid FOYC backup.');
+          return;
         }
+        setPendingImportData(validation.data);
       } catch (err: any) {
-        setPasswordError(err.message || 'Failed to update password.');
-      } finally {
-        setPasswordLoading(false);
+        setImportError(`Failed to read file: ${err.message}`);
       }
+    };
+    reader.readAsText(file);
+    // Reset file input value so user can re-select the same file if needed
+    e.target.value = '';
+  };
+
+  const handleConfirmImport = () => {
+    if (!pendingImportData) return;
+    const success = importLocalBackup(pendingImportData, importMode);
+    if (success) {
+      setImportNotice(`Data successfully imported in ${importMode} mode!`);
+      setPendingImportData(null);
+      setTimeout(() => setImportNotice(null), 4000);
     } else {
-      // Local dev simulation
-      setPasswordLoading(false);
-      setPasswordNotice('Password updated successfully in secure session.');
-      setNewPassword('');
-      setConfirmPassword('');
+      setImportError('Failed to import backup into local storage.');
     }
   };
 
-  const handleExportJSON = () => {
-    const dataStr =
-      'data:text/json;charset=utf-8,' +
-      encodeURIComponent(JSON.stringify(dashboardData, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute(
-      'download',
-      `FOYC_Career_Plan_${dashboardData.direction.primaryTitle.replace(/\s+/g, '_')}_${Date.now()}.json`
-    );
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  };
-
-  const handleConfirmReset = () => {
-    resetToDefault();
-    setShowResetModal(false);
-  };
-
-  const handleConfirmSignOut = async () => {
-    await signOut();
-    setShowSignOutModal(false);
-    navigate('/');
+  const handleConfirmClear = () => {
+    clearLocalData();
+    setShowClearModal(false);
+    navigate('/dashboard');
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#FDF5EB] text-[#171717]">
-      <DashboardHeader
-        onOpenMobileMenu={() => {}}
-        title="Profile & Cloud Settings"
-        subtitle="Manage your personal details, secure credentials, and data synchronization."
-      />
+    <div className="min-h-screen bg-[#F8F6F0] text-neutral-900 pb-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+        {/* Page Title */}
+        <div>
+          <h1 className="text-3xl font-extrabold text-neutral-900 tracking-tight">Settings & Appearance</h1>
+          <p className="text-sm text-neutral-500 mt-1 font-medium">
+            Customize your local profile, visual theme, and sovereign data backups.
+          </p>
+        </div>
 
-      <main className="p-4 sm:p-8 space-y-8 max-w-4xl">
-        {/* Account & Identity Card */}
-        <Card variant="white" shadowSize="md" className="p-6 sm:p-8 bg-white border border-[#E8E5DE] rounded-2xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b border-[#E8E5DE] gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-[#FFE76B] border border-[#171717] flex items-center justify-center font-black text-lg text-[#171717] shadow-xs">
-                {(fullName || 'U').charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <h3 className="font-extrabold text-lg text-[#171717] flex items-center gap-2">
-                  <span>{fullName || 'Explorer'}</span>
-                  <span className="text-[11px] font-mono font-bold bg-[#EDF2E9] text-[#526B50] px-2 py-0.5 rounded-full border border-[#A8B99A]">
-                    {isAuthenticated ? 'Authenticated Account' : 'Guest Session'}
-                  </span>
-                </h3>
-                <p className="text-xs text-[#666666] font-mono flex items-center gap-1.5 mt-0.5">
-                  <Mail className="w-3.5 h-3.5 text-[#526B50]" />
-                  <span>{userEmail || 'guest@foyc.dev'}</span>
-                </p>
-              </div>
+        {/* 1. Local Profile & Vision */}
+        <Card variant="white" shadowSize="md" className="p-6 sm:p-8 bg-white border border-neutral-200/80 rounded-2xl">
+          <div className="flex items-center justify-between pb-4 mb-6 border-b border-neutral-100">
+            <div>
+              <h2 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
+                <User className="w-5 h-5 text-emerald-600" />
+                Local Profile
+              </h2>
+              <p className="text-xs text-neutral-500 mt-0.5 font-medium">
+                Stored privately in your browser. No account registration needed.
+              </p>
             </div>
-
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setShowSignOutModal(true)}
-              className="gap-1.5 font-bold text-xs border-[#171717] hover:bg-red-50 hover:text-red-700 hover:border-red-300"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
-            </Button>
+            {savedNotice && (
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 animate-fade-in">
+                Saved to Browser ✓
+              </span>
+            )}
           </div>
 
-          {/* Dedicated Appearance & Color Theme Section (Section 4) */}
-          <div className="p-5 rounded-2xl bg-white border border-[#E8E5DE] shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
-              <div className="flex items-center gap-2">
-                <Palette className="w-4 h-4 text-emerald-600" />
-                <h3 className="text-sm font-black text-stone-900">Workspace Appearance & Theme</h3>
-              </div>
-              <span className="text-[11px] font-bold text-stone-500">Live preview across all features</span>
-            </div>
-
-            <p className="text-xs text-stone-600 font-medium">
-              Select your favorite aesthetic. Every page, card, chart, and roadmap connector will adapt seamlessly.
-            </p>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 pt-1">
-              {[
-                { id: 'green' as DashboardThemeId, name: 'Fresh Green', desc: 'Lush lime gradient', color: '#22C55E' },
-                { id: 'blue' as DashboardThemeId, name: 'Executive Blue', desc: 'Ocean focus', color: '#3B82F6' },
-                { id: 'sunset' as DashboardThemeId, name: 'Warm Sunset', desc: 'Coral & sun gold', color: '#F97316' },
-                { id: 'purple' as DashboardThemeId, name: 'Creative Violet', desc: 'Lavender flow', color: '#8B5CF6' },
-                { id: 'red' as DashboardThemeId, name: 'Crimson Accent', desc: 'Warm rose', color: '#EF4444' },
-                { id: 'black' as DashboardThemeId, name: 'Obsidian Minimal', desc: 'Deep luxury dark', color: '#111827' },
-                { id: 'white' as DashboardThemeId, name: 'Minimal White', desc: 'Crisp clean slate', color: '#FFFFFF', border: '#D1D5DB' },
-              ].map((th) => {
-                const isSelected = currentTheme === th.id;
-                return (
-                  <button
-                    key={th.id}
-                    type="button"
-                    onClick={() => setTheme(th.id)}
-                    className={`p-3 rounded-2xl border text-left flex flex-col justify-between space-y-2 transition-all cursor-pointer ${
-                      isSelected
-                        ? 'border-emerald-600 ring-2 ring-emerald-500/20 bg-emerald-50/50 shadow-xs'
-                        : 'border-stone-200 hover:border-stone-400 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span
-                        className="w-5 h-5 rounded-full shadow-xs"
-                        style={{
-                          backgroundColor: th.color,
-                          border: th.border ? `1px solid ${th.border}` : '1px solid rgba(0,0,0,0.1)',
-                        }}
-                      />
-                      {isSelected && <Check className="w-3.5 h-3.5 text-emerald-700 stroke-[3]" />}
-                    </div>
-                    <div>
-                      <span className="text-xs font-black text-stone-900 block leading-tight">{th.name}</span>
-                      <span className="text-[10px] text-stone-500 font-medium block leading-tight mt-0.5">{th.desc}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Personal Details Form */}
-          <form onSubmit={handleSaveProfile} className="space-y-5">
+          <form onSubmit={handleSaveProfile} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#171717] mb-1.5 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-[#526B50]" /> Full / Preferred Name
+                <label className="block text-xs font-bold text-neutral-700 mb-1.5">
+                  Display / Preferred Name
                 </label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Alex Chen"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E5DE] bg-[#FFFDF8] font-bold text-xs focus:ring-2 focus:ring-[#FFE76B]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 text-sm font-medium outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#171717] mb-1.5 flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-[#526B50]" /> Country / Region
+                <label className="block text-xs font-bold text-neutral-700 mb-1.5">
+                  Region / Country
                 </label>
                 <input
                   type="text"
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  placeholder="e.g. India, USA, Germany"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E5DE] bg-[#FFFDF8] font-bold text-xs focus:ring-2 focus:ring-[#FFE76B]"
+                  placeholder="e.g. India, United States, Global"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 text-sm font-medium outline-none"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#171717] mb-1.5 flex items-center gap-1.5">
-                  <GraduationCap className="w-3.5 h-3.5 text-[#526B50]" /> Education Status
-                </label>
-                <select
-                  value={education}
-                  onChange={(e) => setEducation(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-[#E8E5DE] bg-[#FFFDF8] font-bold text-xs"
-                >
-                  <option value="school-student">School Student (9th-12th)</option>
-                  <option value="college-student">College Student / Undergrad</option>
-                  <option value="recent-grad">Recent Graduate</option>
-                  <option value="working-professional">Working Professional</option>
-                  <option value="career-changer">Career Changer</option>
-                  <option value="self-taught">Self-Taught Learner</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#171717] mb-1.5 flex items-center gap-1.5">
-                  <Briefcase className="w-3.5 h-3.5 text-[#526B50]" /> Profession / Focus Field
+                <label className="block text-xs font-bold text-neutral-700 mb-1.5">
+                  Current Field / Interest
                 </label>
                 <input
                   type="text"
                   value={profession}
                   onChange={(e) => setProfession(e.target.value)}
-                  placeholder="e.g. Software Engineering"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E5DE] bg-[#FFFDF8] font-bold text-xs"
+                  placeholder="e.g. Product Design, AI Engineering, Entrepreneurship"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 text-sm font-medium outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#171717] mb-1.5 flex items-center gap-1.5">
-                  <Compass className="w-3.5 h-3.5 text-[#526B50]" /> Career Stage
+                <label className="block text-xs font-bold text-neutral-700 mb-1.5">
+                  Career Stage
                 </label>
                 <select
                   value={careerStage}
                   onChange={(e) => setCareerStage(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-[#E8E5DE] bg-[#FFFDF8] font-bold text-xs"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 text-sm font-medium text-neutral-800 bg-white outline-none"
                 >
-                  <option value="exploring">Exploring Opportunities</option>
-                  <option value="upskilling">Actively Upskilling</option>
-                  <option value="job-hunting">Actively Job Hunting</option>
-                  <option value="pivoting">Pivoting / Switching Fields</option>
-                  <option value="growth">Accelerating in Current Role</option>
+                  <option value="exploring">Exploring / Self-Discovery</option>
+                  <option value="student">Student / Early Career</option>
+                  <option value="transition">Career Switcher</option>
+                  <option value="professional">Working Professional</option>
+                  <option value="entrepreneur">Founder / Independent Builder</option>
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-[#171717] mb-1.5 flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-[#526B50]" /> Profile Summary & Objectives
+              <label className="block text-xs font-bold text-neutral-700 mb-1.5">
+                Personal Vision / Experience Summary
               </label>
               <textarea
-                rows={3}
+                rows={2}
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
-                placeholder="Briefly describe your career background, key interests, and target milestones."
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E5DE] bg-[#FFFDF8] font-medium text-xs leading-relaxed"
+                placeholder="Briefly state your core motivations or background context."
+                className="w-full px-3.5 py-2 rounded-xl border border-neutral-300 text-xs font-medium text-neutral-800 outline-none"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#171717] mb-1.5 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-[#526B50]" /> Timezone
-                </label>
-                <select
-                  value={timezone}
-                  onChange={(e) => setTimezone(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E5DE] bg-[#FFFDF8] font-bold text-xs"
-                >
-                  <option value="Asia/Kolkata">Asia/Kolkata (IST, UTC+5:30)</option>
-                  <option value="America/New_York">America/New_York (EST, UTC-5)</option>
-                  <option value="America/Los_Angeles">America/Los_Angeles (PST, UTC-8)</option>
-                  <option value="Europe/London">Europe/London (GMT, UTC+0)</option>
-                  <option value="Europe/Berlin">Europe/Berlin (CET, UTC+1)</option>
-                  <option value="Asia/Tokyo">Asia/Tokyo (JST, UTC+9)</option>
-                  <option value="Australia/Sydney">Australia/Sydney (AEST, UTC+10)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#171717] mb-1.5 flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-[#526B50]" /> Interface Language
-                </label>
-                <select
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E5DE] bg-[#FFFDF8] font-bold text-xs"
-                >
-                  <option value="en">English (US / Global)</option>
-                  <option value="hi">हिन्दी (Hindi)</option>
-                  <option value="es">Español (Spanish)</option>
-                  <option value="fr">Français (French)</option>
-                  <option value="de">Deutsch (German)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
-              <Button type="submit" variant="primary" size="md" className="font-black bg-[#171717] text-white hover:bg-[#333333]">
-                Save Profile Changes
+            <div className="flex justify-end pt-2">
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                className="font-bold text-xs bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl shadow-sm"
+              >
+                Save Profile
               </Button>
-              {savedNotice && (
-                <span className="text-xs font-bold text-[#526B50] bg-[#EDF2E9] px-3 py-1.5 rounded-lg border border-[#A8B99A] flex items-center gap-1 animate-fadeIn">
-                  <Check className="w-4 h-4" /> Profile Synced with Supabase!
-                </span>
-              )}
             </div>
           </form>
         </Card>
 
-        {/* Change Password Card (Secure Supabase Authentication) */}
-        <Card variant="white" shadowSize="md" className="p-6 sm:p-8 bg-white border border-[#E8E5DE] rounded-2xl">
-          <h3 className="font-extrabold text-lg text-[#171717] mb-2 flex items-center gap-2">
-            <KeyRound className="w-5 h-5 text-[#526B50]" />
-            Security & Change Password
-          </h3>
-          <p className="text-xs text-[#666666] font-medium mb-6">
-            Update your authentication password securely. Your credentials are encrypted and managed directly through Supabase Auth.
-          </p>
+        {/* 2. Theme Selection */}
+        <Card variant="white" shadowSize="md" className="p-6 sm:p-8 bg-white border border-neutral-200/80 rounded-2xl">
+          <div className="flex items-center justify-between pb-4 mb-6 border-b border-neutral-100">
+            <div>
+              <h2 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
+                <Palette className="w-5 h-5 text-purple-600" />
+                Color Theme
+              </h2>
+              <p className="text-xs text-neutral-500 mt-0.5 font-medium">
+                Choose a palette that inspires your daily focus and routine.
+              </p>
+            </div>
+          </div>
 
-          {passwordError && (
-            <div className="p-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-xs font-bold text-red-700 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>{passwordError}</span>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+            {Object.values(DASHBOARD_THEMES).map((theme) => {
+              const isSelected = currentTheme === theme.id;
+              return (
+                <button
+                  key={theme.id}
+                  type="button"
+                  onClick={() => setTheme(theme.id as DashboardThemeId)}
+                  className={`p-3 rounded-xl border flex flex-col items-center gap-2 transition-all ${
+                    isSelected
+                      ? 'border-neutral-900 ring-2 ring-neutral-900 bg-neutral-50'
+                      : 'border-neutral-200 hover:border-neutral-400 bg-white'
+                  }`}
+                >
+                  <div
+                    className="w-8 h-8 rounded-full shadow-inner flex items-center justify-center text-white"
+                    style={{ backgroundColor: theme.primaryColor }}
+                  >
+                    {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
+                  </div>
+                  <span className="text-xs font-bold text-neutral-800 capitalize">
+                    {theme.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+
+        {/* 3. My FOYC Data — Backup, Export & Restore (Phase 8) */}
+        <Card variant="white" shadowSize="md" className="p-6 sm:p-8 bg-white border border-neutral-200/80 rounded-2xl space-y-6">
+          <div className="flex items-center justify-between pb-4 border-b border-neutral-100">
+            <div>
+              <h2 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
+                <HardDrive className="w-5 h-5 text-emerald-600" />
+                My FOYC Data & Sovereign Backup
+              </h2>
+              <p className="text-xs text-neutral-500 mt-0.5 font-medium">
+                You own your career blueprint completely. Export or restore your local records anytime.
+              </p>
+            </div>
+          </div>
+
+          {/* Feedback Banners */}
+          {importNotice && (
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{importNotice}</span>
             </div>
           )}
 
-          {passwordNotice && (
-            <div className="p-3 mb-4 rounded-xl bg-[#EDF2E9] border border-[#A8B99A] text-xs font-bold text-[#526B50] flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>{passwordNotice}</span>
+          {importError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-800 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{importError}</span>
             </div>
           )}
 
-          <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
-            <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-[#171717] mb-1.5 flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-[#526B50]" /> New Password
-              </label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="At least 6 characters"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E5DE] bg-[#FFFDF8] font-mono text-xs focus:ring-2 focus:ring-[#FFE76B]"
-              />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Option 1: Export */}
+            <div className="p-5 rounded-2xl border border-neutral-200 bg-neutral-50/50 flex flex-col justify-between space-y-4">
+              <div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-3">
+                  <Download className="w-5 h-5" />
+                </div>
+                <h3 className="text-sm font-bold text-neutral-900">Export My Data</h3>
+                <p className="text-xs text-neutral-500 mt-1 font-medium leading-relaxed">
+                  Download a validated JSON file containing your local profile, goals, checklist items, habits, streaks, and preferences.
+                </p>
+              </div>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleExport}
+                className="gap-2 font-bold text-xs border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-900 shadow-xs"
+              >
+                <FileCode className="w-4 h-4 text-emerald-600" />
+                <span>Download Backup (.json)</span>
+              </Button>
             </div>
 
+            {/* Option 2: Import */}
+            <div className="p-5 rounded-2xl border border-neutral-200 bg-neutral-50/50 flex flex-col justify-between space-y-4">
+              <div>
+                <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center mb-3">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <h3 className="text-sm font-bold text-neutral-900">Import My Data</h3>
+                <p className="text-xs text-neutral-500 mt-1 font-medium leading-relaxed">
+                  Restore an existing backup from your computer. Validates file schema before applying.
+                </p>
+              </div>
+
+              <div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept=".json,application/json"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="gap-2 font-bold text-xs border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-900 shadow-xs"
+                >
+                  <Upload className="w-4 h-4 text-indigo-600" />
+                  <span>Choose Backup File</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* 4. Danger Zone & Permanent Reset */}
+        <Card variant="white" shadowSize="md" className="p-6 sm:p-8 bg-rose-50/40 border border-rose-200/80 rounded-2xl">
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-rose-200/50">
             <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-[#171717] mb-1.5 flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-[#526B50]" /> Confirm New Password
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter new password"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E5DE] bg-[#FFFDF8] font-mono text-xs focus:ring-2 focus:ring-[#FFE76B]"
-              />
+              <h2 className="text-lg font-bold text-rose-900 flex items-center gap-2">
+                <Shield className="w-5 h-5 text-rose-600" />
+                Danger Zone
+              </h2>
+              <p className="text-xs text-rose-700/80 mt-0.5 font-medium">
+                Permanent actions affecting local browser records.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-bold text-neutral-900">Clear All Stored Data</h3>
+              <p className="text-xs text-neutral-500 mt-0.5 font-medium">
+                Permanently wipes all locally saved FOYC goals, habits, milestones, and reflections from this browser.
+              </p>
             </div>
 
             <Button
-              type="submit"
-              variant="secondary"
+              variant="dark"
               size="sm"
-              disabled={passwordLoading}
-              className="gap-2 font-bold text-xs border-[#171717] bg-white hover:bg-[#F4F3EF]"
+              onClick={() => setShowClearModal(true)}
+              className="gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm self-start sm:self-auto"
             >
-              <KeyRound className="w-3.5 h-3.5" />
-              <span>{passwordLoading ? 'Updating Password...' : 'Update Password'}</span>
+              <Trash2 className="w-4 h-4" />
+              <span>Clear My Data</span>
             </Button>
-          </form>
+          </div>
         </Card>
+      </div>
 
-        {/* Data Portability & Export */}
-        <Card variant="white" shadowSize="md" className="p-6 sm:p-8 bg-white border border-[#E8E5DE] rounded-2xl">
-          <h3 className="font-extrabold text-lg text-[#171717] mb-2 flex items-center gap-2">
-            <Download className="w-5 h-5 text-[#526B50]" />
-            Sovereign Data Export & Backup
-          </h3>
-          <p className="text-xs sm:text-sm text-[#666666] font-medium mb-6">
-            You own your career plan completely. Export your milestones, tasks, active habit streaks, and weekly logs as standard formatted JSON anytime.
-          </p>
-
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={handleExportJSON}
-            className="gap-2 font-bold text-xs border-[#171717] bg-white hover:bg-[#F4F3EF] text-[#171717] shadow-[2px_2px_0px_#171717]"
-          >
-            <FileCode className="w-4 h-4 text-[#526B50]" />
-            Download Complete Career Plan (JSON)
-          </Button>
-        </Card>
-
-        {/* Danger Zone */}
-        <Card variant="white" shadowSize="md" className="p-6 sm:p-8 bg-[#FFF5F5] border border-red-200 rounded-2xl">
-          <h3 className="font-extrabold text-lg text-red-800 mb-2 flex items-center gap-2">
-            <Shield className="w-5 h-5 text-red-700" />
-            Danger Zone & Local Reset
-          </h3>
-          <p className="text-xs sm:text-sm text-red-700/80 font-medium mb-6">
-            Clear all cached roadmap entries, reflections, and custom tasks, restoring initial templates in local storage.
-          </p>
-
-          <Button
-            variant="dark"
-            size="sm"
-            onClick={() => setShowResetModal(true)}
-            className="gap-2 bg-red-700 hover:bg-red-800 text-white font-bold text-xs border border-red-800 shadow-[2px_2px_0px_#7F1D1D]"
-          >
-            <Trash2 className="w-4 h-4" />
-            Reset Local Career Cache
-          </Button>
-        </Card>
-      </main>
-
-      {/* Reset Confirmation Modal */}
-      {showResetModal && (
-        <div className="fixed inset-0 z-50 bg-[#171717]/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border-2 border-[#171717] rounded-2xl shadow-[6px_6px_0px_#171717] max-w-md w-full p-6 space-y-4 animate-scaleUp">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-red-700 font-black text-lg">
-                <AlertTriangle className="w-6 h-6" />
-                Reset Career Data?
-              </div>
+      {/* Import Confirmation Modal */}
+      {pendingImportData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-neutral-200 space-y-4 animate-scale-up">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
+              <h3 className="text-base font-bold text-neutral-900 flex items-center gap-2">
+                <Upload className="w-5 h-5 text-indigo-600" />
+                Confirm Data Import
+              </h3>
               <button
-                onClick={() => setShowResetModal(false)}
-                className="w-8 h-8 rounded-lg border border-[#171717] bg-white flex items-center justify-center hover:bg-[#F4F3EF] transition-colors"
+                type="button"
+                onClick={() => setPendingImportData(null)}
+                className="p-1 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs sm:text-sm text-[#555555] font-medium leading-relaxed">
-              This action will reset your personalized milestones, custom checklist tasks, habit streaks, and restore default demo data in local storage.
+            <p className="text-xs text-neutral-600 leading-relaxed font-medium">
+              A valid FOYC backup was detected containing profile, goals, and habits. How would you like to apply it?
             </p>
 
-            <div className="flex justify-end gap-3 pt-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setShowResetModal(false)}
-                className="font-bold text-xs"
+            <div className="space-y-2 text-xs">
+              <label className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 hover:bg-neutral-50 cursor-pointer">
+                <input
+                  type="radio"
+                  name="importMode"
+                  checked={importMode === 'replace'}
+                  onChange={() => setImportMode('replace')}
+                  className="text-neutral-900"
+                />
+                <div>
+                  <div className="font-bold text-neutral-900">Replace Everything</div>
+                  <div className="text-neutral-500 text-[11px]">Overwrites current browser state with this backup file.</div>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 hover:bg-neutral-50 cursor-pointer">
+                <input
+                  type="radio"
+                  name="importMode"
+                  checked={importMode === 'merge'}
+                  onChange={() => setImportMode('merge')}
+                  className="text-neutral-900"
+                />
+                <div>
+                  <div className="font-bold text-neutral-900">Merge with Current Data</div>
+                  <div className="text-neutral-500 text-[11px]">Appends imported goals and habits without wiping existing records.</div>
+                </div>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-neutral-100">
+              <button
+                type="button"
+                onClick={() => setPendingImportData(null)}
+                className="px-3.5 py-2 rounded-xl border border-neutral-200 text-xs font-semibold text-neutral-600 hover:bg-neutral-50"
               >
                 Cancel
-              </Button>
-              <Button
-                variant="dark"
-                size="sm"
-                onClick={handleConfirmReset}
-                className="bg-red-700 hover:bg-red-800 text-white font-black text-xs"
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmImport}
+                className="px-4 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold shadow-sm"
               >
-                Yes, Reset Data
-              </Button>
+                Confirm Import
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Sign Out Confirmation Modal */}
-      {showSignOutModal && (
-        <div className="fixed inset-0 z-50 bg-[#171717]/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border-2 border-[#171717] rounded-2xl shadow-[6px_6px_0px_#171717] max-w-md w-full p-6 space-y-4 animate-scaleUp">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[#171717] font-black text-lg">
-                <LogOut className="w-5 h-5 text-[#526B50]" />
-                Sign Out of FOYC?
-              </div>
-              <button
-                onClick={() => setShowSignOutModal(false)}
-                className="w-8 h-8 rounded-lg border border-[#171717] bg-white flex items-center justify-center hover:bg-[#F4F3EF] transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+      {/* Clear Data Destructive Confirmation Modal */}
+      {showClearModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-neutral-200 space-y-4 animate-scale-up">
+            <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5" />
             </div>
-
-            <p className="text-xs sm:text-sm text-[#555555] font-medium leading-relaxed">
-              Your career plan, milestones, tasks, and habit streaks are securely saved in Supabase. You can sign in from any other computer or mobile device to pick up right where you left off.
-            </p>
-
-            <div className="flex justify-end gap-3 pt-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setShowSignOutModal(false)}
-                className="font-bold text-xs"
+            <div>
+              <h3 className="text-base font-bold text-neutral-900">Clear All Local Data?</h3>
+              <p className="text-xs text-neutral-500 mt-1 leading-relaxed font-medium">
+                This will permanently delete all your custom goals, checklist items, habit streaks, and reflections from this browser. This action cannot be undone unless you have exported a JSON backup.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowClearModal(false)}
+                className="px-3.5 py-1.5 rounded-lg border border-neutral-200 text-xs font-semibold text-neutral-700 hover:bg-neutral-50"
               >
                 Cancel
-              </Button>
-              <Button
-                variant="dark"
-                size="sm"
-                onClick={handleConfirmSignOut}
-                className="bg-[#171717] text-white hover:bg-[#333333] font-black text-xs"
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmClear}
+                className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-sm"
               >
-                Confirm Sign Out
-              </Button>
+                Yes, Clear Data
+              </button>
             </div>
           </div>
         </div>

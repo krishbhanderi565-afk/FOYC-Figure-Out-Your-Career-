@@ -718,34 +718,7 @@ export const HabitTrackerCore: React.FC<HabitTrackerCoreProps> = ({
             </div>
           </div>
 
-          {/* Guest Exploration Banner if not authenticated */}
-          {!isAuthenticated && (
-            <div className="bg-[#FFF8E7] border-b border-[#F5D898] px-4 sm:px-6 lg:px-8 py-3 transition-all">
-              <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2 text-[#854D0E]">
-                  <span className="font-bold">✨ Guest Session:</span>
-                  <span className="text-[#713F12]">
-                    Your habits, check-ins, and streaks are currently saved locally in your browser.
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Link
-                    to="/login"
-                    className="font-bold text-[#854D0E] hover:underline"
-                  >
-                    Log In
-                  </Link>
-                  <span className="text-[#D97706]">•</span>
-                  <Link
-                    to="/signup"
-                    className="px-3 py-1 rounded-lg bg-[#526B50] hover:bg-[#3F543D] text-white font-bold text-xs shadow-xs transition-colors"
-                  >
-                    Sign Up to Sync Across Devices
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
+
         </>
       )}
 

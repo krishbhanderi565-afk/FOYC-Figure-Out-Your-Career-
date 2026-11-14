@@ -46,7 +46,7 @@ export const MobileBottomNav: React.FC = () => {
       badge: null,
     },
     {
-      to: isAuthenticated ? '/dashboard/settings' : '/auth',
+      to: '/dashboard/settings',
       label: 'Profile',
       icon: UserRound,
       exact: false,

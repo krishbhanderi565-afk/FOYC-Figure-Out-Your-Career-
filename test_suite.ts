@@ -163,6 +163,108 @@ assert(bothSummary.hasData === true, 'Composite yields hasData = true');
 assert(bothSummary.calculationBasis === 'both', 'Calculation basis correctly identified as both');
 assert(bothSummary.overallProgress === Math.round((bothSummary.goalCompletionRate + bothSummary.habitCompletionRate) / 2), 'Overall progress strictly equals (Goal Rate + Habit Rate) / 2');
 
+// 7. Local-First Storage Architecture & Backup Engine Validation (Phase 1 to 5)
+console.log('\n--- 7. Testing Local-First Storage Architecture & Sovereign Backup Engine ---');
+// Mock localStorage in Node.js test environment
+const storeMap = new Map<string, string>();
+const mockLocalStorage = {
+  getItem: (key: string) => storeMap.get(key) || null,
+  setItem: (key: string, val: string) => { storeMap.set(key, String(val)); },
+  removeItem: (key: string) => { storeMap.delete(key); },
+  clear: () => { storeMap.clear(); },
+};
+(globalThis as any).window = globalThis;
+(globalThis as any).localStorage = mockLocalStorage;
+
+import { localStorageService, CURRENT_SCHEMA_VERSION, STORAGE_KEY } from './src/services/localStorageService';
+
+// 7a. Initial clean load
+localStorageService.clearAllData();
+const initialStore = localStorageService.load();
+assert(initialStore.schema_version === CURRENT_SCHEMA_VERSION, `Store schema version matches CURRENT_SCHEMA_VERSION (${CURRENT_SCHEMA_VERSION})`);
+assert(initialStore.preferences.theme === 'green', 'Default theme is green');
+assert(Array.isArray(initialStore.assessments) && initialStore.assessments.length === 0, 'Initial assessments is empty array');
+
+// 7b. Legacy data migration
+storeMap.clear();
+storeMap.set('foyc_profile', JSON.stringify({ preferredName: 'Maya Legacy', country: 'Canada' }));
+storeMap.set('foyc_theme', 'ocean');
+// Reset internal cache to force re-reading from localStorage
+localStorageService.clearAllData();
+storeMap.delete(STORAGE_KEY); // Remove primary key so migration triggers
+storeMap.set('foyc_profile', JSON.stringify({ preferredName: 'Maya Legacy', country: 'Canada' }));
+storeMap.set('foyc_theme', 'ocean');
+const migratedStore = localStorageService.load();
+assert(migratedStore.profile.preferredName === 'Maya Legacy', `Legacy migration restored profile name: "${migratedStore.profile.preferredName}"`);
+assert(migratedStore.preferences.theme === 'ocean', `Legacy migration restored theme: "${migratedStore.preferences.theme}"`);
+
+// 7c. Granular profile updates
+localStorageService.updateProfile({ preferredName: 'Alex Sovereign', careerStage: 'transitioning' });
+const updatedStore = localStorageService.load();
+assert(updatedStore.profile.preferredName === 'Alex Sovereign', 'updateProfile correctly persists new preferred name');
+assert(updatedStore.profile.careerStage === 'transitioning', 'updateProfile correctly persists career stage');
+
+// 7d. Granular dashboard updates
+localStorageService.updateDashboard({
+  direction: { primaryTitle: 'Lead Product Architect' } as any
+}, undefined, true);
+const dashboardStore = localStorageService.load();
+assert(dashboardStore.dashboard.data.direction.primaryTitle === 'Lead Product Architect', 'updateDashboard correctly persists direction title');
+assert(dashboardStore.dashboard.hasGenerated === true, 'updateDashboard correctly persists hasGenerated flag');
+
+// 7e. Backup validation
+const invalidJsonResult = localStorageService.validateBackup('{ invalid json syntax');
+assert(!invalidJsonResult.valid && typeof invalidJsonResult.error === 'string', 'validateBackup correctly rejects malformed JSON');
+
+const missingVersionResult = localStorageService.validateBackup(JSON.stringify({ someData: 123 }));
+assert(!missingVersionResult.valid && missingVersionResult.error?.includes('schema_version'), 'validateBackup correctly rejects payload missing schema_version');
+
+const validBackupPayload = JSON.stringify({
+  schema_version: 1,
+  profile: { preferredName: 'Imported User' },
+  dashboard: { configuration: {}, data: { direction: { primaryTitle: 'Imported Title' } } }
+});
+const validResult = localStorageService.validateBackup(validBackupPayload);
+assert(validResult.valid && !!validResult.data, 'validateBackup accepts valid schema payload');
+
+// 7f. Export and Import (Replace mode)
+const exportedJson = localStorageService.exportBackup();
+assert(typeof exportedJson === 'string' && exportedJson.includes('Alex Sovereign'), 'exportBackup produces string containing current user data');
+
+const replaceImportSuccess = localStorageService.importBackup(validResult.data!, 'replace');
+assert(replaceImportSuccess === true, 'importBackup in replace mode succeeds');
+const postReplaceStore = localStorageService.load();
+assert(postReplaceStore.profile.preferredName === 'Imported User', 'importBackup replace mode overwrote profile with backup data');
+
+// 7g. Import (Merge mode)
+const mergeBackupPayload = {
+  schema_version: 1,
+  profile: { currentField: 'Design Systems' } as any,
+  reflection: {} as any,
+  preferences: { theme: 'sunset' as any },
+  assessments: [],
+  reports: [],
+  dashboard: {
+    configuration: {} as any,
+    data: { direction: { primaryTitle: 'Merged Direction' } } as any,
+    hasGenerated: true
+  },
+  activity: [],
+  last_updated: new Date().toISOString()
+};
+const mergeImportSuccess = localStorageService.importBackup(mergeBackupPayload, 'merge');
+assert(mergeImportSuccess === true, 'importBackup in merge mode succeeds');
+const postMergeStore = localStorageService.load();
+assert(postMergeStore.profile.preferredName === 'Imported User', 'Merge mode preserved existing profile preferredName');
+assert(postMergeStore.profile.currentField === 'Design Systems', 'Merge mode applied incoming profile field');
+assert(postMergeStore.preferences.theme === 'sunset', 'Merge mode applied incoming preference');
+
+// 7h. Clear All Data (Reset)
+localStorageService.clearAllData();
+assert(mockLocalStorage.getItem(STORAGE_KEY) === null, 'clearAllData removed main STORAGE_KEY from localStorage');
+const freshStore = localStorageService.load();
+assert(freshStore.profile.preferredName === '', 'clearAllData reset profile preferredName to empty default');
+
 console.log('\n======================================================');
 console.log(`TEST SUMMARY: Total: ${totalTests} | Passed: ${passedTests} | Failed: ${failedTests}`);
 console.log('======================================================');

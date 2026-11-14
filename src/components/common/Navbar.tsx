@@ -304,91 +304,51 @@ export const Navbar: React.FC = () => {
 
         {/* Right: Action Controls & User Profile */}
         <div className="hidden md:flex items-center gap-2.5 shrink-0">
-          {isAuthenticated ? (
-            <>
-              <Link to="/dashboard">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="gap-1.5 text-xs font-bold border-[#171717] bg-white hover:bg-[#F4F3EF] text-[#171717] shadow-[2px_2px_0px_#171717]"
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5 text-[#526B50]" />
-                  <span>Dashboard</span>
-                </Button>
-              </Link>
+          <Link to="/dashboard">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="gap-1.5 text-xs font-bold border-[#171717] bg-white hover:bg-[#F4F3EF] text-[#171717] shadow-[2px_2px_0px_#171717]"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5 text-[#526B50]" />
+              <span>My Workspace</span>
+            </Button>
+          </Link>
 
-              <div className="flex items-center gap-2 pl-1 border-l border-[#E8E5DE]">
-                <Link
-                  to="/dashboard/settings"
-                  title="View & Edit Profile"
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EDF2E9] border border-[#A8B99A] text-xs font-bold text-[#526B50] hover:bg-[#DDF5C5] transition-colors"
-                >
-                  <User className="w-3 h-3" />
-                  <span className="max-w-[110px] truncate">{userName || userEmail?.split('@')[0] || 'Account'}</span>
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  title="Sign Out"
-                  aria-label="Sign Out"
-                  className="p-1.5 rounded-lg text-[#555555] hover:text-[#171717] hover:bg-black/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#171717]"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <Link to="/login">
-                <button className="px-3 py-1.5 text-xs font-bold text-[#171717] hover:text-[#526B50] transition-colors flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#171717] rounded-lg">
-                  <LogIn className="w-3.5 h-3.5" />
-                  <span>Login</span>
-                </button>
-              </Link>
+          <div className="flex items-center gap-2 pl-1 border-l border-[#E8E5DE]">
+            <Link
+              to="/dashboard/settings"
+              title="View Settings & Data Backup"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EDF2E9] border border-[#A8B99A] text-xs font-bold text-[#526B50] hover:bg-[#DDF5C5] transition-colors"
+            >
+              <User className="w-3 h-3" />
+              <span className="max-w-[110px] truncate">{userName || 'My FOYC'}</span>
+            </Link>
+          </div>
 
-              <Link to="/signup">
-                <button className="px-3.5 py-1.5 rounded-full text-xs font-bold text-[#171717] bg-white border border-[#171717] hover:bg-[#F4F3EF] transition-colors flex items-center gap-1.5 shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-[#171717]">
-                  <UserPlus className="w-3.5 h-3.5 text-[#526B50]" />
-                  <span>Sign Up</span>
-                </button>
-              </Link>
-
-              <Link to="/onboarding">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="gap-1.5 text-xs font-bold bg-[#FFE76B] hover:bg-[#FADB3D] text-[#171717] border border-[#171717] shadow-[2px_2px_0px_#171717]"
-                >
-                  <span>Find My Direction</span>
-                  <ArrowRight className="w-3 h-3 stroke-[2.5]" />
-                </Button>
-              </Link>
-            </>
-          )}
+          <Link to="/onboarding">
+            <Button
+              variant="primary"
+              size="sm"
+              className="gap-1.5 text-xs font-bold bg-[#FFE76B] hover:bg-[#FADB3D] text-[#171717] border border-[#171717] shadow-[2px_2px_0px_#171717]"
+            >
+              <span>Find My Direction</span>
+              <ArrowRight className="w-3 h-3 stroke-[2.5]" />
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile menu toggle (Visible below md) */}
         <div className="flex md:hidden items-center gap-2">
-          {!isAuthenticated ? (
-            <Link to="/signup">
-              <Button
-                variant="primary"
-                size="sm"
-                className="text-xs px-3 py-1.5 bg-[#FFE76B] text-[#171717] border border-[#171717] font-bold"
-              >
-                Sign Up
-              </Button>
-            </Link>
-          ) : (
-            <Link to="/dashboard">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="text-xs px-3 py-1.5 border border-[#171717] bg-white text-[#171717] font-bold"
-              >
-                Dashboard
-              </Button>
-            </Link>
-          )}
+          <Link to="/dashboard">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="text-xs px-3 py-1.5 border border-[#171717] bg-white text-[#171717] font-bold"
+            >
+              Dashboard
+            </Button>
+          </Link>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
@@ -504,61 +464,27 @@ export const Navbar: React.FC = () => {
               </div>
             </div>
 
-            {/* Mobile Auth & Direction Action Area */}
+            {/* Mobile Workspace & Direction Action Area */}
             <div className="pt-4 mt-2 border-t border-[#E8E5DE] flex flex-col gap-2.5">
-              {isAuthenticated ? (
-                <div className="p-3.5 rounded-2xl bg-[#EDF2E9] border border-[#A8B99A] space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs font-bold text-[#526B50]">
-                      <User className="w-4 h-4" />
-                      <span>{userName || userEmail}</span>
-                    </div>
-                    <button
-                      onClick={handleLogout}
-                      className="text-xs font-bold text-red-600 hover:underline flex items-center gap-1"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                      <span>Sign Out</span>
-                    </button>
+              <div className="p-3.5 rounded-2xl bg-[#EDF2E9] border border-[#A8B99A] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#526B50]">
+                    <User className="w-4 h-4" />
+                    <span>{userName || 'My FOYC'}</span>
                   </div>
-                  <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                    <Button
-                      variant="secondary"
-                      fullWidth
-                      size="sm"
-                      className="border-[#171717] bg-white text-[#171717] font-bold text-xs"
-                    >
-                      <LayoutDashboard className="w-3.5 h-3.5 mr-1 text-[#526B50]" />
-                      Open Career Dashboard
-                    </Button>
-                  </Link>
                 </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button
-                      variant="secondary"
-                      fullWidth
-                      size="md"
-                      className="border-[#171717] text-[#171717] font-bold text-xs"
-                    >
-                      <LogIn className="w-3.5 h-3.5 mr-1" />
-                      Login
-                    </Button>
-                  </Link>
-                  <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
-                    <Button
-                      variant="secondary"
-                      fullWidth
-                      size="md"
-                      className="bg-[#171717] text-white hover:bg-[#333333] font-bold text-xs"
-                    >
-                      <UserPlus className="w-3.5 h-3.5 mr-1" />
-                      Sign Up
-                    </Button>
-                  </Link>
-                </div>
-              )}
+                <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                  <Button
+                    variant="secondary"
+                    fullWidth
+                    size="sm"
+                    className="border-[#171717] bg-white text-[#171717] font-bold text-xs"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5 mr-1 text-[#526B50]" />
+                    Open My Workspace
+                  </Button>
+                </Link>
+              </div>
 
               <Link to="/onboarding" onClick={() => setMobileMenuOpen(false)}>
                 <Button

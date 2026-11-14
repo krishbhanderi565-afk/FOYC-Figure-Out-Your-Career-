@@ -35,7 +35,6 @@ export const HandoffPreviewPage: React.FC = () => {
   const { dashboardData, deleteTask, isAuthenticated, updateProfile, dashboardConfig, updateDashboardConfig } = useCareer();
   const [editableTitle, setEditableTitle] = useState(dashboardData?.direction?.primaryTitle || dashboardData?.primaryCareer?.title || 'Personal Career Workspace');
   const [editableSummary, setEditableSummary] = useState(dashboardData?.direction?.summary || dashboardData?.primaryCareer?.overview || '');
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [activeStage, setActiveStage] = useState<'content' | 'config'>('content');
 
   const detailedSkillGaps = (dashboardData?.direction as any)?.detailedSkillGaps || [
@@ -44,29 +43,11 @@ export const HandoffPreviewPage: React.FC = () => {
 
   const handleFinalConfirm = async (finalConfig: DashboardConfiguration) => {
     await updateDashboardConfig(finalConfig);
-    if (isAuthenticated) {
-      try {
-        await api.transferPlanToAccount(dashboardData);
-      } catch {}
-      navigate('/dashboard');
-    } else {
-      setShowAuthModal(true);
-    }
+    navigate('/dashboard');
   };
 
   const handleCreateDashboardClick = () => {
     setActiveStage('config');
-  };
-
-  const handleContinueAsGuest = () => {
-    setShowAuthModal(false);
-    navigate('/dashboard');
-  };
-
-  const handleGoToAuth = () => {
-    setShowAuthModal(false);
-    localStorage.setItem('foyc_pending_draft_transfer', 'true');
-    navigate('/auth');
   };
 
   return (
@@ -404,53 +385,6 @@ export const HandoffPreviewPage: React.FC = () => {
         </>
         )}
       </main>
-
-      {/* Delayed Account Save Modal (Section 13) */}
-      {showAuthModal && (
-        <div className="fixed inset-0 z-50 bg-[#17172B]/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#FFFFFF] border-3 border-[#17172B] rounded-2xl shadow-[6px_6px_0px_#17172B] max-w-md w-full p-6 space-y-5 animate-scaleUp">
-            <div className="space-y-1">
-              <span className="text-xs font-black uppercase tracking-widest text-[#315B28] bg-[#B8E986] px-2.5 py-0.5 rounded-full border border-[#17172B]">
-                Save Your Blueprint
-              </span>
-              <h3 className="text-2xl font-black text-[#17172B] tracking-tight">
-                Save Your Personalized Dashboard
-              </h3>
-              <p className="text-xs sm:text-sm text-[#17172B]/80 font-semibold leading-relaxed">
-                Create a free FOYC account to sync your career milestones, task progress, and habit streaks across devices.
-              </p>
-            </div>
-
-            <div className="space-y-2.5 pt-2">
-              <Button
-                variant="parrot"
-                size="md"
-                fullWidth
-                onClick={handleGoToAuth}
-                className="gap-2 font-black shadow-[3px_3px_0px_#17172B]"
-              >
-                <Lock className="w-4 h-4" />
-                <span>Create Free Account / Sign In</span>
-              </Button>
-
-              <Button
-                variant="secondary"
-                size="md"
-                fullWidth
-                onClick={handleContinueAsGuest}
-                className="gap-2 font-bold shadow-[2px_2px_0px_#17172B]"
-              >
-                <UserCheck className="w-4 h-4" />
-                <span>Continue as Guest (Store in Browser)</span>
-              </Button>
-            </div>
-
-            <p className="text-[11px] text-center text-[#17172B]/60 font-semibold">
-              Zero risk: your approved draft remains fully intact either way.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
