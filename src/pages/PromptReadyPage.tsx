@@ -7,6 +7,7 @@ import { Card } from '../components/common/Card';
 import { Highlight } from '../components/common/Highlight';
 import { Badge } from '../components/common/Badge';
 import { generateDiscoveryPrompt } from '../utils/promptGenerator';
+import { openChatGPTWithPrompt } from '../utils/chatGptLauncher';
 import { McqAssessmentModal, McqAnswer } from '../components/clarity/McqAssessmentModal';
 import {
   Copy,
@@ -66,16 +67,14 @@ export const PromptReadyPage: React.FC = () => {
   };
 
   const handleContinueWithChatGPT = async () => {
-    const success = await copyToClipboard();
-    if (success) {
+    try {
+      await openChatGPTWithPrompt(promptText);
       setCopied(true);
       setCopyFailed(false);
-      setStatusMessage('Your personalized prompt is copied!');
-      // Open ChatGPT in a new tab
-      window.open('https://chatgpt.com/', '_blank', 'noopener,noreferrer');
-    } else {
+      setStatusMessage('Your personalized prompt has been auto-filled in ChatGPT! Just press Enter.');
+    } catch {
       setCopyFailed(true);
-      setStatusMessage('Clipboard access was blocked by your browser. Please use the Copy button below.');
+      setStatusMessage('Could not open ChatGPT automatically. Please use the Copy button below.');
     }
   };
 

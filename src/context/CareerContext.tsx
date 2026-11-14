@@ -137,6 +137,30 @@ const sampleDemoParsed = parseHandoffText(
 export function applyThemeVariables(themeId: DashboardThemeId) {
   const theme = DASHBOARD_THEMES[themeId] || DASHBOARD_THEMES.green;
   const root = document.documentElement;
+
+  // Modern Reference Theme Tokens
+  root.style.setProperty('--theme-bg-gradient', theme.bgGradient);
+  root.style.setProperty('--theme-bg-canvas', theme.bgCanvas);
+  root.style.setProperty('--theme-sidebar-bg', theme.sidebarBg);
+  root.style.setProperty('--theme-sidebar-border', theme.sidebarBorder);
+  root.style.setProperty('--theme-sidebar-active-bg', theme.sidebarActiveBg);
+  root.style.setProperty('--theme-sidebar-active-text', theme.sidebarActiveText);
+  root.style.setProperty('--theme-card-bg', theme.cardBg);
+  root.style.setProperty('--theme-card-border', theme.cardBorder);
+  root.style.setProperty('--theme-primary', theme.primaryColor);
+  root.style.setProperty('--theme-primary-hover', theme.primaryHover);
+  root.style.setProperty('--theme-badge', theme.badgeColor);
+  root.style.setProperty('--theme-accent-bg', theme.accentBg);
+  root.style.setProperty('--theme-accent-border', theme.accentBorder);
+  root.style.setProperty('--theme-accent-text', theme.accentText);
+  root.style.setProperty('--theme-pill-bg', theme.pillBg);
+  root.style.setProperty('--theme-text-primary', theme.textPrimary);
+  root.style.setProperty('--theme-text-secondary', theme.textSecondary);
+  root.style.setProperty('--theme-chart-1', theme.chartLine1);
+  root.style.setProperty('--theme-chart-2', theme.chartLine2);
+  root.style.setProperty('--theme-chart-3', theme.chartLine3);
+
+  // Backward-compatible legacy variables
   root.style.setProperty('--foyc-theme-primary', theme.primaryColor);
   root.style.setProperty('--foyc-theme-primary-hover', theme.primaryHover);
   root.style.setProperty('--foyc-theme-badge', theme.badgeColor);
@@ -146,6 +170,12 @@ export function applyThemeVariables(themeId: DashboardThemeId) {
   root.style.setProperty('--foyc-theme-pill-bg', theme.pillBg);
   root.style.setProperty('--foyc-theme-sidebar-active-bg', theme.sidebarActiveBg);
   root.style.setProperty('--foyc-theme-sidebar-active-text', theme.sidebarActiveText);
+
+  if (themeId === 'black') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
 }
 
 const CareerContext = createContext<CareerContextType | undefined>(undefined);

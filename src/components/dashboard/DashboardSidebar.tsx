@@ -1,25 +1,22 @@
 import React from 'react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import {
-  LayoutDashboard,
+  Home,
+  Briefcase,
   Route,
-  GraduationCap,
-  ListTodo,
-  CalendarCheck,
-  FolderGit2,
-  Library,
-  RotateCcw,
+  ClipboardList,
+  Flame,
+  FolderKanban,
+  BookOpen,
+  Calendar,
   Settings,
   Compass,
   ChevronLeft,
   ChevronRight,
-  LogOut,
-  Sparkles,
-  Smartphone,
+  TrendingUp,
 } from 'lucide-react';
 import { useCareer } from '../../context/CareerContext';
-import { Logo } from '../common/Logo';
-import { DASHBOARD_MODULE_REGISTRY } from '../../types/moduleRegistry';
+import { DASHBOARD_THEMES, DashboardThemeId } from '../../types/moduleRegistry';
 
 interface DashboardSidebarProps {
   collapsed: boolean;
@@ -34,135 +31,133 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   mobileOpen,
   setMobileOpen,
 }) => {
-  const { dashboardData, dashboardConfig, userName, userEmail, signOut, isDemoMode, exitDemoMode } = useCareer();
-  const navigate = useNavigate();
+  const { dashboardConfig, currentTheme, setTheme } = useCareer();
 
   const selectedModules = dashboardConfig?.selected_modules || [
     'personal_vision',
     'career_roadmap',
     'daily_priorities',
     'habit_tracker',
+    'projects',
+    'resources',
+    'weekly_review',
   ];
 
-  // Count active / pending tasks for the badge
-  const pendingTasksCount = (dashboardData?.tasks || []).filter((t) => !t.completed).length;
-
-  // Primary navigation items mapped to module IDs
+  // Navigation items matching Reference Image 1 exactly
   const allNavItems = [
     {
       id: 'overview',
-      label: 'Dashboard',
+      label: 'Overview',
       to: '/dashboard',
-      icon: LayoutDashboard,
+      icon: Home,
       end: true,
       alwaysShow: true,
-      badge: null,
-    },
-    {
-      id: 'daily_priorities',
-      label: 'Tasks',
-      to: '/dashboard/tasks',
-      icon: ListTodo,
-      badge: pendingTasksCount > 0 ? (pendingTasksCount > 9 ? '9+' : `${pendingTasksCount}`) : null,
-    },
-    {
-      id: 'career_roadmap',
-      label: 'Roadmap',
-      to: '/dashboard/roadmap',
-      icon: Route,
-      badge: null,
-    },
-    {
-      id: 'habit_tracker',
-      label: 'Habits',
-      to: '/dashboard/habits',
-      icon: CalendarCheck,
-      badge: null,
-    },
-    {
-      id: 'skills_learning',
-      label: 'Skills',
-      to: '/dashboard/skills',
-      icon: GraduationCap,
-      badge: null,
     },
     {
       id: 'personal_vision',
-      label: 'My Direction',
+      label: 'My Career',
       to: '/dashboard/career',
-      icon: Compass,
-      badge: null,
+      icon: Briefcase,
+    },
+    {
+      id: 'career_roadmap',
+      label: 'My Roadmap',
+      to: '/dashboard/roadmap',
+      icon: Route,
+    },
+    {
+      id: 'daily_priorities',
+      label: 'Learning Checklist',
+      to: '/dashboard/tasks',
+      icon: ClipboardList,
+    },
+    {
+      id: 'habit_tracker',
+      label: 'Habit Tracker',
+      to: '/dashboard/habits',
+      icon: Flame,
     },
     {
       id: 'projects',
-      label: 'Projects',
+      label: 'Projects & Portfolio',
       to: '/dashboard/projects',
-      icon: FolderGit2,
-      badge: null,
+      icon: FolderKanban,
     },
     {
       id: 'resources',
-      label: 'Resources',
+      label: 'Learning Resources',
       to: '/dashboard/resources',
-      icon: Library,
-      badge: null,
+      icon: BookOpen,
     },
     {
       id: 'weekly_review',
-      label: 'Review',
+      label: 'Weekly Review',
       to: '/dashboard/review',
-      icon: RotateCcw,
-      badge: null,
+      icon: Calendar,
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      to: '/dashboard/settings',
+      icon: Settings,
+      alwaysShow: true,
     },
   ];
 
-  // Filter based on selected modules
-  const menuNavItems = allNavItems.filter((item) => {
+  // Filter based on adaptive dashboard module configuration
+  const navItems = allNavItems.filter((item) => {
     if (item.alwaysShow) return true;
     return selectedModules.includes(item.id);
   });
 
-  const generalNavItems = [
-    { label: 'Settings', to: '/dashboard/settings', icon: Settings },
-    { label: 'Explore Tools', to: '/clarity-compass', icon: Sparkles },
+  const availableThemeSwatches: { id: DashboardThemeId; bg: string; border?: string }[] = [
+    { id: 'green', bg: '#22C55E' },
+    { id: 'blue', bg: '#3B82F6' },
+    { id: 'sunset', bg: '#F97316' },
+    { id: 'purple', bg: '#8B5CF6' },
+    { id: 'red', bg: '#EF4444' },
+    { id: 'black', bg: '#111827' },
+    { id: 'white', bg: '#FFFFFF', border: '#D1D5DB' },
   ];
-
-  const handleLogout = async () => {
-    if (isDemoMode) {
-      exitDemoMode();
-      navigate('/');
-    } else {
-      await signOut();
-      navigate('/');
-    }
-  };
 
   return (
     <>
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-xs"
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-xs"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 bg-[#171717] text-white border-r border-[#262626] flex flex-col justify-between transition-all duration-300 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 backdrop-blur-xl flex flex-col justify-between transition-all duration-300 border-r ${
           mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'
         } ${collapsed ? 'lg:w-20' : 'lg:w-64'}`}
+        style={{
+          backgroundColor: 'var(--theme-sidebar-bg, rgba(255, 255, 255, 0.72))',
+          borderColor: 'var(--theme-sidebar-border, rgba(255, 255, 255, 0.85))',
+        }}
       >
-        {/* Top Header & Navigation */}
         <div className="flex-1 flex flex-col min-h-0">
-          {/* Logo & Collapse */}
-          <div className="h-16 px-4 flex items-center justify-between border-b border-[#262626] shrink-0">
-            <Link to="/" className="flex items-center gap-2 overflow-hidden py-1">
-              {!collapsed ? (
-                <Logo size="sm" variant="dark" />
-              ) : (
-                <div className="w-9 h-9 rounded-xl bg-[#262626] border border-[#3E3E3E] flex items-center justify-center font-black text-xs text-[#FFE76B]">
-                  F
+          {/* Top Logo & Branding (Reference 1) */}
+          <div className="h-20 px-5 flex items-center justify-between shrink-0">
+            <Link to="/" className="flex items-center gap-3 overflow-hidden py-1">
+              {/* Compass circular badge */}
+              <div className="w-10 h-10 rounded-full bg-white border border-emerald-400/60 shadow-xs flex items-center justify-center shrink-0 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/50 to-green-50 pointer-events-none" />
+                <Compass className="w-6 h-6 text-emerald-600 transition-transform duration-300 group-hover:rotate-45" />
+              </div>
+
+              {!collapsed && (
+                <div className="flex flex-col">
+                  <span className="text-xl font-black text-stone-900 tracking-tight leading-none">
+                    FOYC
+                  </span>
+                  <span className="text-[10px] font-bold text-stone-500 tracking-wide mt-1">
+                    Figure Out Your Career
+                  </span>
                 </div>
               )}
             </Link>
@@ -170,145 +165,113 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             {/* Desktop collapse toggle */}
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="hidden lg:flex w-7 h-7 rounded-lg bg-[#262626] hover:bg-[#333333] items-center justify-center text-white/70 hover:text-white border border-[#3E3E3E] transition-colors"
+              className="hidden lg:flex w-7 h-7 rounded-lg hover:bg-stone-200/50 items-center justify-center text-stone-500 hover:text-stone-800 transition-colors"
               title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
-              {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+              {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
             </button>
           </div>
 
-          {/* Scrollable Navigation Body */}
-          <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-            {/* SECTION: MENU */}
-            <div>
-              {!collapsed && (
-                <span className="block px-3 text-[10px] font-black uppercase tracking-wider text-stone-400 mb-2">
-                  Menu
-                </span>
-              )}
-              <nav className="space-y-1">
-                {menuNavItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      end={item.end}
-                      onClick={() => setMobileOpen(false)}
-                      className={({ isActive }) =>
-                        `flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all group ${
-                          isActive
-                            ? 'bg-[var(--foyc-theme-sidebar-active-bg,#171717)] text-white shadow-xs font-bold border border-white/20'
-                            : 'text-stone-300 hover:text-white hover:bg-stone-900'
-                        }`
-                      }
-                      title={collapsed ? item.label : undefined}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Icon className="w-4 h-4 shrink-0 text-stone-300 group-hover:text-white" />
-                        {!collapsed && <span className="truncate">{item.label}</span>}
-                      </div>
-                      {!collapsed && item.badge && (
-                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-[#526B50] text-white">
-                          {item.badge}
-                        </span>
-                      )}
-                    </NavLink>
-                  );
-                })}
-              </nav>
-            </div>
-
-            {/* SECTION: GENERAL */}
-            <div>
-              {!collapsed && (
-                <span className="block px-3 text-[10px] font-black uppercase tracking-wider text-stone-400 mb-2">
-                  General
-                </span>
-              )}
-              <nav className="space-y-1">
-                {generalNavItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setMobileOpen(false)}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all group ${
-                          isActive
-                            ? 'bg-stone-800 text-white font-bold'
-                            : 'text-stone-300 hover:text-white hover:bg-stone-900'
-                        }`
-                      }
-                      title={collapsed ? item.label : undefined}
-                    >
-                      <Icon className="w-4 h-4 shrink-0 text-stone-300 group-hover:text-white" />
-                      {!collapsed && <span className="truncate">{item.label}</span>}
-                    </NavLink>
-                  );
-                })}
-
-                {/* Logout Button */}
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-950/30 transition-all text-left"
-                  title={collapsed ? 'Sign Out' : undefined}
+          {/* Navigation Links */}
+          <nav className="flex-1 overflow-y-auto px-3.5 py-2 space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs sm:text-[13px] transition-all group ${
+                      isActive
+                        ? 'shadow-xs font-black'
+                        : 'text-stone-700 hover:text-stone-950 hover:bg-white/60'
+                    }`
+                  }
+                  style={({ isActive }) => ({
+                    backgroundColor: isActive
+                      ? 'var(--theme-sidebar-active-bg, #bdf5bc)'
+                      : undefined,
+                    color: isActive
+                      ? 'var(--theme-sidebar-active-text, #133e19)'
+                      : undefined,
+                  })}
+                  title={collapsed ? item.label : undefined}
                 >
-                  <LogOut className="w-4 h-4 shrink-0" />
-                  {!collapsed && <span>{isDemoMode ? 'Exit Demo' : 'Logout'}</span>}
-                </button>
-              </nav>
+                  <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-105" />
+                  {!collapsed && <span className="truncate">{item.label}</span>}
+                </NavLink>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Bottom Section: "Dream Bigger" Card & "Customize Theme" Swatches */}
+        {!collapsed ? (
+          <div className="p-3.5 space-y-3 shrink-0">
+            {/* Dream Bigger Card (Reference 1) */}
+            <div className="rounded-2xl p-4 bg-gradient-to-br from-white/90 to-emerald-50/80 border border-white/80 shadow-xs relative overflow-hidden backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-base">⭐</span>
+                <TrendingUp className="w-4 h-4 text-emerald-600" />
+              </div>
+              <h4 className="text-xs font-black text-stone-900 tracking-tight">Dream Bigger</h4>
+              <p className="text-[11px] text-stone-500 font-semibold leading-tight mt-0.5">
+                You're doing great! Keep going!
+              </p>
+              {/* Ascending curved arrow decoration */}
+              <div className="absolute right-[-10px] bottom-[-10px] w-20 h-20 opacity-20 pointer-events-none">
+                <svg viewBox="0 0 100 100" className="w-full h-full text-emerald-600">
+                  <path
+                    d="M10,80 Q50,75 80,20"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                  />
+                  <polygon points="70,15 85,18 82,33" fill="currentColor" />
+                </svg>
+              </div>
             </div>
 
-            {/* Bottom Donezo-style Card */}
-            {!collapsed && (
-              <div className="pt-2">
-                <div className="rounded-2xl p-4 bg-gradient-to-br from-stone-900 via-stone-900 to-[#1f2d1e] border border-stone-800 text-white shadow-md relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-[#526B50]/20 rounded-full blur-xl pointer-events-none" />
-                  <div className="w-8 h-8 rounded-lg bg-[#526B50]/40 flex items-center justify-center mb-2.5 border border-[#526B50]/50">
-                    <Smartphone className="w-4 h-4 text-[#FFE76B]" />
-                  </div>
-                  <h4 className="text-xs font-black tracking-tight text-white mb-0.5">Dual Experience</h4>
-                  <p className="text-[11px] text-stone-400 leading-snug mb-3">
-                    Desktop powerhouse or mobile app experience on any smartphone browser.
-                  </p>
-                  <Link
-                    to="/clarity-compass"
-                    className="inline-flex items-center justify-center w-full px-3 py-1.5 rounded-xl bg-[#526B50] hover:bg-[#435941] text-white text-xs font-black transition-colors"
-                  >
-                    Clarity Compass
-                  </Link>
-                </div>
+            {/* Customize Theme circular swatches (Reference 1) */}
+            <div className="px-1 py-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-stone-500 block mb-2">
+                Customize Theme
+              </span>
+              <div className="flex items-center justify-between gap-1.5">
+                {availableThemeSwatches.map((th) => {
+                  const isSelected = currentTheme === th.id;
+                  return (
+                    <button
+                      key={th.id}
+                      onClick={() => setTheme(th.id)}
+                      className={`w-5 h-5 rounded-full transition-transform hover:scale-110 cursor-pointer relative ${
+                        isSelected
+                          ? 'ring-2 ring-stone-900 ring-offset-2 scale-110 shadow-xs'
+                          : 'shadow-2xs'
+                      }`}
+                      style={{
+                        backgroundColor: th.bg,
+                        border: th.border ? `1px solid ${th.border}` : '1px solid rgba(0,0,0,0.1)',
+                      }}
+                      title={th.id}
+                    />
+                  );
+                })}
               </div>
-            )}
+            </div>
           </div>
-        </div>
-
-        {/* User Profile Mini Footer */}
-        <div className="p-3 border-t border-[#262626] shrink-0">
-          {!collapsed ? (
-            <div className="bg-stone-900/90 p-2.5 rounded-xl border border-stone-800 flex items-center justify-between">
-              <div className="min-w-0 pr-2">
-                <span className="text-xs font-bold text-white truncate block">
-                  {userName || userEmail?.split('@')[0] || 'User'}
-                </span>
-                <span className="text-[10px] text-stone-400 truncate block font-medium">
-                  {dashboardConfig?.dashboard_title || 'Career Workspace'}
-                </span>
-              </div>
-              <Link to="/" title="Exit to Home" className="text-stone-400 hover:text-white p-1">
-                <Compass className="w-4 h-4" />
-              </Link>
-            </div>
-          ) : (
-            <div className="flex justify-center">
-              <div className="w-8 h-8 rounded-xl bg-stone-900 border border-stone-800 flex items-center justify-center font-bold text-xs text-[#FFE76B]">
-                {(userName || userEmail || 'U')[0].toUpperCase()}
-              </div>
-            </div>
-          )}
-        </div>
+        ) : (
+          <div className="p-3 flex flex-col items-center gap-2 shrink-0">
+            <div
+              className="w-7 h-7 rounded-full shadow-xs cursor-pointer border border-stone-300"
+              style={{ backgroundColor: DASHBOARD_THEMES[currentTheme]?.badgeColor || '#22C55E' }}
+              title="Current theme"
+            />
+          </div>
+        )}
       </aside>
     </>
   );

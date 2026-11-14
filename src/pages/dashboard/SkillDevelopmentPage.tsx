@@ -14,9 +14,11 @@ import {
   BookOpen,
   Filter,
 } from 'lucide-react';
+import { useOutletContext } from 'react-router-dom';
 
 export const SkillDevelopmentPage: React.FC = () => {
   const { dashboardData } = useCareer();
+  const outletCtx = useOutletContext<{ onOpenMobileMenu?: () => void } | undefined>();
   const [filterPriority, setFilterPriority] = useState<'All' | 'High' | 'Medium' | 'Low'>('All');
 
   const detailedGaps: any[] = (dashboardData.direction as any).detailedSkillGaps || [
@@ -51,14 +53,14 @@ export const SkillDevelopmentPage: React.FC = () => {
     : detailedGaps.filter((g) => g.priority.toLowerCase() === filterPriority.toLowerCase());
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col min-h-screen">
       <DashboardHeader
-        onOpenMobileMenu={() => {}}
+        onOpenMobileMenu={outletCtx?.onOpenMobileMenu || (() => {})}
         title="Skill Development & Gap Analysis"
         subtitle="Master the required capabilities, prioritize knowledge gaps, and follow a recommended learning order."
       />
 
-      <main className="p-4 sm:p-8 space-y-8 max-w-6xl">
+      <main className="px-4 sm:px-8 pb-12 space-y-6 max-w-[1400px] w-full mx-auto">
         {/* Metric Summary */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card variant="yellow" shadowSize="sm" className="p-5 flex items-center gap-3.5 border-2">

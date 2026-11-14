@@ -1,317 +1,348 @@
 import React, { useState } from 'react';
 import { useCareer } from '../../context/CareerContext';
 import { DashboardHeader } from '../../components/dashboard/DashboardHeader';
-import { Card } from '../../components/common/Card';
-import { Badge } from '../../components/common/Badge';
-import { Button } from '../../components/common/Button';
 import {
+  ClipboardList,
   CheckCircle2,
-  ListTodo,
   Plus,
   Trash2,
   Calendar,
-  Filter,
-  Check,
   Search,
-  FileText,
+  BookOpen,
+  ArrowRight,
+  Sparkles,
+  Star,
   Clock,
+  Check,
 } from 'lucide-react';
+import { useOutletContext } from 'react-router-dom';
 import { TaskItem } from '../../types/career';
 
+interface DashboardOutletContext {
+  onOpenMobileMenu: () => void;
+}
+
 export const ChecklistPage: React.FC = () => {
-  const { dashboardData, toggleTask, addTask, deleteTask } = useCareer();
-  const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'high' | 'overdue'>('all');
+  const { dashboardData, toggleTask, addTask, deleteTask, isDemoMode } = useCareer();
+  const outletCtx = useOutletContext<DashboardOutletContext | undefined>();
+
+  const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // New task form fields
+  // Form state
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState<TaskItem['category']>('Technical');
-  const [newPriority, setNewPriority] = useState<TaskItem['priority']>('high');
   const [newDueDate, setNewDueDate] = useState('This week');
-  const [newNotes, setNewNotes] = useState('');
+
+  const rawTasks = dashboardData?.tasks || [];
+  const tasks = rawTasks.length > 0
+    ? rawTasks
+    : (isDemoMode
+        ? [
+            { id: 't1', title: 'Learn Python Basics', category: 'Technical' as const, priority: 'high' as const, dueDate: 'Due: Nov 5', completed: true },
+            { id: 't2', title: 'Complete Data Analysis Course', category: 'Soft Skills' as const, priority: 'medium' as const, dueDate: 'Due: Nov 10', completed: true },
+            { id: 't3', title: 'Improve Communication Skills', category: 'Technical' as const, priority: 'high' as const, dueDate: 'Due: Nov 15', completed: false },
+            { id: 't4', title: 'Explore UI/UX Design Fundamentals', category: 'Portfolio' as const, priority: 'medium' as const, dueDate: 'Due: Nov 20', completed: false },
+          ]
+        : []);
+
+  const completedCount = tasks.filter((t) => t.completed).length;
+  const totalCount = tasks.length || (isDemoMode ? 10 : 0);
+  const overallPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : (isDemoMode ? 65 : 0);
+
+  const filteredTasks = tasks.filter((t) => {
+    const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCat = categoryFilter === 'All' || t.category?.toLowerCase() === categoryFilter.toLowerCase();
+    return matchesSearch && matchesCat;
+  });
 
   const handleCreateTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
     addTask({
-      title: newTitle,
+      title: newTitle.trim(),
       category: newCategory,
-      priority: newPriority,
+      priority: 'high',
       dueDate: newDueDate,
-      notes: newNotes,
       completed: false,
     });
     setNewTitle('');
-    setNewNotes('');
     setShowAddModal(false);
   };
 
-  const filteredTasks = dashboardData.tasks.filter((t) => {
-    const matchesSearch =
-      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.category.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (!matchesSearch) return false;
-
-    if (filter === 'pending') return !t.completed;
-    if (filter === 'completed') return t.completed;
-    if (filter === 'high') return t.priority === 'high';
-    if (filter === 'overdue') return !t.completed && (t.dueDate.toLowerCase().includes('past') || t.dueDate.toLowerCase().includes('yesterday'));
-    return true;
-  });
-
-  const completedCount = dashboardData.tasks.filter((t) => t.completed).length;
-
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col min-h-screen">
       <DashboardHeader
-        onOpenMobileMenu={() => {}}
-        title="Learning Checklist & Tasks"
-        subtitle="Manage daily technical milestones, portfolio sprints and prep tasks."
+        onOpenMobileMenu={outletCtx?.onOpenMobileMenu || (() => {})}
+        title="Learning Checklist"
+        subtitle="Learn the right skills, at the right time."
       />
 
-      <main className="p-4 sm:p-8 space-y-6 max-w-6xl">
-        {/* Top Controls Bar */}
-        <div className="bg-white p-4 rounded-2xl border-2 border-[#17172B] shadow-[3px_3px_0px_#17172B] space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            {/* Search Input */}
-            <div className="relative flex-1 max-w-md">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search tasks by name or category..."
-                className="w-full pl-9 pr-4 py-2 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] text-xs font-bold text-[#17172B] focus:ring-2 focus:ring-[#FFE76B]"
-              />
-              <Search className="w-4 h-4 text-[#17172B]/50 absolute left-3 top-2.5" />
-            </div>
-
-            {/* Add Task Button */}
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setShowAddModal(true)}
-              className="gap-2 shrink-0 font-bold"
+      <main className="px-4 sm:px-8 pb-12 space-y-6 max-w-[1400px] w-full mx-auto">
+        {/* Top Controls: Filter by Category */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-3xl border border-white/90 shadow-sm backdrop-blur-xl bg-white/85">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-black uppercase text-stone-500">Filter Category:</span>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="text-xs font-black text-stone-900 bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 rounded-full focus:outline-none cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              Add New Task
-            </Button>
+              <option value="All">All Categories ▾</option>
+              <option value="Technical">Technical</option>
+              <option value="Soft Skills">Soft Skills</option>
+              <option value="Portfolio">Career / Portfolio</option>
+              <option value="Foundation">Foundation</option>
+            </select>
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pt-1 border-t border-[#17172B]/10">
-            <span className="text-[11px] font-black uppercase tracking-wider text-[#17172B]/50 mr-1 flex items-center gap-1">
-              <Filter className="w-3 h-3" /> Filter:
-            </span>
-            {(['all', 'pending', 'completed', 'high', 'overdue'] as const).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setFilter(mode)}
-                className={`px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
-                  filter === mode
-                    ? 'bg-[#FFE76B] text-[#17172B] border border-[#17172B] shadow-[1.5px_1.5px_0px_#17172B]'
-                    : 'text-[#17172B]/70 hover:bg-[#F2F9E9]'
-                }`}
-              >
-                {mode === 'all'
-                  ? `All (${dashboardData.tasks.length})`
-                  : mode === 'pending'
-                  ? `Pending (${dashboardData.tasks.length - completedCount})`
-                  : mode === 'completed'
-                  ? `Done (${completedCount})`
-                  : mode === 'high'
-                  ? 'High Priority'
-                  : 'Overdue'}
-              </button>
-            ))}
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors self-start sm:self-auto cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add New Item</span>
+          </button>
+        </div>
+
+        {/* 5 Category Metric Cards (Reference Image 2 Middle-Right) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {/* Card 1: Overall Completion Donut */}
+          <div className="rounded-3xl p-5 border border-white/90 shadow-sm backdrop-blur-xl bg-white/85 flex items-center gap-3">
+            <div className="relative w-14 h-14 shrink-0 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="14" fill="none" stroke="#f1f5f9" strokeWidth="4" />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="14"
+                  fill="none"
+                  stroke="#10B981"
+                  strokeWidth="4"
+                  strokeDasharray={`${overallPct * 0.88}, 88`}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-xs font-black text-stone-900">
+                {overallPct}%
+              </span>
+            </div>
+            <div>
+              <span className="text-[11px] font-bold text-stone-500 block leading-tight">Overall</span>
+              <span className="text-xs font-black text-stone-900 block">Completion</span>
+              <span className="text-[10px] font-black text-emerald-700">▲ +8%</span>
+            </div>
+          </div>
+
+          {/* Card 2: Technical Skills */}
+          <div className="rounded-3xl p-5 border border-white/90 shadow-sm backdrop-blur-xl bg-blue-50/60 flex flex-col justify-between">
+            <span className="text-xs font-bold text-blue-900">Technical Skills</span>
+            <div className="my-1">
+              <span className="text-2xl font-black text-blue-950">10 / 15</span>
+            </div>
+            <span className="text-[10px] font-semibold text-blue-700">Core competencies</span>
+          </div>
+
+          {/* Card 3: Soft Skills */}
+          <div className="rounded-3xl p-5 border border-white/90 shadow-sm backdrop-blur-xl bg-amber-50/60 flex flex-col justify-between">
+            <span className="text-xs font-bold text-amber-900">Soft Skills</span>
+            <div className="my-1">
+              <span className="text-2xl font-black text-amber-950">6 / 10</span>
+            </div>
+            <span className="text-[10px] font-semibold text-amber-700">Communication & Team</span>
+          </div>
+
+          {/* Card 4: Career Skills */}
+          <div className="rounded-3xl p-5 border border-white/90 shadow-sm backdrop-blur-xl bg-orange-50/60 flex flex-col justify-between">
+            <span className="text-xs font-bold text-orange-900">Career Skills</span>
+            <div className="my-1">
+              <span className="text-2xl font-black text-orange-950">4 / 8</span>
+            </div>
+            <span className="text-[10px] font-semibold text-orange-700">Portfolio & Pitch</span>
+          </div>
+
+          {/* Card 5: Others */}
+          <div className="rounded-3xl p-5 border border-white/90 shadow-sm backdrop-blur-xl bg-purple-50/60 flex flex-col justify-between col-span-2 sm:col-span-1">
+            <span className="text-xs font-bold text-purple-900">Others</span>
+            <div className="my-1">
+              <span className="text-2xl font-black text-purple-950">2 / 5</span>
+            </div>
+            <span className="text-[10px] font-semibold text-purple-700">Elective learning</span>
           </div>
         </div>
 
-        {/* Modal: Add Task */}
-        {showAddModal && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl border-3 border-[#17172B] shadow-[8px_8px_0px_#17172B] p-6 sm:p-8 max-w-lg w-full animate-in zoom-in-95 duration-150">
-              <div className="flex items-center justify-between pb-3 mb-4 border-b-2 border-[#17172B]">
-                <h3 className="font-black text-xl text-[#17172B]">Add Actionable Task</h3>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="w-8 h-8 rounded-lg bg-[#F2F9E9] border border-[#17172B] font-black text-sm flex items-center justify-center"
+        {/* 2-Column Main Section: Your Checklist & Recommended For You (Reference 2) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column (7 cols): Checklist items */}
+          <div className="lg:col-span-7 rounded-3xl p-6 sm:p-7 border border-white/90 shadow-sm backdrop-blur-xl bg-white/85 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
+              <h3 className="text-base font-black text-stone-900">Your Checklist</h3>
+              <span className="text-xs font-bold text-stone-500">{filteredTasks.length} items</span>
+            </div>
+
+            <div className="space-y-3">
+              {filteredTasks.map((task) => (
+                <div
+                  key={task.id}
+                  onClick={() => toggleTask(task.id)}
+                  className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                    task.completed
+                      ? 'bg-emerald-50/40 border-emerald-300 text-stone-400'
+                      : 'bg-white/80 border-stone-200/80 hover:border-emerald-400 shadow-2xs'
+                  }`}
                 >
-                  ✕
-                </button>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleTask(task.id);
+                      }}
+                      className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+                        task.completed
+                          ? 'bg-emerald-600 border-emerald-600 text-white'
+                          : 'border-stone-300 bg-white'
+                      }`}
+                    >
+                      {task.completed && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                    </button>
+
+                    <span
+                      className={`text-xs sm:text-sm font-bold truncate ${
+                        task.completed ? 'line-through text-stone-400' : 'text-stone-900'
+                      }`}
+                    >
+                      {task.title}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      {task.category || 'Skill'}
+                    </span>
+                    <span className="text-[11px] font-bold text-stone-500 hidden sm:inline">
+                      {task.dueDate}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right Column (5 cols): Recommended for You (Reference 2) */}
+          <div className="lg:col-span-5 rounded-3xl p-6 sm:p-7 border border-white/90 shadow-sm backdrop-blur-xl bg-white/85 space-y-4 flex flex-col justify-between">
+            <h3 className="text-base font-black text-stone-900">Recommended for You</h3>
+
+            <div className="rounded-2xl border border-stone-200/80 bg-white/80 p-5 space-y-4 shadow-xs">
+              {/* Course illustration banner */}
+              <div className="h-32 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 flex flex-col justify-between relative overflow-hidden">
+                <div className="absolute right-[-10px] bottom-[-10px] opacity-20 pointer-events-none">
+                  <BookOpen className="w-32 h-32" />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-white/20 self-start">
+                  Featured
+                </span>
+                <div>
+                  <h4 className="text-sm sm:text-base font-black leading-tight text-white">
+                    Machine Learning Basics
+                  </h4>
+                  <p className="text-[11px] text-blue-100 font-medium mt-0.5">
+                    Fundamental algorithms & hands-on models
+                  </p>
+                </div>
               </div>
 
-              <form onSubmit={handleCreateTask} className="space-y-4">
+              {/* Meta & CTA */}
+              <div className="flex items-center justify-between text-xs font-bold text-stone-600">
+                <span className="flex items-center gap-1 text-amber-600 font-black">
+                  <Star className="w-3.5 h-3.5 fill-current" />
+                  4.8
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-stone-400" />
+                  2.5h
+                </span>
+
+                <button className="px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition-colors">
+                  Start Learning →
+                </button>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200/60 flex items-center justify-between text-xs font-bold text-emerald-900">
+              <span>Looking for curated learning materials?</span>
+              <a href="/dashboard/resources" className="text-emerald-700 underline font-black">
+                View Library
+              </a>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Add Task Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-white shadow-2xl max-w-md w-full p-6 animate-scaleUp space-y-4">
+            <h3 className="text-base font-black text-stone-900">Add New Learning Task</h3>
+            <form onSubmit={handleCreateTask} className="space-y-4">
+              <div>
+                <label className="text-xs font-black text-stone-600 block mb-1">Task Title</label>
+                <input
+                  type="text"
+                  autoFocus
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="e.g. Master React Query caching"
+                  className="w-full px-4 py-2.5 text-xs font-bold rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
-                    Task Title / Objective
-                  </label>
-                  <input
-                    type="text"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="e.g. Build prototype API endpoint with JWT auth"
-                    required
-                    className="w-full px-4 py-2.5 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE76B]"
-                  />
+                  <label className="text-xs font-black text-stone-600 block mb-1">Category</label>
+                  <select
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value as any)}
+                    className="w-full px-3 py-2 text-xs font-bold rounded-xl border border-stone-300"
+                  >
+                    <option value="Technical">Technical</option>
+                    <option value="Soft Skills">Soft Skills</option>
+                    <option value="Portfolio">Portfolio</option>
+                    <option value="Foundation">Foundation</option>
+                  </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
-                      Category
-                    </label>
-                    <select
-                      value={newCategory}
-                      onChange={(e) => setNewCategory(e.target.value as any)}
-                      className="w-full px-3 py-2 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-bold text-xs"
-                    >
-                      <option value="Foundation">Foundation</option>
-                      <option value="Technical">Technical</option>
-                      <option value="Portfolio">Portfolio</option>
-                      <option value="Networking">Networking</option>
-                      <option value="Job Prep">Job Prep</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
-                      Priority
-                    </label>
-                    <select
-                      value={newPriority}
-                      onChange={(e) => setNewPriority(e.target.value as any)}
-                      className="w-full px-3 py-2 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-bold text-xs"
-                    >
-                      <option value="high">High Priority</option>
-                      <option value="medium">Medium Priority</option>
-                      <option value="low">Low Priority</option>
-                    </select>
-                  </div>
-                </div>
-
                 <div>
-                  <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
-                    Target Due Date
-                  </label>
+                  <label className="text-xs font-black text-stone-600 block mb-1">Due Date</label>
                   <input
                     type="text"
                     value={newDueDate}
                     onChange={(e) => setNewDueDate(e.target.value)}
-                    placeholder="e.g. In 3 days, End of Week 2"
-                    className="w-full px-4 py-2 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-semibold text-sm"
+                    placeholder="e.g. Due: Nov 25"
+                    className="w-full px-3 py-2 text-xs font-bold rounded-xl border border-stone-300"
                   />
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-black uppercase tracking-wider text-[#17172B] mb-1">
-                    Notes / Documentation Reference (Optional)
-                  </label>
-                  <textarea
-                    value={newNotes}
-                    onChange={(e) => setNewNotes(e.target.value)}
-                    rows={2}
-                    placeholder="e.g. Check MDN guide on refresh tokens and HTTP-only cookies"
-                    className="w-full p-2.5 rounded-xl border-2 border-[#17172B] bg-[#FFFDF7] font-medium text-xs"
-                  />
-                </div>
-
-                <div className="pt-2 flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setShowAddModal(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" variant="primary" size="sm" className="font-black">
-                    Save Task
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Task List Container */}
-        <div className="space-y-3">
-          {filteredTasks.length === 0 ? (
-            <Card variant="white" className="p-12 text-center">
-              <ListTodo className="w-10 h-10 text-[#17172B]/40 mx-auto mb-3" />
-              <h4 className="font-bold text-lg text-[#17172B]">No tasks matching this filter</h4>
-              <p className="text-xs text-[#17172B]/60 mt-1">Try switching to 'All' or add a new task.</p>
-            </Card>
-          ) : (
-            filteredTasks.map((t) => {
-              const priorityBadges = {
-                high: 'bg-red-100 text-red-800 border-red-300',
-                medium: 'bg-amber-100 text-amber-800 border-amber-300',
-                low: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-              };
-
-              return (
-                <div
-                  key={t.id}
-                  className={`p-4 rounded-2xl border-2 transition-all flex items-start justify-between gap-4 ${
-                    t.completed
-                      ? 'bg-[#F9FFF9] border-emerald-500/50 text-[#17172B]/50'
-                      : 'bg-white border-[#17172B] shadow-[3px_3px_0px_#17172B]'
-                  }`}
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 rounded-full text-xs font-bold text-stone-600 hover:bg-stone-100"
                 >
-                  <div
-                    onClick={() => toggleTask(t.id)}
-                    className="flex items-start gap-3.5 flex-1 min-w-0 cursor-pointer pt-0.5"
-                  >
-                    <div
-                      className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors mt-0.5 ${
-                        t.completed
-                          ? 'bg-emerald-500 border-emerald-500 text-white'
-                          : 'border-[#17172B] bg-[#F2F9E9]'
-                      }`}
-                    >
-                      {t.completed && <Check className="w-4 h-4 stroke-[3]" />}
-                    </div>
-
-                    <div className="min-w-0">
-                      <span className={`text-sm sm:text-base font-bold block truncate ${t.completed ? 'line-through' : 'text-[#17172B]'}`}>
-                        {t.title}
-                      </span>
-                      <div className="flex flex-wrap items-center gap-2 mt-1">
-                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-[#F2F9E9] border border-[#17172B]">
-                          {t.category}
-                        </span>
-                        <span className="text-[11px] font-semibold text-[#17172B]/60 flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> Due: {t.dueDate}
-                        </span>
-                        {t.notes && (
-                          <span className="text-[10px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                            📝 Has Notes
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded border hidden sm:inline ${priorityBadges[t.priority]}`}>
-                      {t.priority}
-                    </span>
-                    <button
-                      onClick={() => deleteTask(t.id)}
-                      className="p-2 rounded-lg text-red-500 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors"
-                      title="Delete task"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          )}
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-full bg-emerald-600 text-white text-xs font-black"
+                >
+                  Save Task
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </main>
+      )}
     </div>
   );
 };

@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { useOutletContext } from 'react-router-dom';
 
 interface PastReview {
   id: string;
@@ -33,6 +34,7 @@ interface PastReview {
 
 export const WeeklyReviewPage: React.FC = () => {
   const { dashboardData } = useCareer();
+  const outletCtx = useOutletContext<{ onOpenMobileMenu?: () => void } | undefined>();
   const [submitted, setSubmitted] = useState(false);
   const [expandedReviewId, setExpandedReviewId] = useState<string | null>('rev-2');
 
@@ -95,14 +97,14 @@ export const WeeklyReviewPage: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col min-h-screen">
       <DashboardHeader
-        onOpenMobileMenu={() => {}}
-        title="Weekly Review & Calibration"
+        onOpenMobileMenu={outletCtx?.onOpenMobileMenu || (() => {})}
+        title="Weekly Review"
         subtitle="Reflect on weekly momentum, resolve blockers, and recalibrate milestones."
       />
 
-      <main className="p-4 sm:p-8 space-y-8 max-w-4xl">
+      <main className="px-4 sm:px-8 pb-12 space-y-6 max-w-[1400px] w-full mx-auto">
         {/* Momentum Metric Banner */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card variant="yellow" shadowSize="sm" className="p-4 flex items-center gap-3">

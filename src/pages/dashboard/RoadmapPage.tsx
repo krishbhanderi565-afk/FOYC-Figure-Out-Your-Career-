@@ -16,6 +16,12 @@ import {
   Layers,
   MapPin,
   ExternalLink,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  BookOpen,
+  FolderGit2,
+  Users,
 } from 'lucide-react';
 import { Link, useOutletContext } from 'react-router-dom';
 
@@ -24,32 +30,36 @@ interface DashboardOutletContext {
 }
 
 export const RoadmapPage: React.FC = () => {
-  const { dashboardData, toggleMilestone, toggleTask, addTask, userState, enterDemoMode } = useCareer();
+  const { dashboardData, toggleMilestone, toggleTask, userState, enterDemoMode, isDemoMode } = useCareer();
   const outletCtx = useOutletContext<DashboardOutletContext | undefined>();
 
   const [activeStageFilter, setActiveStageFilter] = useState<string>('All');
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'canvas' | 'list'>('canvas');
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [viewMode, setViewMode] = useState<'journey' | 'canvas'>('journey');
 
-  const milestones = dashboardData?.milestones || [];
+  const rawMilestones = dashboardData?.milestones || [];
+  const milestones = rawMilestones.length > 0
+    ? rawMilestones
+    : (isDemoMode
+        ? [
+            { id: 'm1', title: 'Complete Your Profile', stage: 'Foundation', description: 'Help us understand your core competencies and trajectory.', targetDate: 'Month 1', estimatedDuration: '2 weeks', completed: true, associatedTasksCount: 4, priority: 'high' as const },
+            { id: 'm2', title: 'Build Core Skills', stage: 'Skill Development', description: 'Take 3 relevant courses and practice real case studies.', targetDate: 'Month 2-3', estimatedDuration: '6 weeks', completed: false, associatedTasksCount: 6, priority: 'high' as const },
+            { id: 'm3', title: 'Gain Practical Experience', stage: 'Practical Application', description: 'Work on production-grade capstone projects and client deliverables.', targetDate: 'Month 4-6', estimatedDuration: '8 weeks', completed: false, associatedTasksCount: 5, priority: 'medium' as const },
+            { id: 'm4', title: 'Grow Your Network', stage: 'Career Readiness', description: 'Connect with senior industry peers, mentors and potential collaborators.', targetDate: 'Month 7-9', estimatedDuration: '4 weeks', completed: false, associatedTasksCount: 3, priority: 'medium' as const },
+            { id: 'm5', title: 'Achieve Your Goal', stage: 'Career Growth', description: 'Land your desired role, launch your venture or secure target contracts.', targetDate: 'Month 10-12', estimatedDuration: '12 weeks', completed: false, associatedTasksCount: 8, priority: 'high' as const },
+          ]
+        : []);
+
   const tasks = dashboardData?.tasks || [];
 
-  const stages = [
-    'All',
-    'Foundation',
-    'Skill Development',
-    'Practical Application',
-    'Career Readiness',
-  ];
-
-  const filteredMilestones =
-    activeStageFilter === 'All'
-      ? milestones
-      : milestones.filter((m) => m.stage?.toLowerCase().includes(activeStageFilter.toLowerCase()));
+  const completedCount = milestones.filter((m) => m.completed).length;
+  const inProgressCount = milestones.filter((m) => !m.completed).length > 0 ? 1 : 0;
+  const upcomingCount = Math.max(0, milestones.length - completedCount - inProgressCount);
+  const progressPct = milestones.length > 0 ? Math.round((completedCount / milestones.length) * 100) : 40;
 
   const selectedMilestone = milestones.find((m) => m.id === selectedMilestoneId) || null;
 
-  // Associated tasks for the selected milestone
   const milestoneTasks = selectedMilestone
     ? tasks.filter(
         (t) =>
@@ -58,23 +68,20 @@ export const RoadmapPage: React.FC = () => {
       )
     : [];
 
-  const completedCount = milestones.filter((m) => m.completed).length;
-  const progressPct = milestones.length > 0 ? Math.round((completedCount / milestones.length) * 100) : 0;
-
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-[#FDFBF7]">
+    <div className="flex-1 flex flex-col min-h-screen">
       <DashboardHeader
         onOpenMobileMenu={outletCtx?.onOpenMobileMenu || (() => {})}
-        title="Interactive Roadmap"
-        subtitle="Visual progression trajectory from foundational skills to career mastery."
+        title="My Roadmap"
+        subtitle="A step-by-step plan to achieve your career goals."
       />
 
-      <main className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
-        {/* Empty State when no milestones yet */}
-        {milestones.length === 0 && (
-          <div className="bg-white rounded-3xl border-2 border-stone-900 p-8 sm:p-12 shadow-[6px_6px_0px_#171717] text-center space-y-4 max-w-xl mx-auto my-12">
-            <div className="w-12 h-12 rounded-2xl bg-[#FFE76B] border-2 border-stone-900 flex items-center justify-center mx-auto shadow-sm">
-              <MilestoneIcon className="w-6 h-6 text-stone-900" />
+      <main className="px-4 sm:px-8 pb-12 space-y-6 max-w-[1400px] w-full mx-auto">
+        {/* Empty State when no milestones yet and not demo */}
+        {milestones.length === 0 && !isDemoMode && (
+          <div className="rounded-3xl p-8 sm:p-12 border border-white/90 shadow-sm backdrop-blur-xl bg-white/85 text-center space-y-4 max-w-xl mx-auto my-12">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto text-emerald-700 shadow-xs">
+              <MilestoneIcon className="w-6 h-6" />
             </div>
             <h2 className="text-2xl font-black text-stone-900">No Roadmap Generated Yet</h2>
             <p className="text-xs sm:text-sm text-stone-600 font-semibold leading-relaxed">
@@ -82,14 +89,14 @@ export const RoadmapPage: React.FC = () => {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
               <Link to="/clarity-compass">
-                <button className="px-5 py-2.5 rounded-xl bg-stone-900 text-white text-xs font-black shadow-sm flex items-center gap-2">
-                  <Compass className="w-4 h-4 text-[#FFE76B]" />
+                <button className="px-5 py-2.5 rounded-full bg-emerald-600 text-white text-xs font-black shadow-xs flex items-center gap-2">
+                  <Compass className="w-4 h-4 text-emerald-200" />
                   <span>Start Clarity Compass</span>
                 </button>
               </Link>
               <button
                 onClick={enterDemoMode}
-                className="px-5 py-2.5 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 text-xs font-bold"
+                className="px-5 py-2.5 rounded-full border border-stone-300 hover:bg-stone-100 text-stone-700 text-xs font-bold"
               >
                 Explore Sample Roadmap
               </button>
@@ -99,323 +106,334 @@ export const RoadmapPage: React.FC = () => {
 
         {milestones.length > 0 && (
           <>
-            {/* Top Toolbar: Progress & View Switcher */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs">
-              <div className="flex items-center gap-4">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-stone-400 block">
-                    Trajectory Progress
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl font-black text-stone-900">
-                      {completedCount} / {milestones.length}
-                    </span>
-                    <span className="text-xs font-bold text-stone-500">
-                      ({progressPct}% completed)
-                    </span>
-                  </div>
-                </div>
-                <div className="hidden md:block w-36 h-2 rounded-full bg-stone-100 overflow-hidden border border-stone-200">
-                  <div
-                    className="h-full bg-stone-900 transition-all duration-500"
-                    style={{ width: `${progressPct}%` }}
-                  />
-                </div>
+            {/* Top Toolbar: Stage Filters & Zoom / View Controls */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-3xl border border-white/90 shadow-sm backdrop-blur-xl bg-white/85">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-stone-500 mr-1">
+                  Horizon:
+                </span>
+                <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300/60">
+                  Next 6 Months ▾
+                </span>
               </div>
 
-              {/* View Switcher & Stage Filters */}
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200">
+              {/* View Switcher & Canvas Zoom controls */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center bg-stone-100/80 p-1 rounded-xl border border-stone-200/60 text-xs font-bold">
                   <button
-                    onClick={() => setViewMode('canvas')}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
-                      viewMode === 'canvas' ? 'bg-white text-stone-900 shadow-2xs' : 'text-stone-500'
+                    onClick={() => setViewMode('journey')}
+                    className={`px-3 py-1 rounded-lg transition-all ${
+                      viewMode === 'journey' ? 'bg-white text-stone-900 shadow-2xs font-black' : 'text-stone-600'
                     }`}
                   >
-                    Canvas Flow
+                    Journey View
                   </button>
                   <button
-                    onClick={() => setViewMode('list')}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
-                      viewMode === 'list' ? 'bg-white text-stone-900 shadow-2xs' : 'text-stone-500'
+                    onClick={() => setViewMode('canvas')}
+                    className={`px-3 py-1 rounded-lg transition-all ${
+                      viewMode === 'canvas' ? 'bg-white text-stone-900 shadow-2xs font-black' : 'text-stone-600'
                     }`}
                   >
-                    Timeline List
+                    Floating Canvas
                   </button>
                 </div>
 
-                <div className="flex items-center gap-1.5 overflow-x-auto">
-                  {stages.map((st) => (
-                    <button
-                      key={st}
-                      onClick={() => setActiveStageFilter(st)}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold border transition-colors whitespace-nowrap ${
-                        activeStageFilter === st
-                          ? 'bg-stone-900 text-white border-stone-900'
-                          : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
-                      }`}
-                    >
-                      {st}
-                    </button>
-                  ))}
+                <div className="hidden sm:flex items-center gap-1 bg-stone-100/80 p-1 rounded-xl border border-stone-200/60">
+                  <button
+                    onClick={() => setZoomLevel((z) => Math.max(0.8, z - 0.1))}
+                    className="p-1 rounded-lg hover:bg-white text-stone-600"
+                    title="Zoom out"
+                  >
+                    <ZoomOut className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-[10px] font-bold text-stone-500 px-1">{Math.round(zoomLevel * 100)}%</span>
+                  <button
+                    onClick={() => setZoomLevel((z) => Math.min(1.4, z + 0.1))}
+                    className="p-1 rounded-lg hover:bg-white text-stone-600"
+                    title="Zoom in"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setZoomLevel(1)}
+                    className="p-1 rounded-lg hover:bg-white text-stone-600"
+                    title="Reset zoom"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* CANVAS FLOW VIEW: Floating Cards with curved connector paths */}
-            {viewMode === 'canvas' && (
-              <div className="relative py-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
-                  {filteredMilestones.map((m, idx) => {
-                    const isCompleted = m.completed;
-                    const isSelected = selectedMilestoneId === m.id;
+            {/* 2-COLUMN MAIN ROADMAP (Reference Image 2 Middle-Left) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left Column (7 cols): Connected Milestones Flow */}
+              <div
+                className="lg:col-span-7 rounded-3xl p-6 sm:p-7 border border-white/90 shadow-sm backdrop-blur-xl bg-white/85 space-y-4 transition-transform origin-top-left"
+                style={{ transform: `scale(${zoomLevel})` }}
+              >
+                <div className="flex items-center justify-between pb-2 border-b border-stone-100">
+                  <h3 className="text-base font-black text-stone-900">Progression Trajectory</h3>
+                  <span className="text-xs font-bold text-stone-400">Step-by-step milestones</span>
+                </div>
+
+                {/* Milestone nodes list */}
+                <div className="relative pl-6 space-y-4">
+                  {/* Vertical connecting line */}
+                  <div className="absolute top-4 bottom-4 left-[15px] w-0.5 bg-emerald-300/60 z-0" />
+
+                  {milestones.map((m, idx) => {
+                    const isDone = m.completed;
+                    const isCurrent = !isDone && idx === 1;
 
                     return (
                       <div
                         key={m.id}
                         onClick={() => setSelectedMilestoneId(m.id)}
-                        className={`group relative rounded-2xl p-5 border-2 transition-all cursor-pointer flex flex-col justify-between min-h-[220px] ${
-                          isCompleted
-                            ? 'bg-emerald-50/50 border-emerald-500/80 shadow-xs'
-                            : isSelected
-                            ? 'bg-white border-stone-900 shadow-md ring-2 ring-stone-900/10'
-                            : 'bg-white border-stone-200 hover:border-stone-400 hover:shadow-sm'
+                        className={`relative z-10 p-4 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-4 ${
+                          isDone
+                            ? 'bg-white/80 border-stone-200/80 hover:border-emerald-300 shadow-2xs'
+                            : isCurrent
+                            ? 'bg-emerald-50/70 border-emerald-400 shadow-xs ring-2 ring-emerald-400/20'
+                            : 'bg-white/60 border-stone-200/60 hover:border-stone-400'
                         }`}
                       >
-                        {/* Phase Number & Status Pill */}
-                        <div className="flex items-center justify-between gap-2 pb-3 border-b border-stone-100">
-                          <div className="flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-stone-900 text-white text-[10px] font-black flex items-center justify-center">
-                              0{idx + 1}
-                            </span>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-stone-500 truncate max-w-[100px]">
-                              {m.stage}
-                            </span>
-                          </div>
-
-                          <span
-                            className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                              isCompleted
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : 'bg-stone-100 text-stone-700'
-                            }`}
-                          >
-                            {isCompleted ? '✓ Done' : 'In Progress'}
-                          </span>
-                        </div>
-
-                        {/* Title & Description */}
-                        <div className="my-3 space-y-1.5 flex-1">
-                          <h4
-                            className={`text-sm font-black tracking-tight leading-snug line-clamp-2 ${
-                              isCompleted ? 'text-stone-500 line-through' : 'text-stone-900'
-                            }`}
-                          >
-                            {m.title}
-                          </h4>
-                          <p className="text-xs text-stone-500 font-medium line-clamp-3 leading-relaxed">
-                            {m.description}
-                          </p>
-                        </div>
-
-                        {/* Footer: Timeline & Toggle */}
-                        <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-500">
-                          <span className="flex items-center gap-1 font-semibold">
-                            <Clock className="w-3 h-3 text-stone-400" />
-                            {m.estimatedDuration}
-                          </span>
-
+                        {/* Node status circle icon */}
+                        <div className="flex items-start gap-3">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleMilestone(m.id);
                             }}
-                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-colors ${
-                              isCompleted
-                                ? 'bg-stone-200 text-stone-700 hover:bg-stone-300'
-                                : 'bg-stone-900 text-white hover:bg-stone-800'
+                            className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-transform hover:scale-110 ${
+                              isDone
+                                ? 'bg-emerald-500 text-white shadow-xs'
+                                : isCurrent
+                                ? 'bg-white border-2 border-amber-500 text-amber-600'
+                                : 'bg-stone-200 text-stone-400'
                             }`}
                           >
-                            {isCompleted ? 'Reopen' : 'Complete'}
+                            {isDone ? (
+                              <Check className="w-3.5 h-3.5 stroke-[3]" />
+                            ) : isCurrent ? (
+                              <div className="w-2 h-2 rounded-full bg-amber-500" />
+                            ) : (
+                              <span className="text-[10px] font-black">{idx + 1}</span>
+                            )}
                           </button>
+
+                          <div className="space-y-0.5">
+                            <h4 className="text-xs sm:text-sm font-black text-stone-900">
+                              {m.title}
+                            </h4>
+                            <p className="text-[11px] text-stone-500 font-medium line-clamp-2">
+                              {m.description}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span
+                            className={`text-[10px] font-black px-2.5 py-0.5 rounded-full ${
+                              isDone
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : isCurrent
+                                ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                : 'bg-stone-100 text-stone-500'
+                            }`}
+                          >
+                            {isDone ? 'Completed' : isCurrent ? 'In Progress' : 'Upcoming'}
+                          </span>
                         </div>
                       </div>
                     );
                   })}
                 </div>
               </div>
-            )}
 
-            {/* LIST VIEW */}
-            {viewMode === 'list' && (
-              <div className="space-y-4">
-                {filteredMilestones.map((m, idx) => (
-                  <div
-                    key={m.id}
-                    onClick={() => setSelectedMilestoneId(m.id)}
-                    className={`p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-                      m.completed
-                        ? 'bg-emerald-50/40 border-emerald-400'
-                        : 'bg-white border-stone-200 hover:border-stone-400 shadow-2xs'
-                    }`}
-                  >
-                    <div className="flex items-start sm:items-center gap-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleMilestone(m.id);
-                        }}
-                        className={`w-7 h-7 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
-                          m.completed
-                            ? 'bg-emerald-600 border-emerald-600 text-white'
-                            : 'border-stone-300 bg-white hover:border-stone-900'
-                        }`}
-                      >
-                        {m.completed ? <Check className="w-4 h-4" /> : idx + 1}
-                      </button>
+              {/* Right Column (5 cols): Roadmap Progress Donut & Quick Actions (Reference 2) */}
+              <div className="lg:col-span-5 space-y-6">
+                {/* 1. Roadmap Progress Donut Card */}
+                <div className="rounded-3xl p-6 sm:p-7 border border-white/90 shadow-sm backdrop-blur-xl bg-white/85 space-y-4">
+                  <h3 className="text-base font-black text-stone-900">Your Roadmap Progress</h3>
 
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-stone-100 text-stone-700">
-                            {m.stage}
-                          </span>
-                          <span className="text-xs font-bold text-stone-400">
-                            ⏱️ {m.estimatedDuration}
-                          </span>
-                        </div>
-                        <h4
-                          className={`text-sm sm:text-base font-black ${
-                            m.completed ? 'line-through text-stone-400' : 'text-stone-900'
-                          }`}
-                        >
-                          {m.title}
-                        </h4>
-                        <p className="text-xs text-stone-500 font-medium max-w-2xl line-clamp-1">
-                          {m.description}
-                        </p>
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-2">
+                    {/* Donut graphic */}
+                    <div className="relative w-36 h-36 shrink-0 flex items-center justify-center">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                        <circle cx="18" cy="18" r="14" fill="none" stroke="#f1f5f9" strokeWidth="4" />
+                        <circle
+                          cx="18"
+                          cy="18"
+                          r="14"
+                          fill="none"
+                          stroke="#10B981"
+                          strokeWidth="4"
+                          strokeDasharray={`${progressPct * 0.88}, 88`}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-2xl font-black text-stone-900 tracking-tight">
+                          {progressPct}%
+                        </span>
+                        <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">
+                          Finished
+                        </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                      <span className="text-xs font-bold text-stone-400">{m.targetDate}</span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedMilestoneId(m.id);
-                        }}
-                        className="px-3 py-1.5 rounded-xl border border-stone-200 hover:border-stone-900 text-xs font-bold text-stone-700 flex items-center gap-1"
-                      >
-                        <span>Details</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
+                    {/* Progress breakdown list */}
+                    <div className="space-y-3 w-full max-w-[170px]">
+                      <div className="flex items-center justify-between text-xs font-bold">
+                        <span className="flex items-center gap-2 text-stone-700">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                          Completed
+                        </span>
+                        <span className="text-stone-900">{completedCount}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs font-bold">
+                        <span className="flex items-center gap-2 text-stone-700">
+                          <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                          In Progress
+                        </span>
+                        <span className="text-stone-900">{inProgressCount}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs font-bold">
+                        <span className="flex items-center gap-2 text-stone-700">
+                          <span className="w-2.5 h-2.5 rounded-full bg-stone-300" />
+                          Upcoming
+                        </span>
+                        <span className="text-stone-900">{upcomingCount}</span>
+                      </div>
                     </div>
                   </div>
-                ))}
+                </div>
+
+                {/* 2. Quick Actions Card (Reference 2) */}
+                <div className="rounded-3xl p-6 border border-white/90 shadow-sm backdrop-blur-xl bg-white/85 space-y-3">
+                  <span className="text-xs font-black uppercase tracking-wider text-stone-500 block">
+                    Quick Actions
+                  </span>
+                  <div className="grid grid-cols-3 gap-2.5 pt-1">
+                    <Link
+                      to="/dashboard/resources"
+                      className="p-3 rounded-2xl bg-white/80 border border-stone-200/80 hover:border-emerald-400 hover:bg-emerald-50/50 flex flex-col items-center text-center gap-1.5 transition-all group shadow-2xs"
+                    >
+                      <BookOpen className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition-transform" />
+                      <span className="text-[11px] font-black text-stone-800 leading-tight">
+                        Explore Courses
+                      </span>
+                    </Link>
+
+                    <Link
+                      to="/dashboard/projects"
+                      className="p-3 rounded-2xl bg-white/80 border border-stone-200/80 hover:border-emerald-400 hover:bg-emerald-50/50 flex flex-col items-center text-center gap-1.5 transition-all group shadow-2xs"
+                    >
+                      <FolderGit2 className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition-transform" />
+                      <span className="text-[11px] font-black text-stone-800 leading-tight">
+                        Find Projects
+                      </span>
+                    </Link>
+
+                    <Link
+                      to="/clarity-compass"
+                      className="p-3 rounded-2xl bg-white/80 border border-stone-200/80 hover:border-emerald-400 hover:bg-emerald-50/50 flex flex-col items-center text-center gap-1.5 transition-all group shadow-2xs"
+                    >
+                      <Users className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition-transform" />
+                      <span className="text-[11px] font-black text-stone-800 leading-tight">
+                        Join Community
+                      </span>
+                    </Link>
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
           </>
         )}
       </main>
 
-      {/* MILESTONE DETAIL DRAWER / MODAL */}
+      {/* MILESTONE DETAIL DRAWER (Section 7) */}
       {selectedMilestone && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border-2 border-stone-900 shadow-2xl max-w-lg w-full p-6 animate-scaleUp space-y-5">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-4 pb-3 border-b border-stone-200">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-white shadow-2xl max-w-lg w-full p-6 animate-scaleUp space-y-4">
+            <div className="flex items-start justify-between gap-4 pb-3 border-b border-stone-100">
               <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-stone-100 text-stone-800">
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900">
                   {selectedMilestone.stage}
                 </span>
-                <h3 className="text-lg font-black text-stone-900 leading-tight">
+                <h3 className="text-lg font-black text-stone-900">
                   {selectedMilestone.title}
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedMilestoneId(null)}
-                className="p-1.5 rounded-xl hover:bg-stone-100 text-stone-500 hover:text-stone-900"
+                className="p-1.5 rounded-full hover:bg-stone-100 text-stone-500"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Description */}
             <div className="space-y-2">
-              <span className="text-xs font-black uppercase tracking-wider text-stone-400">
-                Phase Objective
-              </span>
-              <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed bg-stone-50 p-3.5 rounded-xl border border-stone-100">
+              <span className="text-[11px] font-black uppercase text-stone-400">Description</span>
+              <p className="text-xs sm:text-sm text-stone-700 font-semibold bg-stone-50 p-3.5 rounded-2xl border border-stone-100 leading-relaxed">
                 {selectedMilestone.description}
               </p>
             </div>
 
-            {/* Target and Duration */}
             <div className="grid grid-cols-2 gap-3 text-xs font-bold">
-              <div className="p-3 rounded-xl bg-stone-50 border border-stone-100">
-                <span className="text-[10px] uppercase text-stone-400 block mb-0.5">Estimated Duration</span>
+              <div className="p-3 rounded-2xl bg-stone-50 border border-stone-100">
+                <span className="text-[10px] text-stone-400 block mb-0.5">Duration</span>
                 <span className="text-stone-900">{selectedMilestone.estimatedDuration}</span>
               </div>
-              <div className="p-3 rounded-xl bg-stone-50 border border-stone-100">
-                <span className="text-[10px] uppercase text-stone-400 block mb-0.5">Target Horizon</span>
+              <div className="p-3 rounded-2xl bg-stone-50 border border-stone-100">
+                <span className="text-[10px] text-stone-400 block mb-0.5">Target Horizon</span>
                 <span className="text-stone-900">{selectedMilestone.targetDate}</span>
               </div>
             </div>
 
-            {/* Associated Tasks */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black uppercase tracking-wider text-stone-400">
-                  Related Action Items
-                </span>
-                <Link
-                  to="/dashboard/tasks"
-                  className="text-[11px] font-bold text-stone-600 hover:text-stone-900 underline"
-                >
-                  View in Checklist
-                </Link>
-              </div>
-
-              {milestoneTasks.length > 0 ? (
-                <div className="space-y-1.5 max-h-36 overflow-y-auto">
-                  {milestoneTasks.map((t) => (
+            {/* Linked Action Items */}
+            <div className="space-y-2 pt-1">
+              <span className="text-[11px] font-black uppercase text-stone-400 block">Linked Action Items</span>
+              <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                {milestoneTasks.length > 0 ? (
+                  milestoneTasks.map((t) => (
                     <div
                       key={t.id}
                       onClick={() => toggleTask(t.id)}
-                      className="p-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 flex items-center justify-between gap-2 cursor-pointer text-xs"
+                      className="p-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 flex items-center justify-between text-xs cursor-pointer"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div
-                          className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
-                            t.completed
-                              ? 'bg-emerald-600 border-emerald-600 text-white'
-                              : 'border-stone-300'
-                          }`}
-                        >
-                          {t.completed && <Check className="w-3 h-3" />}
-                        </div>
-                        <span className={`truncate ${t.completed ? 'line-through text-stone-400' : 'font-bold text-stone-900'}`}>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={t.completed}
+                          onChange={() => toggleTask(t.id)}
+                          className="w-4 h-4 rounded text-emerald-600 cursor-pointer"
+                        />
+                        <span className={`font-bold ${t.completed ? 'line-through text-stone-400' : 'text-stone-900'}`}>
                           {t.title}
                         </span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-stone-400 italic">No specific sub-tasks linked yet.</p>
-              )}
+                  ))
+                ) : (
+                  <p className="text-xs text-stone-400 italic">No specific sub-tasks linked yet.</p>
+                )}
+              </div>
             </div>
 
-            {/* Actions */}
-            <div className="pt-3 border-t border-stone-200 flex items-center justify-between gap-3">
+            <div className="pt-3 border-t border-stone-100 flex items-center justify-between gap-3">
               <button
                 onClick={() => {
                   toggleMilestone(selectedMilestone.id);
                   setSelectedMilestoneId(null);
                 }}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-colors ${
+                className={`flex-1 py-2.5 rounded-full text-xs font-black transition-colors ${
                   selectedMilestone.completed
-                    ? 'bg-stone-200 text-stone-800 hover:bg-stone-300'
-                    : 'bg-stone-900 text-white hover:bg-stone-800'
+                    ? 'bg-stone-200 text-stone-800'
+                    : 'bg-emerald-600 hover:bg-emerald-700 text-white'
                 }`}
               >
                 {selectedMilestone.completed ? 'Reopen Milestone' : 'Mark Milestone as Completed'}
@@ -423,7 +441,7 @@ export const RoadmapPage: React.FC = () => {
 
               <button
                 onClick={() => setSelectedMilestoneId(null)}
-                className="px-4 py-2.5 rounded-xl border border-stone-200 hover:bg-stone-100 text-xs font-bold text-stone-600"
+                className="px-5 py-2.5 rounded-full border border-stone-200 hover:bg-stone-100 text-xs font-bold text-stone-600"
               >
                 Close
               </button>

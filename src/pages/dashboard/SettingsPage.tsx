@@ -5,6 +5,7 @@ import { DashboardHeader } from '../../components/dashboard/DashboardHeader';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import { DASHBOARD_THEMES, DashboardThemeId } from '../../types/moduleRegistry';
 import {
   Download,
   Shield,
@@ -26,11 +27,13 @@ import {
   LogOut,
   KeyRound,
   CheckCircle2,
+  Palette,
+  Sparkles,
 } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { profile, updateProfile, dashboardData, resetToDefault, userEmail, userName, isAuthenticated, signOut } = useCareer();
+  const { profile, updateProfile, dashboardData, resetToDefault, userEmail, userName, isAuthenticated, signOut, currentTheme, setTheme } = useCareer();
 
   // Personal profile state
   const [fullName, setFullName] = useState(userName || profile.preferredName || '');
@@ -173,6 +176,62 @@ export const SettingsPage: React.FC = () => {
               <LogOut className="w-3.5 h-3.5" />
               <span>Sign Out</span>
             </Button>
+          </div>
+
+          {/* Dedicated Appearance & Color Theme Section (Section 4) */}
+          <div className="p-5 rounded-2xl bg-white border border-[#E8E5DE] shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
+              <div className="flex items-center gap-2">
+                <Palette className="w-4 h-4 text-emerald-600" />
+                <h3 className="text-sm font-black text-stone-900">Workspace Appearance & Theme</h3>
+              </div>
+              <span className="text-[11px] font-bold text-stone-500">Live preview across all features</span>
+            </div>
+
+            <p className="text-xs text-stone-600 font-medium">
+              Select your favorite aesthetic. Every page, card, chart, and roadmap connector will adapt seamlessly.
+            </p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 pt-1">
+              {[
+                { id: 'green' as DashboardThemeId, name: 'Fresh Green', desc: 'Lush lime gradient', color: '#22C55E' },
+                { id: 'blue' as DashboardThemeId, name: 'Executive Blue', desc: 'Ocean focus', color: '#3B82F6' },
+                { id: 'sunset' as DashboardThemeId, name: 'Warm Sunset', desc: 'Coral & sun gold', color: '#F97316' },
+                { id: 'purple' as DashboardThemeId, name: 'Creative Violet', desc: 'Lavender flow', color: '#8B5CF6' },
+                { id: 'red' as DashboardThemeId, name: 'Crimson Accent', desc: 'Warm rose', color: '#EF4444' },
+                { id: 'black' as DashboardThemeId, name: 'Obsidian Minimal', desc: 'Deep luxury dark', color: '#111827' },
+                { id: 'white' as DashboardThemeId, name: 'Minimal White', desc: 'Crisp clean slate', color: '#FFFFFF', border: '#D1D5DB' },
+              ].map((th) => {
+                const isSelected = currentTheme === th.id;
+                return (
+                  <button
+                    key={th.id}
+                    type="button"
+                    onClick={() => setTheme(th.id)}
+                    className={`p-3 rounded-2xl border text-left flex flex-col justify-between space-y-2 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'border-emerald-600 ring-2 ring-emerald-500/20 bg-emerald-50/50 shadow-xs'
+                        : 'border-stone-200 hover:border-stone-400 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span
+                        className="w-5 h-5 rounded-full shadow-xs"
+                        style={{
+                          backgroundColor: th.color,
+                          border: th.border ? `1px solid ${th.border}` : '1px solid rgba(0,0,0,0.1)',
+                        }}
+                      />
+                      {isSelected && <Check className="w-3.5 h-3.5 text-emerald-700 stroke-[3]" />}
+                    </div>
+                    <div>
+                      <span className="text-xs font-black text-stone-900 block leading-tight">{th.name}</span>
+                      <span className="text-[10px] text-stone-500 font-medium block leading-tight mt-0.5">{th.desc}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Personal Details Form */}

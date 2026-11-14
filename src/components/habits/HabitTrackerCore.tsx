@@ -664,12 +664,12 @@ export const HabitTrackerCore: React.FC<HabitTrackerCoreProps> = ({
   }, [habits, logs, activeHabitId]);
 
   return (
-    <div className="flex-1 flex flex-col bg-[#FDF5EB] text-[#171717] min-h-screen">
+    <div className={`flex-1 flex flex-col text-[#171717] min-h-screen ${mode === 'dashboard' ? 'bg-transparent' : 'bg-[#FDF5EB]'}`}>
       {mode === 'dashboard' ? (
         <DashboardHeader
           onOpenMobileMenu={onOpenMobileMenu || (() => {})}
-          title="Career Habit Command Centre"
-          subtitle="Build unconscious competence through daily and weekly micro-commitments."
+          title="Habit Tracker"
+          subtitle="Small habits. Big changes."
         />
       ) : (
         <>

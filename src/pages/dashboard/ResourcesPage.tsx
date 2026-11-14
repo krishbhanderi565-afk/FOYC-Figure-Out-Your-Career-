@@ -15,9 +15,11 @@ import {
   GraduationCap,
 } from 'lucide-react';
 import { ResourceItem } from '../../types/career';
+import { useOutletContext } from 'react-router-dom';
 
 export const ResourcesPage: React.FC = () => {
   const { dashboardData } = useCareer();
+  const outletCtx = useOutletContext<{ onOpenMobileMenu?: () => void } | undefined>();
   const [filterType, setFilterType] = useState<string>('All');
 
   // Curated resource library aligned with active career direction
@@ -81,14 +83,14 @@ export const ResourcesPage: React.FC = () => {
     filterType === 'All' ? allResources : allResources.filter((r) => r.type === filterType);
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col min-h-screen">
       <DashboardHeader
-        onOpenMobileMenu={() => {}}
+        onOpenMobileMenu={outletCtx?.onOpenMobileMenu || (() => {})}
         title="Learning Resources & Materials"
         subtitle="High-signal documentation, verified industry books, and practice sandboxes."
       />
 
-      <main className="p-4 sm:p-8 space-y-8 max-w-6xl">
+      <main className="px-4 sm:px-8 pb-12 space-y-6 max-w-[1400px] w-full mx-auto">
         {/* Verification Legend Banner */}
         <div className="bg-white p-4 rounded-2xl border-2 border-[#17172B] shadow-[3px_3px_0px_#17172B] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2">

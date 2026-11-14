@@ -9,6 +9,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { openChatGPTWithPrompt } from '../../utils/chatGptLauncher';
 
 interface StagePromptProps {
   promptText: string;
@@ -102,15 +103,14 @@ export const StagePrompt: React.FC<StagePromptProps> = ({
               <span>{copied ? 'Copied to Clipboard!' : 'Copy Prompt'}</span>
             </button>
 
-            <a
-              href="https://chatgpt.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 rounded-xl font-bold text-xs bg-[#171717] text-white flex items-center gap-2 border-2 border-[#171717] hover:bg-[#333] transition-colors"
+            <button
+              type="button"
+              onClick={() => openChatGPTWithPrompt(promptText)}
+              className="px-4 py-2 rounded-xl font-bold text-xs bg-[#171717] text-white flex items-center gap-2 border-2 border-[#171717] hover:bg-[#333] transition-colors cursor-pointer"
             >
-              <span>Open ChatGPT</span>
+              <span>Open in ChatGPT (Auto-pasted)</span>
               <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+            </button>
           </div>
         </div>
 

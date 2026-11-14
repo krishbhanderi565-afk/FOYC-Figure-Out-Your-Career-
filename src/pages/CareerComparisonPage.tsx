@@ -25,6 +25,7 @@ import { Button } from '../components/common/Button';
 import { CareerComparisonReport, DEFAULT_DIMENSIONS } from '../types/comparison';
 import { generateComparisonPrompt, parseComparisonHandoff } from '../utils/comparisonEngine';
 import { generateComparisonPdf, generateComparisonDocx } from '../utils/comparisonDocExport';
+import { openChatGPTWithPrompt } from '../utils/chatGptLauncher';
 
 const POPULAR_COMPARISON_PRESETS = [
   { p1: 'AI & Full Stack Developer', p2: 'AI Product Manager' },
@@ -532,15 +533,14 @@ export const CareerComparisonPage: React.FC = () => {
                   )}
                 </Button>
 
-                <a
-                  href="https://chatgpt.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl border border-[#171717] bg-white hover:bg-[#F4F3EF] text-[#171717] shadow-xs"
+                <button
+                  type="button"
+                  onClick={() => openChatGPTWithPrompt(generatedPrompt)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl border border-[#171717] bg-white hover:bg-[#F4F3EF] text-[#171717] shadow-xs cursor-pointer"
                 >
-                  <span>Open ChatGPT</span>
+                  <span>Open in ChatGPT (Auto-pasted)</span>
                   <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+                </button>
               </div>
             </div>
 
