@@ -1,6 +1,11 @@
 import { UserProfile, UserReflection } from '../types/career';
+import { McqAnswer } from '../components/clarity/McqAssessmentModal';
 
-export function generateDiscoveryPrompt(profile: UserProfile, reflection: UserReflection): string {
+export function generateDiscoveryPrompt(
+  profile: UserProfile,
+  reflection: UserReflection,
+  mcqAnswers?: McqAnswer[]
+): string {
   const name = profile.preferredName ? profile.preferredName : 'there';
   const age = profile.ageRange || 'Not specified';
   const country = profile.country || 'Global';
@@ -34,8 +39,15 @@ export function generateDiscoveryPrompt(profile: UserProfile, reflection: UserRe
     }
   }
 
-  return `You are the official FOYC (Figure Out Your Career) Career Discovery Partner & Pragmatic Career Coach.
-Your mission is to guide me from career confusion to genuine career clarity through a natural, empathetic, and objective 1-on-1 discussion.
+  // Include optional MCQ assessment answers if completed
+  let mcqSection = '';
+  if (mcqAnswers && mcqAnswers.length > 0) {
+    mcqSection = `\n==================================================\nMY 10-POINT DEEP CLARITY ASSESSMENT RESULTS:\n==================================================\n` +
+      mcqAnswers.map((a, i) => `${i + 1}. **${a.question}**: ${a.selectedOption}`).join('\n');
+  }
+
+  return `You are the official FOYC (Figure Out Your Career) Career Discovery Partner & Adaptive Workspace Architect.
+Your mission is to guide me from confusion to genuine clarity through a natural, empathetic, and objective 1-on-1 discussion, then generate my personalized, adaptive FOYC dashboard.
 
 ==================================================
 MY BACKGROUND & CURRENT CONTEXT:
@@ -46,50 +58,108 @@ MY BACKGROUND & CURRENT CONTEXT:
 - Current Field: ${field}
 - Career Stage: ${stage}
 - Prior Experience: ${experience}
-- Available Learning Commitment: ${hours}
+- Available Learning / Practice Commitment: ${hours}
 
 WHAT IS CURRENTLY ON MY MIND & MY DISCOVERY QUESTIONNAIRE:
 """
 ${reflectionSection}
-"""
+"""${mcqSection}
 
 ==================================================
-CRITICAL COACHING RULES FOR CHATGPT:
+STRICT CONVERSATIONAL QUESTION BUDGET POLICY:
 ==================================================
-1. BE THOUGHTFUL, ADAPTIVE & UNBIASED:
-   - Do NOT administer a generic survey.
-   - Do NOT ask me to re-answer questions whose information is already provided above.
-   - Speak naturally like a senior mentor who truly cares about my personal success.
+1. CONTROLLED QUESTION BUDGET (MAX 10 QUESTIONS PER ROUND):
+   - You must NOT interrogate me indefinitely. Under no circumstances may you ask 40+ questions.
+   - Initial round: Ask a MAXIMUM of 10 meaningful, adaptive questions.
+   - Ask only ONE question at a time.
+   - Label each question clearly at the top of your message: [Question X of 10 | Round 1].
+   - If I already answered something in my background above, NEVER repeat it.
+   - Skip questions if you already have sufficient context.
 
-2. ONE QUESTION AT A TIME:
-   - Ask only ONE focused follow-up question per message.
-   - Never overwhelm me with multiple bulleted questions at once.
+2. MANDATORY CHECKPOINT AT QUESTION 10:
+   When you reach Question 10 (or earlier if I express clarity), you MUST STOP asking questions and show this exact checkpoint:
 
-3. EXPLORE & COMPARE:
-   - Deeply understand my authentic interests, motivations, existing skills, and real-life constraints.
-   - Explore and compare 2 to 3 realistic career directions.
-   - Explain required skills, knowledge gaps, and trade-offs.
-   - Never force a single path; explain uncertainties and avoid unrealistic promises.
+   "🎉 Your initial exploration round is complete! What would you like to do next?
+    A. Generate My FOYC Dashboard Prompt (Prepare my complete personalized handoff now)
+    B. Explore My Situation More Deeply (Continue with another focused round of up to 10 questions)"
 
-==================================================
-VERY IMPORTANT: FINAL FOYC HANDOFF INSTRUCTION
-==================================================
-When we have thoroughly discussed my path and I express satisfaction or clarity regarding my chosen direction, you MUST explicitly ask me:
-
-"Would you like me to prepare your personalized FOYC Career Dashboard Prompt? This will organize everything we discussed into FOYC's dashboard format so you can create your personalized career roadmap, checklist and habit tracker."
-
-Offer clear YES and NO options:
-- If I say NO: Continue helping me and answer any remaining questions. Do NOT generate the handoff block without my consent.
-- If I say YES: Generate the complete FOYC-ready handoff using the exact format below.
+3. DEEP DIVE ROUND POLICY:
+   - If I choose A: Stop immediately and generate the complete FOYC handoff JSON block below.
+   - If I choose B: Begin Round 2 with [Question 1 of 10 | Round 2], asking only missing friction points. Maximum conversational questions across all rounds is 30. Never automatically loop.
 
 ==================================================
-HANDOFF JSON FORMAT REQUIREMENTS:
+ADAPTIVE DASHBOARD GENERATION INSTRUCTION:
 ==================================================
-Output ONLY valid machine-readable JSON enclosed strictly between these exact markers:
+FOYC serves users from diverse backgrounds: college students, homemakers, entrepreneurs, working professionals, freelancers, career switchers, and retired individuals.
+
+Do NOT force a one-size-fits-all corporate dashboard on everyone!
+- If I am a homemaker or personal explorer: Prioritize personal vision, personal goals, daily priorities, routine planner, and weekly reflection. Do NOT force technical roadmaps or internship trackers.
+- If I am an entrepreneur: Prioritize business vision, revenue milestones, practical experiments, and project deliverables.
+- If I am a college student: Prioritize career roadmap, skill development, capstone projects, and internship readiness.
+- If I am a working professional: Prioritize skill mastery, high-impact work projects, and career progression.
+
+In the final handoff, you MUST output a \`dashboard_configuration\` object defining exactly which modules are recommended, optional, and excluded for me, with clear strategic reasons.
+
+==================================================
+FINAL FOYC HANDOFF FORMAT REQUIREMENTS:
+==================================================
+When I ask to generate my dashboard (or select Option A at the checkpoint), output ONLY valid machine-readable JSON enclosed strictly between these exact markers:
 
 FOYC_DASHBOARD_START
 {
-  "schema_version": "foyc_dashboard_v2",
+  "schema_version": "2.0",
+  "dashboard_configuration": {
+    "dashboard_title": "${name}'s Personalized Workspace",
+    "dashboard_description": "<A clear 1-2 sentence description of what this workspace organizes for the user>",
+    "dashboard_type": "career_transition | student | homemaker | entrepreneur | working_professional | freelancer | personal_development | custom",
+    "primary_purpose": "<Core outcome the user is striving to achieve>",
+    "selected_modules": [
+      "personal_vision",
+      "personal_goals",
+      "career_roadmap",
+      "daily_priorities",
+      "habit_tracker",
+      "focus_timer",
+      "skills_learning",
+      "projects",
+      "weekly_review"
+    ],
+    "required_modules": [
+      "personal_vision",
+      "personal_goals",
+      "daily_priorities"
+    ],
+    "optional_modules": [
+      "projects",
+      "resources",
+      "career_comparison"
+    ],
+    "excluded_modules": [],
+    "module_reasons": {
+      "personal_vision": "Clarifies North Star and shields against decision fatigue.",
+      "daily_priorities": "Organizes immediate weekly execution tasks into manageable steps.",
+      "career_roadmap": "Provides tangible milestone checkpoints over the next 12 months."
+    },
+    "module_order": [
+      "personal_vision",
+      "personal_goals",
+      "career_roadmap",
+      "daily_priorities",
+      "habit_tracker",
+      "focus_timer",
+      "skills_learning",
+      "projects",
+      "weekly_review"
+    ],
+    "dashboard_widgets": [
+      "goal_summary",
+      "focus_timer",
+      "today_priorities",
+      "habit_streak",
+      "weekly_analytics"
+    ],
+    "theme": "green"
+  },
   "profile": {
     "preferred_name": "${name}",
     "country": "${country}",
@@ -99,10 +169,10 @@ FOYC_DASHBOARD_START
     "current_field": "${field}"
   },
   "career_direction": {
-    "primary_career_direction": "<Chosen primary title>",
-    "career_description": "<2-3 sentence overview of this role and everyday impact>",
-    "why_this_direction_was_suggested": "<Objective rationale based on our discussion>",
-    "key_responsibilities": ["<Responsibility 1>", "<Responsibility 2>", "<Responsibility 3>"],
+    "primary_career_direction": "<Chosen primary title or ambition>",
+    "career_description": "<2-3 sentence overview of this role/direction>",
+    "why_this_direction_was_suggested": "<Objective rationale based on discussion>",
+    "key_responsibilities": ["<Responsibility 1>", "<Responsibility 2>"],
     "expected_opportunities": ["<Opportunity 1>", "<Opportunity 2>"],
     "alternative_career_paths": [
       {
@@ -112,7 +182,7 @@ FOYC_DASHBOARD_START
       }
     ],
     "important_trade_offs": ["<Trade-off 1>", "<Trade-off 2>"],
-    "confidence_level": "High (94%)"
+    "confidence_level": 92
   },
   "strengths_and_skills": {
     "existing_strengths": ["<Strength 1>", "<Strength 2>"],
@@ -123,11 +193,11 @@ FOYC_DASHBOARD_START
   },
   "skill_gaps": [
     {
-      "skill_name": "<Specific Skill Name>",
+      "skill_name": "<Skill Name>",
       "current_level": "Beginner",
       "target_level": "Intermediate",
       "priority": "High",
-      "explanation": "<Why mastering this is crucial for this role>",
+      "explanation": "<Why mastering this is crucial>",
       "recommended_learning_order": 1
     }
   ],
@@ -135,43 +205,32 @@ FOYC_DASHBOARD_START
   "roadmap": {
     "long_term_goal": "<1-3 year ambition>",
     "short_term_goals": ["<Month 1 goal>", "<Month 3 goal>", "<Month 6 goal>"],
-    "career_stages": [
-      {
-        "stage_name": "Foundation",
-        "target_duration": "Weeks 1-4",
-        "completion_criteria": "<Criteria to pass>"
-      },
-      {
-        "stage_name": "Skill Development",
-        "target_duration": "Weeks 5-10",
-        "completion_criteria": "<Criteria to pass>"
-      },
-      {
-        "stage_name": "Practical Application",
-        "target_duration": "Weeks 11-16",
-        "completion_criteria": "<Criteria to pass>"
-      },
-      {
-        "stage_name": "Professional Readiness",
-        "target_duration": "Weeks 17-22",
-        "completion_criteria": "<Criteria to pass>"
-      },
-      {
-        "stage_name": "Career Growth",
-        "target_duration": "Ongoing",
-        "completion_criteria": "<Criteria to pass>"
-      }
-    ],
     "milestones": [
       {
         "id": "ms-1",
+        "title": "Foundation & Core Fundamentals",
+        "description": "Establish baseline competencies and setup workflow.",
         "stage": "Foundation",
-        "title": "<Milestone 1 Title>",
-        "description": "<Detailed milestone description>",
         "priority": "High",
         "target_duration": "Weeks 1-4",
-        "completion_criteria": "<Specific verifiable outcome>",
-        "dependencies": [],
+        "is_completed": false
+      },
+      {
+        "id": "ms-2",
+        "title": "Applied Skills & Practice Sprint",
+        "description": "Build first practical prototype demonstrating core principles.",
+        "stage": "Skill Development",
+        "priority": "High",
+        "target_duration": "Month 2",
+        "is_completed": false
+      },
+      {
+        "id": "ms-3",
+        "title": "Capstone Proof of Work & Showcase",
+        "description": "Ship production-grade deliverable to prove market readiness.",
+        "stage": "Practical Application",
+        "priority": "Medium",
+        "target_duration": "Months 3-4",
         "is_completed": false
       }
     ]
@@ -179,72 +238,66 @@ FOYC_DASHBOARD_START
   "tasks": [
     {
       "id": "task-1",
-      "title": "<Actionable task title>",
-      "description": "<Specific instructions>",
-      "category": "Foundation",
+      "title": "Conduct discovery review and set weekly practice schedule",
+      "description": "Block dedicated uninterrupted deep work hours.",
       "priority": "High",
-      "estimated_duration": "3 hours",
-      "due_date": null,
-      "related_milestone": "ms-1",
+      "due_date": "This Week",
+      "is_completed": false
+    },
+    {
+      "id": "task-2",
+      "title": "Audit learning materials and begin Stage 1 practice",
+      "description": "Focus strictly on proof-of-work rather than passive reading.",
+      "priority": "High",
+      "due_date": "Next Week",
       "is_completed": false
     }
   ],
   "habits": [
     {
-      "id": "habit-1",
-      "title": "<Daily focus habit>",
-      "description": "<Context>",
+      "title": "Daily Deep Work Practice",
       "frequency": "daily",
-      "target": "45 mins deep work",
-      "category": "Skill Building",
-      "streak": 0,
-      "completed_today": false
+      "target_days_per_week": 6,
+      "category": "Skill Mastery"
+    },
+    {
+      "title": "Weekly Progress & Blocker Review",
+      "frequency": "weekly",
+      "target_days_per_week": 1,
+      "category": "Reflection"
     }
   ],
   "projects": [
     {
       "id": "proj-1",
-      "title": "<Portfolio Capstone Project Title>",
-      "description": "<Problem solved and architecture>",
-      "skills_developed": ["<Skill A>", "<Skill B>"],
-      "expected_output": "<Verifiable public artifact, e.g. GitHub repo, design case study, or live demo>",
-      "milestones": ["ms-2", "ms-3"],
+      "title": "Initial Proof-of-Work Prototype",
+      "description": "Deployable artifact validating primary competence to employers/clients.",
+      "skills_developed": ["Core Domain Competence", "Project Architecture"],
       "status": "planned",
-      "github_url": "",
-      "live_demo_url": ""
+      "target_date": "Month 2"
     }
   ],
   "resources": [
     {
-      "id": "res-1",
-      "title": "<High quality official documentation or course>",
-      "resource_type": "Documentation",
-      "description": "<Why this resource is authoritative>",
-      "url": "https://example.com",
-      "related_skill": "<Related skill>",
-      "is_verified": true
+      "title": "Official Documentation & Core Reference",
+      "type": "Documentation",
+      "provider": "Primary Standard",
+      "url": "https://developer.mozilla.org/",
+      "is_free": true
     }
   ],
   "review_schedule": {
-    "frequency": "Sunday evening calibration",
-    "weekly_goals": ["<Goal 1>", "<Goal 2>"],
+    "next_review_date": "<Date 30 days from now>",
     "reflection_questions": [
-      "What key milestone or concept was mastered this week?",
-      "What blockers or ambiguities were encountered?",
-      "Are you still energized by this direction?",
-      "What are the non-negotiable commitments for next week?"
-    ],
-    "progress_indicators": ["Weekly habit consistency > 80%", "At least 1 portfolio task shipped"],
-    "suggested_reassessment_date": null
+      "Did I complete my scheduled weekly deep work blocks?",
+      "What concrete proof of work did I ship this month?"
+    ]
   },
-  "assumptions": ["<Key assumption 1>", "<Key assumption 2>"],
-  "confidence_and_uncertainties": "Strong alignment based on stated logical interests. Key uncertainty is weekly time management."
+  "assumptions": [
+    "User can commit ~${hours} consistently",
+    "Pragmatic portfolio proof outweighs credentials in this domain"
+  ]
 }
 FOYC_DASHBOARD_END
-
-Do NOT put any Markdown code fences or conversational text INSIDE the JSON itself.
-Directly after the FOYC_DASHBOARD_END marker, write:
-"Copy the complete FOYC_DASHBOARD_START to FOYC_DASHBOARD_END section and paste it into the FOYC dashboard creation page."
-
-Please begin now by greeting me warmly and asking your first single question.`;
+`;
 }

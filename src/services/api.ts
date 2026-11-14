@@ -82,6 +82,30 @@ export const api = {
   },
 
   // Dashboard & Plan Sync
+  getDashboardConfig: async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/dashboard/config`, {
+        headers: getHeaders(),
+      });
+      return await res.json();
+    } catch {
+      return null;
+    }
+  },
+
+  saveDashboardConfig: async (config: any) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/dashboard/config`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(config),
+      });
+      return await res.json();
+    } catch {
+      return { success: true, localOnly: true };
+    }
+  },
+
   getDashboardData: async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/dashboard`, {

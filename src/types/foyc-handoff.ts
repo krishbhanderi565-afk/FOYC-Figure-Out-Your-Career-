@@ -121,6 +121,30 @@ export const LearningResourceItemSchema = z.object({
   is_verified: z.boolean().default(true),
 });
 
+export const DashboardConfigHandoffSchema = z.object({
+  dashboard_title: z.string().default('Personal Growth Workspace'),
+  dashboard_description: z.string().default('An adaptive workspace tailored to your goals and routines.'),
+  dashboard_type: z.string().default('custom'),
+  primary_purpose: z.string().default('Clarity and execution'),
+  selected_modules: z.array(z.string()).default([
+    'personal_vision',
+    'personal_goals',
+    'career_roadmap',
+    'daily_priorities',
+    'habit_tracker',
+    'focus_timer',
+    'skills_learning',
+    'weekly_review',
+  ]),
+  required_modules: z.array(z.string()).default(['personal_vision', 'personal_goals', 'daily_priorities']),
+  optional_modules: z.array(z.string()).default(['projects', 'resources', 'career_comparison']),
+  excluded_modules: z.array(z.string()).default([]),
+  module_reasons: z.record(z.string(), z.string()).default({}),
+  module_order: z.array(z.string()).default([]),
+  dashboard_widgets: z.array(z.string()).default([]),
+  theme: z.string().default('green'),
+});
+
 export const ReviewScheduleSchema = z.object({
   frequency: z.string().default('Sunday evening calibration'),
   weekly_goals: z.array(z.string()).default([]),
@@ -136,6 +160,7 @@ export const ReviewScheduleSchema = z.object({
 
 export const FoycHandoffSchema = z.object({
   schema_version: z.string().default('foyc_dashboard_v2'),
+  dashboard_configuration: DashboardConfigHandoffSchema.optional(),
   profile: PersonalProfileSchema.default(() => ({
     preferred_name: 'Explorer',
     country: 'Global',

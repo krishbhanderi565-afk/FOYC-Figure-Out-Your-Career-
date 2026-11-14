@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import {
   UserProfile,
   UserReflection,
@@ -11,6 +11,12 @@ import { parseHandoffText } from '../utils/handoffParser';
 import { SAMPLE_HANDOFFS } from '../utils/sampleHandoffs';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { api } from '../services/api';
+import {
+  DashboardConfiguration,
+  DashboardThemeId,
+  DEFAULT_DASHBOARD_CONFIG,
+  DASHBOARD_THEMES,
+} from '../types/moduleRegistry';
 
 export interface HabitInput {
   title: string;
@@ -23,7 +29,9 @@ export interface HabitInput {
   color?: string;
 }
 
-interface CareerContextType {
+export type DashboardUserState = 'new_user' | 'exploration_completed' | 'dashboard_generated';
+
+export interface CareerContextType {
   profile: UserProfile;
   reflection: UserReflection;
   dashboardData: CareerDashboardData;
@@ -45,6 +53,7 @@ interface CareerContextType {
   isAuthenticated: boolean;
   userEmail: string | null;
   userName: string | null;
+  userAvatar: string | null;
   userId: string | null;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ success: boolean; error?: string }>;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
@@ -54,33 +63,90 @@ interface CareerContextType {
   loginDemo: (email?: string) => void;
   logoutDemo: () => void;
   resetToDefault: () => void;
+  // Adaptive Dashboard & Theme Engine
+  dashboardConfig: DashboardConfiguration;
+  updateDashboardConfig: (updates: Partial<DashboardConfiguration>) => Promise<void>;
+  currentTheme: DashboardThemeId;
+  setTheme: (theme: DashboardThemeId) => void;
+  isDemoMode: boolean;
+  enterDemoMode: () => void;
+  exitDemoMode: () => void;
+  hasGeneratedDashboard: boolean;
+  userState: DashboardUserState;
 }
 
 const DEFAULT_PROFILE: UserProfile = {
-  preferredName: 'Alex',
+  preferredName: '',
   ageRange: '18-22',
   country: 'Global',
   educationStatus: 'college-student',
-  currentField: 'Computer Science & Technology',
+  currentField: 'Undecided / Exploring',
   careerStage: 'exploring',
-  workExperience: 'Personal coding projects and coursework',
+  workExperience: '',
   preferredLanguage: 'English',
   availableHoursPerWeek: 15,
 };
 
 const DEFAULT_REFLECTION: UserReflection = {
-  mindText:
-    "I'm currently studying computer science and trying to figure out where to focus. Everyone around me says AI is going to replace standard coding, and I feel overwhelmed by having too many directions (full stack, AI, cloud, design). I enjoy building real things and solving logical puzzles, but I don't know what career direction gives me both job safety and creative fulfillment.",
-  keyInterests: ['Full-stack web', 'AI tools', 'Building products', 'Clean UI'],
-  keyStruggles: ['Information overload', 'Imposter syndrome', 'Unsure what to build next'],
+  mindText: '',
+  keyInterests: [],
+  keyStruggles: [],
 };
 
-// Initialize with first sample handoff data
-const initialParsed = parseHandoffText(
+const DEFAULT_DIRECTION = {
+  primaryTitle: '',
+  summary: '',
+  matchReason: '',
+  longTermGoal: '',
+  shortTermObjective: '',
+  alternativeTitles: [],
+  strengths: [],
+  existingSkills: [],
+  skillGaps: [],
+  reassessmentQuestions: [],
+  assumptions: [],
+  lastReassessedDate: '',
+};
+
+export const EMPTY_DASHBOARD_DATA: CareerDashboardData = {
+  profile: DEFAULT_PROFILE,
+  reflection: DEFAULT_REFLECTION,
+  direction: DEFAULT_DIRECTION,
+  primaryCareer: {
+    title: '',
+    field: '',
+    overview: '',
+    whyFit: '',
+    estimatedTimelineMonths: 6,
+    requiredSkills: [],
+  },
+  milestones: [],
+  tasks: [],
+  habits: [],
+  projects: [],
+  resources: [],
+};
+
+// First sample handoff data used strictly for DEMO MODE
+const sampleDemoParsed = parseHandoffText(
   SAMPLE_HANDOFFS[0].rawText,
   DEFAULT_PROFILE,
   DEFAULT_REFLECTION
 ).data as CareerDashboardData;
+
+export function applyThemeVariables(themeId: DashboardThemeId) {
+  const theme = DASHBOARD_THEMES[themeId] || DASHBOARD_THEMES.green;
+  const root = document.documentElement;
+  root.style.setProperty('--foyc-theme-primary', theme.primaryColor);
+  root.style.setProperty('--foyc-theme-primary-hover', theme.primaryHover);
+  root.style.setProperty('--foyc-theme-badge', theme.badgeColor);
+  root.style.setProperty('--foyc-theme-accent-bg', theme.accentBg);
+  root.style.setProperty('--foyc-theme-accent-border', theme.accentBorder);
+  root.style.setProperty('--foyc-theme-accent-text', theme.accentText);
+  root.style.setProperty('--foyc-theme-pill-bg', theme.pillBg);
+  root.style.setProperty('--foyc-theme-sidebar-active-bg', theme.sidebarActiveBg);
+  root.style.setProperty('--foyc-theme-sidebar-active-text', theme.sidebarActiveText);
+}
 
 const CareerContext = createContext<CareerContextType | undefined>(undefined);
 
@@ -103,10 +169,27 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   });
 
-  const [dashboardData, setDashboardData] = useState<CareerDashboardData>(() => {
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
+    return localStorage.getItem('foyc_demo_mode') === 'true';
+  });
+
+  const [dashboardConfig, setDashboardConfig] = useState<DashboardConfiguration>(() => {
     try {
+      const saved = localStorage.getItem('foyc_dashboard_config');
+      return saved ? JSON.parse(saved) : DEFAULT_DASHBOARD_CONFIG;
+    } catch {
+      return DEFAULT_DASHBOARD_CONFIG;
+    }
+  });
+
+  const [dashboardData, setDashboardData] = useState<CareerDashboardData>(() => {
+    if (localStorage.getItem('foyc_demo_mode') === 'true') {
+      return sampleDemoParsed;
+    }
+    try {
+      const hasGenerated = localStorage.getItem('foyc_dashboard_generated') === 'true';
       const saved = localStorage.getItem('foyc_dashboard_data');
-      if (saved) {
+      if (saved && hasGenerated) {
         const parsed = JSON.parse(saved);
         if (parsed?.habits && Array.isArray(parsed.habits)) {
           parsed.habits = parsed.habits.map((h: any) => ({
@@ -118,9 +201,9 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
         return parsed;
       }
-      return initialParsed;
+      return EMPTY_DASHBOARD_DATA;
     } catch {
-      return initialParsed;
+      return EMPTY_DASHBOARD_DATA;
     }
   });
 
@@ -140,19 +223,57 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return localStorage.getItem('foyc_user_name') || null;
   });
 
+  const [userAvatar, setUserAvatar] = useState<string | null>(() => {
+    return localStorage.getItem('foyc_user_avatar') || null;
+  });
+
   const [userId, setUserId] = useState<string | null>(() => {
     return localStorage.getItem('foyc_user_id') || null;
   });
 
   const [isDataLoading, setIsDataLoading] = useState(false);
 
+  // Apply theme whenever dashboardConfig.theme changes
+  useEffect(() => {
+    if (dashboardConfig?.theme) {
+      applyThemeVariables(dashboardConfig.theme);
+    }
+  }, [dashboardConfig?.theme]);
+
+  // Derive whether real dashboard has been generated
+  const hasGeneratedDashboard = useMemo(() => {
+    if (isDemoMode) return true;
+    const title = dashboardData?.direction?.primaryTitle || dashboardData?.primaryCareer?.title;
+    return Boolean(
+      title &&
+      title.trim().length > 0 &&
+      localStorage.getItem('foyc_dashboard_generated') === 'true'
+    );
+  }, [dashboardData, isDemoMode]);
+
+  // User lifecycle state: State A ('new_user'), State B ('exploration_completed'), State C ('dashboard_generated')
+  const userState: DashboardUserState = useMemo(() => {
+    if (isDemoMode || hasGeneratedDashboard) {
+      return 'dashboard_generated';
+    }
+    const hasReflection = Boolean(
+      (reflection?.mindText && reflection.mindText.trim().length > 15) ||
+      (profile?.currentField && profile.currentField !== 'Undecided / Exploring')
+    );
+    if (hasReflection) {
+      return 'exploration_completed';
+    }
+    return 'new_user';
+  }, [isDemoMode, hasGeneratedDashboard, reflection, profile]);
+
   // Cross-device synchronization function: Cloud is the permanent source of truth
-  const syncFromCloud = async () => {
+  const syncFromCloud = useCallback(async () => {
     try {
       setIsDataLoading(true);
-      const [profileRes, dashRes] = await Promise.all([
+      const [profileRes, dashRes, configRes] = await Promise.all([
         api.getProfile(),
         api.getDashboardData(),
+        api.getDashboardConfig(),
       ]);
 
       if (profileRes?.profile) {
@@ -164,21 +285,37 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           currentField: profileRes.profile.profession || prev.currentField,
           careerStage: (profileRes.profile.careerStage || prev.careerStage) as any,
         }));
+        if (profileRes.profile.fullName) {
+          setUserName(profileRes.profile.fullName);
+          localStorage.setItem('foyc_user_name', profileRes.profile.fullName);
+        }
       }
 
-      if (localStorage.getItem('foyc_pending_draft_transfer') === 'true') {
+      const activeTitle = dashboardData?.direction?.primaryTitle || dashboardData?.primaryCareer?.title;
+      if (localStorage.getItem('foyc_pending_draft_transfer') === 'true' && activeTitle) {
         localStorage.removeItem('foyc_pending_draft_transfer');
         await api.transferPlanToAccount(dashboardData);
       }
 
-      if (dashRes?.success && dashRes.data) {
+      const cloudTitle = dashRes?.data?.direction?.primaryTitle || dashRes?.data?.primaryCareer?.title;
+      if (dashRes?.success && dashRes.data && cloudTitle) {
         setDashboardData(dashRes.data);
+        localStorage.setItem('foyc_dashboard_generated', 'true');
+        localStorage.setItem('foyc_dashboard_data', JSON.stringify(dashRes.data));
+      }
+
+      if (configRes?.success && configRes.config) {
+        setDashboardConfig(configRes.config);
+        localStorage.setItem('foyc_dashboard_config', JSON.stringify(configRes.config));
+        if (configRes.config.theme) {
+          applyThemeVariables(configRes.config.theme);
+        }
       }
     } catch {
     } finally {
       setIsDataLoading(false);
     }
-  };
+  }, [dashboardData]);
 
   // Check Supabase session on mount
   useEffect(() => {
@@ -190,8 +327,12 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setUserId(session.user.id);
           const name = session.user.user_metadata?.full_name || session.user.email?.split('@')[0];
           setUserName(name || null);
+          const avatar = session.user.user_metadata?.avatar_url || null;
+          setUserAvatar(avatar);
+          if (avatar) localStorage.setItem('foyc_user_avatar', avatar);
           localStorage.setItem('foyc_auth', 'true');
           if (session.user.email) localStorage.setItem('foyc_user_email', session.user.email);
+          if (name) localStorage.setItem('foyc_user_name', name);
           if (session.access_token) localStorage.setItem('foyc_auth_token', session.access_token);
           syncFromCloud();
         }
@@ -204,8 +345,12 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setUserId(session.user.id);
           const name = session.user.user_metadata?.full_name || session.user.email?.split('@')[0];
           setUserName(name || null);
+          const avatar = session.user.user_metadata?.avatar_url || null;
+          setUserAvatar(avatar);
+          if (avatar) localStorage.setItem('foyc_user_avatar', avatar);
           localStorage.setItem('foyc_auth', 'true');
           if (session.user.email) localStorage.setItem('foyc_user_email', session.user.email);
+          if (name) localStorage.setItem('foyc_user_name', name);
           if (session.access_token) localStorage.setItem('foyc_auth_token', session.access_token);
           syncFromCloud();
         }
@@ -217,7 +362,7 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } else if (isAuthenticated) {
       syncFromCloud();
     }
-  }, []);
+  }, [isAuthenticated, syncFromCloud]);
 
   useEffect(() => {
     localStorage.setItem('foyc_profile', JSON.stringify(profile));
@@ -228,12 +373,19 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [reflection]);
 
   useEffect(() => {
-    localStorage.setItem('foyc_dashboard_data', JSON.stringify(dashboardData));
-  }, [dashboardData]);
+    const hasData = dashboardData?.direction?.primaryTitle || dashboardData?.primaryCareer?.title;
+    if (!isDemoMode && hasData) {
+      localStorage.setItem('foyc_dashboard_data', JSON.stringify(dashboardData));
+    }
+  }, [dashboardData, isDemoMode]);
 
   useEffect(() => {
     localStorage.setItem('foyc_active_profession', activeProfessionId);
   }, [activeProfessionId]);
+
+  useEffect(() => {
+    localStorage.setItem('foyc_dashboard_config', JSON.stringify(dashboardConfig));
+  }, [dashboardConfig]);
 
   const updateProfile = (data: Partial<UserProfile>) => {
     setProfile((prev) => ({ ...prev, ...data }));
@@ -244,11 +396,71 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setReflection((prev) => ({ ...prev, ...data }));
   };
 
+  const updateDashboardConfig = async (updates: Partial<DashboardConfiguration>) => {
+    setDashboardConfig((prev) => {
+      const next = { ...prev, ...updates, updated_at: new Date().toISOString() };
+      localStorage.setItem('foyc_dashboard_config', JSON.stringify(next));
+      if (updates.theme) {
+        applyThemeVariables(updates.theme);
+      }
+      return next;
+    });
+
+    if (isAuthenticated && !isDemoMode) {
+      try {
+        await api.saveDashboardConfig(updates);
+      } catch {}
+    }
+  };
+
+  const setTheme = (theme: DashboardThemeId) => {
+    updateDashboardConfig({ theme });
+  };
+
+  const enterDemoMode = () => {
+    setIsDemoMode(true);
+    localStorage.setItem('foyc_demo_mode', 'true');
+    setDashboardData(sampleDemoParsed);
+  };
+
+  const exitDemoMode = () => {
+    setIsDemoMode(false);
+    localStorage.removeItem('foyc_demo_mode');
+    const hasGenerated = localStorage.getItem('foyc_dashboard_generated') === 'true';
+    const saved = localStorage.getItem('foyc_dashboard_data');
+    if (hasGenerated && saved) {
+      try {
+        setDashboardData(JSON.parse(saved));
+      } catch {
+        setDashboardData(EMPTY_DASHBOARD_DATA);
+      }
+    } else {
+      setDashboardData(EMPTY_DASHBOARD_DATA);
+    }
+  };
+
   const applyHandoffText = (text: string) => {
     const res = parseHandoffText(text, profile, reflection);
     if (res.success && res.data) {
       const parsed = res.data as CareerDashboardData;
       setDashboardData(parsed);
+      localStorage.setItem('foyc_dashboard_generated', 'true');
+      localStorage.setItem('foyc_dashboard_data', JSON.stringify(parsed));
+      setIsDemoMode(false);
+      localStorage.removeItem('foyc_demo_mode');
+
+      // If handoff included custom dashboard_configuration, apply it
+      if (parsed.dashboard_configuration) {
+        setDashboardConfig(parsed.dashboard_configuration);
+        localStorage.setItem('foyc_dashboard_config', JSON.stringify(parsed.dashboard_configuration));
+        if (parsed.dashboard_configuration.theme) {
+          applyThemeVariables(parsed.dashboard_configuration.theme);
+        }
+        if (isAuthenticated) {
+          api.saveDashboardConfig(parsed.dashboard_configuration).catch(() => {});
+        }
+      }
+
       if (isAuthenticated) {
         api.transferPlanToAccount(parsed).catch(() => {});
       }
@@ -280,9 +492,11 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return t;
       }),
     }));
-    try {
-      await api.updateTask(taskId, { completed: nextStatus });
-    } catch {}
+    if (!isDemoMode) {
+      try {
+        await api.updateTask(taskId, { completed: nextStatus });
+      } catch {}
+    }
   };
 
   const addTask = async (taskInput: Omit<TaskItem, 'id'>) => {
@@ -295,15 +509,17 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       ...prev,
       tasks: [newTask, ...prev.tasks],
     }));
-    try {
-      const res = await api.createTask(taskInput);
-      if (res?.task?.id) {
-        setDashboardData((prev) => ({
-          ...prev,
-          tasks: prev.tasks.map((t) => (t.id === tempId ? { ...t, id: res.task.id } : t)),
-        }));
-      }
-    } catch {}
+    if (!isDemoMode) {
+      try {
+        const res = await api.createTask(taskInput);
+        if (res?.task?.id) {
+          setDashboardData((prev) => ({
+            ...prev,
+            tasks: prev.tasks.map((t) => (t.id === tempId ? { ...t, id: res.task.id } : t)),
+          }));
+        }
+      } catch {}
+    }
   };
 
   const deleteTask = async (taskId: string) => {
@@ -311,9 +527,11 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       ...prev,
       tasks: prev.tasks.filter((t) => t.id !== taskId),
     }));
-    try {
-      await api.deleteTask(taskId);
-    } catch {}
+    if (!isDemoMode) {
+      try {
+        await api.deleteTask(taskId);
+      } catch {}
+    }
   };
 
   // Habit Management: Add, Update, Delete, Toggle
@@ -340,15 +558,16 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       habits: [...prev.habits, newHabit],
     }));
 
-    // Sync with backend / Supabase
-    try {
-      await api.createHabit({
-        title: newHabit.title,
-        frequency: newHabit.frequency,
-        targetDaysPerWeek: newHabit.targetDaysPerWeek,
-        category: newHabit.category,
-      });
-    } catch {}
+    if (!isDemoMode) {
+      try {
+        await api.createHabit({
+          title: newHabit.title,
+          frequency: newHabit.frequency,
+          targetDaysPerWeek: newHabit.targetDaysPerWeek,
+          category: newHabit.category,
+        });
+      } catch {}
+    }
 
     return newHabit;
   };
@@ -359,9 +578,11 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       habits: prev.habits.map((h) => (h.id === habitId ? { ...h, ...updates } : h)),
     }));
 
-    try {
-      await api.updateHabit(habitId, updates);
-    } catch {}
+    if (!isDemoMode) {
+      try {
+        await api.updateHabit(habitId, updates);
+      } catch {}
+    }
   };
 
   const deleteHabit = async (habitId: string): Promise<void> => {
@@ -370,9 +591,11 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       habits: prev.habits.filter((h) => h.id !== habitId),
     }));
 
-    try {
-      await api.deleteHabit(habitId);
-    } catch {}
+    if (!isDemoMode) {
+      try {
+        await api.deleteHabit(habitId);
+      } catch {}
+    }
   };
 
   const toggleHabit = async (habitId: string, dateStr?: string): Promise<void> => {
@@ -402,9 +625,11 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }),
     }));
 
-    try {
-      await api.toggleHabit(habitId, today);
-    } catch {}
+    if (!isDemoMode) {
+      try {
+        await api.toggleHabit(habitId, today);
+      } catch {}
+    }
   };
 
   const toggleMilestone = async (milestoneId: string) => {
@@ -414,9 +639,11 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         m.id === milestoneId ? { ...m, completed: !m.completed } : m
       ),
     }));
-    try {
-      await api.toggleMilestone(milestoneId);
-    } catch {}
+    if (!isDemoMode) {
+      try {
+        await api.toggleMilestone(milestoneId);
+      } catch {}
+    }
   };
 
   // Auth Functions
@@ -435,10 +662,11 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setIsAuthenticated(true);
           setUserEmail(data.user.email || email);
           setUserId(data.user.id);
-          setUserName(fullName || email.split('@')[0]);
+          const name = fullName || data.user.user_metadata?.full_name || email.split('@')[0];
+          setUserName(name);
           localStorage.setItem('foyc_auth', 'true');
           localStorage.setItem('foyc_user_email', email);
-          if (fullName) localStorage.setItem('foyc_user_name', fullName);
+          if (name) localStorage.setItem('foyc_user_name', name);
           if (data.session?.access_token) {
             localStorage.setItem('foyc_auth_token', data.session.access_token);
           }
@@ -473,6 +701,9 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setUserId(data.user.id);
           const name = data.user.user_metadata?.full_name || email.split('@')[0];
           setUserName(name);
+          const avatar = data.user.user_metadata?.avatar_url || null;
+          setUserAvatar(avatar);
+          if (avatar) localStorage.setItem('foyc_user_avatar', avatar);
           localStorage.setItem('foyc_auth', 'true');
           localStorage.setItem('foyc_user_email', email);
           localStorage.setItem('foyc_user_name', name);
@@ -509,14 +740,19 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setIsAuthenticated(false);
     setUserEmail(null);
     setUserName(null);
+    setUserAvatar(null);
     setUserId(null);
+    setIsDemoMode(false);
     localStorage.removeItem('foyc_auth');
     localStorage.removeItem('foyc_user_email');
     localStorage.removeItem('foyc_user_name');
+    localStorage.removeItem('foyc_user_avatar');
     localStorage.removeItem('foyc_auth_token');
     localStorage.removeItem('foyc_user_id');
     localStorage.removeItem('foyc_dashboard_data');
-    setDashboardData(initialParsed);
+    localStorage.removeItem('foyc_dashboard_generated');
+    localStorage.removeItem('foyc_demo_mode');
+    setDashboardData(EMPTY_DASHBOARD_DATA);
   };
 
   const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
@@ -536,7 +772,7 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
     return {
       success: false,
-      error: 'Google OAuth provider is not yet enabled in Supabase Project rlrzdvebvbtegxixyfrb. Please sign in with email and password.',
+      error: 'Google OAuth provider is not yet enabled in Supabase. Please sign in with email and password.',
     };
   };
 
@@ -559,19 +795,23 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setIsAuthenticated(true);
     setUserEmail(email);
     setUserName('Alex Chen');
+    enterDemoMode();
     localStorage.setItem('foyc_auth', 'true');
     localStorage.setItem('foyc_user_email', email);
     localStorage.setItem('foyc_user_name', 'Alex Chen');
   };
 
   const logoutDemo = () => {
+    exitDemoMode();
     signOut();
   };
 
   const resetToDefault = () => {
     setProfile(DEFAULT_PROFILE);
     setReflection(DEFAULT_REFLECTION);
-    loadSampleProfession('software-engineer');
+    setDashboardData(EMPTY_DASHBOARD_DATA);
+    localStorage.removeItem('foyc_dashboard_generated');
+    localStorage.removeItem('foyc_dashboard_data');
   };
 
   return (
@@ -598,6 +838,7 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         isAuthenticated,
         userEmail,
         userName,
+        userAvatar,
         userId,
         signUp,
         signIn,
@@ -607,6 +848,15 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         loginDemo,
         logoutDemo,
         resetToDefault,
+        dashboardConfig,
+        updateDashboardConfig,
+        currentTheme: dashboardConfig.theme || 'green',
+        setTheme,
+        isDemoMode,
+        enterDemoMode,
+        exitDemoMode,
+        hasGeneratedDashboard,
+        userState,
       }}
     >
       {children}

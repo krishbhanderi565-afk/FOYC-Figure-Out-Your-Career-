@@ -124,4 +124,6 @@ export interface CareerDashboardData {
   habits: HabitItem[];
   projects: ProjectItem[];
   resources: ResourceItem[];
+  primaryCareer?: any;
+  dashboard_configuration?: any;
 }

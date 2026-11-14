@@ -7,6 +7,7 @@ import { Card } from '../components/common/Card';
 import { Highlight } from '../components/common/Highlight';
 import { Badge } from '../components/common/Badge';
 import { generateDiscoveryPrompt } from '../utils/promptGenerator';
+import { McqAssessmentModal, McqAnswer } from '../components/clarity/McqAssessmentModal';
 import {
   Copy,
   Check,
@@ -18,6 +19,8 @@ import {
   ShieldCheck,
   MessageSquareCode,
   AlertCircle,
+  HelpCircle,
+  Sparkles,
 } from 'lucide-react';
 
 export const PromptReadyPage: React.FC = () => {
@@ -26,8 +29,17 @@ export const PromptReadyPage: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [showMcqModal, setShowMcqModal] = useState(false);
+  const [mcqAnswers, setMcqAnswers] = useState<McqAnswer[] | undefined>(() => {
+    try {
+      const s = localStorage.getItem('foyc_mcq_answers');
+      return s ? JSON.parse(s) : undefined;
+    } catch {
+      return undefined;
+    }
+  });
 
-  const promptText = generateDiscoveryPrompt(profile, reflection);
+  const promptText = generateDiscoveryPrompt(profile, reflection, mcqAnswers);
 
   const copyToClipboard = async (): Promise<boolean> => {
     try {
@@ -103,6 +115,34 @@ export const PromptReadyPage: React.FC = () => {
           <p className="text-base sm:text-lg text-[#17172B]/80 font-semibold">
             One click copies your prompt and launches ChatGPT to begin your personalized career discussion.
           </p>
+        </div>
+
+        {/* Optional 10-Question Style Assessment Card */}
+        <div className="mb-6 p-4 rounded-2xl border-2 border-[#17172B] bg-gradient-to-r from-[#FFFDF8] to-[#F2F9E9] shadow-[3px_3px_0px_#17172B] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#526B50] text-white flex items-center justify-center shrink-0 shadow-[2px_2px_0px_#17172B]">
+              <Sparkles className="w-5 h-5 text-[#FFE76B]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-black text-[#17172B]">10-Question Working Style Assessment</h4>
+                <Badge variant={mcqAnswers ? 'parrot' : 'yellow'} size="sm">
+                  {mcqAnswers ? 'Completed (Included in Prompt)' : 'Optional Booster'}
+                </Badge>
+              </div>
+              <p className="text-xs text-[#17172B]/70 font-semibold">
+                Takes 2 minutes. Calibrates ChatGPT on your risk tolerance, AI attitude, routine preference, and feedback style.
+              </p>
+            </div>
+          </div>
+          <Button
+            variant={mcqAnswers ? 'secondary' : 'parrot'}
+            size="sm"
+            onClick={() => setShowMcqModal(true)}
+            className="shrink-0 text-xs font-black gap-1.5 shadow-[2px_2px_0px_#17172B]"
+          >
+            {mcqAnswers ? 'Review / Retake (10 Qs)' : 'Take Assessment (10 Qs)'}
+          </Button>
         </div>
 
         {/* Primary Action Card */}
@@ -230,6 +270,17 @@ export const PromptReadyPage: React.FC = () => {
           </div>
         </Card>
       </main>
+
+      <McqAssessmentModal
+        isOpen={showMcqModal}
+        onClose={() => setShowMcqModal(false)}
+        userName={profile?.preferredName}
+        onComplete={(answers) => {
+          setMcqAnswers(answers);
+          localStorage.setItem('foyc_mcq_answers', JSON.stringify(answers));
+          setStatusMessage('Assessment saved and integrated into your prompt! Click "Continue with ChatGPT" to copy.');
+        }}
+      />
     </div>
   );
 };

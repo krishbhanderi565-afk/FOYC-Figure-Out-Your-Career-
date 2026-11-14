@@ -7,6 +7,8 @@ import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { Highlight } from '../components/common/Highlight';
+import { DashboardConfigReview } from '../components/dashboard/DashboardConfigReview';
+import { DashboardConfiguration } from '../types/moduleRegistry';
 import {
   CheckCircle2,
   Trash2,
@@ -25,20 +27,23 @@ import {
   ShieldCheck,
   UserCheck,
   Lock,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 export const HandoffPreviewPage: React.FC = () => {
   const navigate = useNavigate();
-  const { dashboardData, deleteTask, isAuthenticated, updateProfile } = useCareer();
-  const [editableTitle, setEditableTitle] = useState(dashboardData.direction.primaryTitle);
-  const [editableSummary, setEditableSummary] = useState(dashboardData.direction.summary);
+  const { dashboardData, deleteTask, isAuthenticated, updateProfile, dashboardConfig, updateDashboardConfig } = useCareer();
+  const [editableTitle, setEditableTitle] = useState(dashboardData?.direction?.primaryTitle || dashboardData?.primaryCareer?.title || 'Personal Career Workspace');
+  const [editableSummary, setEditableSummary] = useState(dashboardData?.direction?.summary || dashboardData?.primaryCareer?.overview || '');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [activeStage, setActiveStage] = useState<'content' | 'config'>('content');
 
-  const detailedSkillGaps = (dashboardData.direction as any).detailedSkillGaps || [
+  const detailedSkillGaps = (dashboardData?.direction as any)?.detailedSkillGaps || [
     { skill_name: 'Core System Design', current_level: 'Beginner', target_level: 'Intermediate', priority: 'High', explanation: 'Essential for scaling applications.' }
   ];
 
-  const handleCreateDashboardClick = async () => {
+  const handleFinalConfirm = async (finalConfig: DashboardConfiguration) => {
+    await updateDashboardConfig(finalConfig);
     if (isAuthenticated) {
       try {
         await api.transferPlanToAccount(dashboardData);
@@ -47,6 +52,10 @@ export const HandoffPreviewPage: React.FC = () => {
     } else {
       setShowAuthModal(true);
     }
+  };
+
+  const handleCreateDashboardClick = () => {
+    setActiveStage('config');
   };
 
   const handleContinueAsGuest = () => {
@@ -75,7 +84,7 @@ export const HandoffPreviewPage: React.FC = () => {
         </div>
 
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-10 space-y-3">
+        <div className="text-center max-w-3xl mx-auto mb-8 space-y-3">
           <Badge variant="parrot" size="sm">
             <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-[#315B28]" />
             Handoff Parsed & Validated
@@ -87,6 +96,43 @@ export const HandoffPreviewPage: React.FC = () => {
             Inspect your career direction, skill gaps, milestones, tasks, and daily habits. You can edit any details before finalizing your dashboard.
           </p>
         </div>
+
+        {/* Stage Toggle */}
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <button
+            type="button"
+            onClick={() => setActiveStage('content')}
+            className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-black border-2 border-[#17172B] transition-all flex items-center gap-2 ${
+              activeStage === 'content'
+                ? 'bg-[#171717] text-white shadow-[3px_3px_0px_#FFE76B]'
+                : 'bg-white text-[#171717] hover:bg-stone-100 shadow-[2px_2px_0px_#17172B]'
+            }`}
+          >
+            <Layers className="w-4 h-4 text-[#FFE76B]" />
+            1. Review Blueprint Content
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveStage('config')}
+            className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-black border-2 border-[#17172B] transition-all flex items-center gap-2 ${
+              activeStage === 'config'
+                ? 'bg-[#171717] text-white shadow-[3px_3px_0px_#FFE76B]'
+                : 'bg-white text-[#171717] hover:bg-stone-100 shadow-[2px_2px_0px_#17172B]'
+            }`}
+          >
+            <SlidersHorizontal className="w-4 h-4 text-[#FFE76B]" />
+            2. Personalize Modules & Theme
+          </button>
+        </div>
+
+        {activeStage === 'config' ? (
+          <DashboardConfigReview
+            initialConfig={dashboardConfig}
+            onConfirm={handleFinalConfirm}
+            onBack={() => setActiveStage('content')}
+          />
+        ) : (
+          <>
 
         {/* Section 1: Career Direction Card */}
         <Card variant="white" shadowSize="lg" className="p-6 sm:p-8 mb-8 border-3 bg-[#FFFDF8]">
@@ -350,11 +396,13 @@ export const HandoffPreviewPage: React.FC = () => {
               className="gap-3 font-black text-base shadow-[4px_4px_0px_#171717] bg-[#171717] text-white"
             >
               <Compass className="w-5 h-5 text-[#FFE76B]" />
-              <span>Create My Dashboard</span>
+              <span>Personalize Modules & Launch</span>
               <ArrowRight className="w-5 h-5" />
             </Button>
           </div>
         </Card>
+        </>
+        )}
       </main>
 
       {/* Delayed Account Save Modal (Section 13) */}
