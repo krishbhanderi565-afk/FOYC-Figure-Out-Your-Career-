@@ -48,6 +48,8 @@ export interface Milestone {
   targetDate: string;
   completed: boolean;
   associatedTasksCount: number;
+  status?: 'upcoming' | 'in_progress' | 'completed' | 'archived';
+  category?: string;
 }
 
 export interface TaskItem {
@@ -59,6 +61,8 @@ export interface TaskItem {
   dueDate: string;
   completed: boolean;
   notes?: string;
+  milestoneId?: string;
+  targetDate?: string;
 }
 
 export interface HabitItem {
@@ -75,6 +79,8 @@ export interface HabitItem {
   target?: number | null;
   schedule?: 'weekday' | 'weekend' | 'everyday';
   color?: string;
+  isArchived?: boolean;
+  isPaused?: boolean;
 }
 
 export interface ProjectItem {

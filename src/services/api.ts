@@ -206,6 +206,39 @@ export const api = {
     }
   },
 
+  createMilestone: async (milestone: any) => {
+    if (supabaseService.isConfigured()) {
+      const userId = await getUserId();
+      if (userId) {
+        const id = await supabaseService.createMilestone(userId, milestone);
+        if (id) {
+          return { success: true, milestone: { ...milestone, id } };
+        }
+      }
+    }
+    return { success: true, milestone: { ...milestone, id: `ms-${Date.now()}` } };
+  },
+
+  updateMilestone: async (milestoneId: string, updates: any) => {
+    if (supabaseService.isConfigured()) {
+      const userId = await getUserId();
+      if (userId) {
+        await supabaseService.updateMilestone(userId, milestoneId, updates);
+      }
+    }
+    return { success: true };
+  },
+
+  deleteMilestone: async (milestoneId: string) => {
+    if (supabaseService.isConfigured()) {
+      const userId = await getUserId();
+      if (userId) {
+        await supabaseService.deleteMilestone(userId, milestoneId);
+      }
+    }
+    return { success: true };
+  },
+
   toggleMilestone: async (milestoneId: string, completed?: boolean) => {
     if (supabaseService.isConfigured()) {
       const userId = await getUserId();

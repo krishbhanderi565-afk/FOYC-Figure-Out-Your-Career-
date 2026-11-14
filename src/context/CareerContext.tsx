@@ -44,12 +44,16 @@ export interface CareerContextType {
   loadSampleProfession: (professionId: string) => void;
   toggleTask: (taskId: string) => void;
   addTask: (task: Omit<TaskItem, 'id'>) => void;
+  updateTask: (taskId: string, updates: Partial<TaskItem>) => Promise<void>;
   deleteTask: (taskId: string) => void;
   addHabit: (habit: HabitInput) => Promise<HabitItem>;
   updateHabit: (habitId: string, updates: Partial<HabitItem>) => Promise<void>;
   deleteHabit: (habitId: string) => Promise<void>;
   toggleHabit: (habitId: string, dateStr?: string) => Promise<void>;
   toggleMilestone: (milestoneId: string) => void;
+  addMilestone: (milestone: Omit<Milestone, 'id'>) => Promise<Milestone>;
+  updateMilestone: (milestoneId: string, updates: Partial<Milestone>) => Promise<void>;
+  deleteMilestone: (milestoneId: string) => Promise<void>;
   isAuthenticated: boolean;
   userEmail: string | null;
   userName: string | null;
@@ -582,6 +586,68 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const updateTask = async (taskId: string, updates: Partial<TaskItem>) => {
+    setDashboardData((prev) => ({
+      ...prev,
+      tasks: prev.tasks.map((t) => (t.id === taskId ? { ...t, ...updates } : t)),
+    }));
+    if (!isDemoMode) {
+      try {
+        await api.updateTask(taskId, updates);
+      } catch {}
+    }
+  };
+
+  const addMilestone = async (milestoneInput: Omit<Milestone, 'id'>): Promise<Milestone> => {
+    const tempId = `ms-${Date.now()}`;
+    const newMs: Milestone = {
+      ...milestoneInput,
+      id: tempId,
+    };
+    setDashboardData((prev) => ({
+      ...prev,
+      milestones: [...prev.milestones, newMs],
+    }));
+    if (!isDemoMode) {
+      try {
+        const res = await api.createMilestone(milestoneInput);
+        if (res?.milestone?.id) {
+          setDashboardData((prev) => ({
+            ...prev,
+            milestones: prev.milestones.map((m) => (m.id === tempId ? { ...m, id: res.milestone.id } : m)),
+          }));
+          return { ...newMs, id: res.milestone.id };
+        }
+      } catch {}
+    }
+    return newMs;
+  };
+
+  const updateMilestone = async (milestoneId: string, updates: Partial<Milestone>) => {
+    setDashboardData((prev) => ({
+      ...prev,
+      milestones: prev.milestones.map((m) => (m.id === milestoneId ? { ...m, ...updates } : m)),
+    }));
+    if (!isDemoMode) {
+      try {
+        await api.updateMilestone(milestoneId, updates);
+      } catch {}
+    }
+  };
+
+  const deleteMilestone = async (milestoneId: string) => {
+    setDashboardData((prev) => ({
+      ...prev,
+      milestones: prev.milestones.filter((m) => m.id !== milestoneId),
+      tasks: prev.tasks.filter((t) => t.milestoneId !== milestoneId),
+    }));
+    if (!isDemoMode) {
+      try {
+        await api.deleteMilestone(milestoneId);
+      } catch {}
+    }
+  };
+
   // Habit Management: Add, Update, Delete, Toggle
   const addHabit = async (habitInput: HabitInput): Promise<HabitItem> => {
     const newId = `h-${Date.now()}`;
@@ -910,12 +976,16 @@ export const CareerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         loadSampleProfession,
         toggleTask,
         addTask,
+        updateTask,
         deleteTask,
         addHabit,
         updateHabit,
         deleteHabit,
         toggleHabit,
         toggleMilestone,
+        addMilestone,
+        updateMilestone,
+        deleteMilestone,
         isAuthenticated,
         userEmail,
         userName,

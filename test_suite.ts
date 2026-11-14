@@ -119,6 +119,50 @@ assert(fencedResult.success, 'Parser successfully extracts balanced JSON from ma
 assert(fencedResult.data?.direction?.primaryTitle === 'Data Scientist', 'Parser correctly identifies primary direction from fenced JSON');
 assert(fencedResult.data?.milestones?.length === 1, 'Parser extracts milestone from fenced JSON');
 
+// 6. Centralized Progress Calculation System Validation (Phase 3 & Phase 13)
+console.log('\n--- 6. Testing Centralized Progress Calculations ---');
+import { calculateDashboardProgress } from './src/utils/progressCalculator';
+
+// Case 1: Zero goals and Zero habits (Empty state)
+const emptySummary = calculateDashboardProgress([], [], []);
+assert(emptySummary.hasData === false, 'Zero goals & habits yields hasData = false');
+assert(emptySummary.overallProgress === 0, 'Zero goals & habits yields overallProgress = 0%');
+assert(emptySummary.calculationBasis === 'none', 'Calculation basis is none when empty');
+
+// Case 2: Only Goals (2 of 4 completed = 50%)
+const sampleMilestones: any[] = [
+  { id: 'm1', title: 'Goal 1', completed: true, status: 'completed' },
+  { id: 'm2', title: 'Goal 2', completed: false, status: 'in_progress' },
+];
+const sampleTasks: any[] = [
+  { id: 't1', title: 'Task 1', category: 'Technical', completed: true },
+  { id: 't2', title: 'Task 2', category: 'Technical', completed: true },
+  { id: 't3', title: 'Task 3', category: 'Technical', completed: false },
+  { id: 't4', title: 'Task 4', category: 'Technical', completed: false },
+];
+const goalsOnlySummary = calculateDashboardProgress(sampleMilestones, sampleTasks, []);
+assert(goalsOnlySummary.hasData === true, 'Goals only yields hasData = true');
+assert(goalsOnlySummary.goalCompletionRate === 50, 'Goal completion rate is exactly 50% (2/4)');
+assert(goalsOnlySummary.overallProgress === 50, 'Overall progress equals goal rate when habits absent');
+assert(goalsOnlySummary.calculationBasis === 'goals_only', 'Calculation basis correctly identified as goals_only');
+
+// Case 3: Both Goals and Habits composite
+const todayStr = new Date().toISOString().split('T')[0];
+const sampleHabits: any[] = [
+  {
+    id: 'h1',
+    title: 'Daily Practice',
+    schedule: 'everyday',
+    currentStreak: 5,
+    completedToday: true,
+    history: { [todayStr]: true },
+  },
+];
+const bothSummary = calculateDashboardProgress(sampleMilestones, sampleTasks, sampleHabits);
+assert(bothSummary.hasData === true, 'Composite yields hasData = true');
+assert(bothSummary.calculationBasis === 'both', 'Calculation basis correctly identified as both');
+assert(bothSummary.overallProgress === Math.round((bothSummary.goalCompletionRate + bothSummary.habitCompletionRate) / 2), 'Overall progress strictly equals (Goal Rate + Habit Rate) / 2');
+
 console.log('\n======================================================');
 console.log(`TEST SUMMARY: Total: ${totalTests} | Passed: ${passedTests} | Failed: ${failedTests}`);
 console.log('======================================================');

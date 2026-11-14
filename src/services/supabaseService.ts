@@ -470,6 +470,90 @@ export const supabaseService = {
     }
   },
 
+  createMilestone: async (userId: string, milestone: any): Promise<string | null> => {
+    if (!isSupabaseConfigured() || !userId) return null;
+    try {
+      const { data, error } = await supabase
+        .from('milestones')
+        .insert({
+          user_id: userId,
+          title: milestone.title,
+          description: milestone.description || '',
+          stage: milestone.stage || 'Skill Development',
+          priority: milestone.priority || 'medium',
+          target_date: milestone.targetDate || '',
+          completed: Boolean(milestone.completed),
+          status: milestone.completed ? 'completed' : 'in-progress',
+        })
+        .select()
+        .single();
+      if (error || !data) return null;
+      return data.id;
+    } catch {
+      return null;
+    }
+  },
+
+  updateMilestone: async (userId: string, milestoneId: string, updates: any): Promise<boolean> => {
+    if (!isSupabaseConfigured() || !userId) return false;
+    try {
+      const payload: any = { updated_at: new Date().toISOString() };
+      if (updates.title !== undefined) payload.title = updates.title;
+      if (updates.description !== undefined) payload.description = updates.description;
+      if (updates.priority !== undefined) payload.priority = updates.priority;
+      if (updates.targetDate !== undefined) payload.target_date = updates.targetDate;
+      if (updates.completed !== undefined) {
+        payload.completed = updates.completed;
+        payload.status = updates.completed ? 'completed' : 'in-progress';
+      }
+      const { error } = await supabase
+        .from('milestones')
+        .update(payload)
+        .eq('id', milestoneId)
+        .eq('user_id', userId);
+      return !error;
+    } catch {
+      return false;
+    }
+  },
+
+  deleteMilestone: async (userId: string, milestoneId: string): Promise<boolean> => {
+    if (!isSupabaseConfigured() || !userId) return false;
+    try {
+      const { error } = await supabase
+        .from('milestones')
+        .delete()
+        .eq('id', milestoneId)
+        .eq('user_id', userId);
+      return !error;
+    } catch {
+      return false;
+    }
+  },
+
+  updateTask: async (userId: string, taskId: string, updates: Partial<TaskItem>): Promise<boolean> => {
+    if (!isSupabaseConfigured() || !userId) return false;
+    try {
+      const payload: any = { updated_at: new Date().toISOString() };
+      if (updates.title !== undefined) payload.title = updates.title;
+      if (updates.completed !== undefined) {
+        payload.completed = updates.completed;
+        payload.status = updates.completed ? 'completed' : 'pending';
+      }
+      if (updates.priority !== undefined) payload.priority = updates.priority;
+      if (updates.dueDate !== undefined) payload.due_date = updates.dueDate;
+      if (updates.milestoneId !== undefined) payload.milestone_id = updates.milestoneId;
+      const { error } = await supabase
+        .from('tasks')
+        .update(payload)
+        .eq('id', taskId)
+        .eq('user_id', userId);
+      return !error;
+    } catch {
+      return false;
+    }
+  },
+
   logHabitCompletion: async (
     userId: string,
     habitId: string,
