@@ -105,23 +105,23 @@ export const RoadmapPage: React.FC = () => {
         {milestones.length > 0 && (
           <>
             {/* Top Toolbar: Stage Filters & Zoom / View Controls */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-3xl border border-white/90 shadow-sm backdrop-blur-xl bg-white/85">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-3xl border border-[#EFECE6] shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black uppercase tracking-wider text-stone-500 mr-1">
+                <span className="text-xs font-black uppercase tracking-wider text-[#64748B] mr-1">
                   Horizon:
                 </span>
-                <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300/60">
+                <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-800 border border-emerald-200">
                   Next 6 Months ▾
                 </span>
               </div>
 
               {/* View Switcher & Canvas Zoom controls */}
               <div className="flex items-center gap-3">
-                <div className="flex items-center bg-stone-100/80 p-1 rounded-xl border border-stone-200/60 text-xs font-bold">
+                <div className="flex items-center bg-[#F8F6F0] p-1 rounded-xl border border-[#E2E8F0] text-xs font-bold">
                   <button
                     onClick={() => setViewMode('journey')}
                     className={`px-3 py-1 rounded-lg transition-all ${
-                      viewMode === 'journey' ? 'bg-white text-stone-900 shadow-2xs font-black' : 'text-stone-600'
+                      viewMode === 'journey' ? 'bg-white text-[#1E293B] shadow-2xs font-black' : 'text-[#64748B]'
                     }`}
                   >
                     Journey View
@@ -129,32 +129,32 @@ export const RoadmapPage: React.FC = () => {
                   <button
                     onClick={() => setViewMode('canvas')}
                     className={`px-3 py-1 rounded-lg transition-all ${
-                      viewMode === 'canvas' ? 'bg-white text-stone-900 shadow-2xs font-black' : 'text-stone-600'
+                      viewMode === 'canvas' ? 'bg-white text-[#1E293B] shadow-2xs font-black' : 'text-[#64748B]'
                     }`}
                   >
                     Floating Canvas
                   </button>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-1 bg-stone-100/80 p-1 rounded-xl border border-stone-200/60">
+                <div className="hidden sm:flex items-center gap-1 bg-[#F8F6F0] p-1 rounded-xl border border-[#E2E8F0]">
                   <button
                     onClick={() => setZoomLevel((z) => Math.max(0.8, z - 0.1))}
-                    className="p-1 rounded-lg hover:bg-white text-stone-600"
+                    className="p-1 rounded-lg hover:bg-white text-[#64748B]"
                     title="Zoom out"
                   >
                     <ZoomOut className="w-3.5 h-3.5" />
                   </button>
-                  <span className="text-[10px] font-bold text-stone-500 px-1">{Math.round(zoomLevel * 100)}%</span>
+                  <span className="text-[10px] font-bold text-[#64748B] px-1">{Math.round(zoomLevel * 100)}%</span>
                   <button
                     onClick={() => setZoomLevel((z) => Math.min(1.4, z + 0.1))}
-                    className="p-1 rounded-lg hover:bg-white text-stone-600"
+                    className="p-1 rounded-lg hover:bg-white text-[#64748B]"
                     title="Zoom in"
                   >
                     <ZoomIn className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => setZoomLevel(1)}
-                    className="p-1 rounded-lg hover:bg-white text-stone-600"
+                    className="p-1 rounded-lg hover:bg-white text-[#64748B]"
                     title="Reset zoom"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
@@ -163,16 +163,16 @@ export const RoadmapPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 2-COLUMN MAIN ROADMAP (Reference Image 2 Middle-Left) */}
+            {/* 2-COLUMN MAIN ROADMAP */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Left Column (7 cols): Connected Milestones Flow */}
               <div
-                className="lg:col-span-7 rounded-3xl p-6 sm:p-7 border border-white/90 shadow-sm backdrop-blur-xl bg-white/85 space-y-4 transition-transform origin-top-left"
+                className="lg:col-span-7 rounded-3xl p-6 sm:p-7 border border-[#EFECE6] shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white space-y-4 transition-transform origin-top-left"
                 style={{ transform: `scale(${zoomLevel})` }}
               >
-                <div className="flex items-center justify-between pb-2 border-b border-stone-100">
-                  <h3 className="text-base font-black text-stone-900">Progression Trajectory</h3>
-                  <span className="text-xs font-bold text-stone-400">Step-by-step milestones</span>
+                <div className="flex items-center justify-between pb-2 border-b border-[#F1EFE9]">
+                  <h3 className="text-base font-black text-[#1E293B]">Progression Trajectory</h3>
+                  <span className="text-xs font-bold text-[#94A3B8]">Connected milestones</span>
                 </div>
 
                 {/* Milestone nodes list */}
@@ -190,10 +190,10 @@ export const RoadmapPage: React.FC = () => {
                         onClick={() => setSelectedMilestoneId(m.id)}
                         className={`relative z-10 p-4 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-4 ${
                           isDone
-                            ? 'bg-white/80 border-stone-200/80 hover:border-emerald-300 shadow-2xs'
+                            ? 'bg-[#FAF9F5] border-[#E8E5DC] hover:border-emerald-300 shadow-2xs'
                             : isCurrent
                             ? 'bg-emerald-50/70 border-emerald-400 shadow-xs ring-2 ring-emerald-400/20'
-                            : 'bg-white/60 border-stone-200/60 hover:border-stone-400'
+                            : 'bg-white border-[#EFECE6] hover:border-[#CBD5E1]'
                         }`}
                       >
                         {/* Node status circle icon */}
@@ -208,7 +208,7 @@ export const RoadmapPage: React.FC = () => {
                                 ? 'bg-emerald-500 text-white shadow-xs'
                                 : isCurrent
                                 ? 'bg-white border-2 border-amber-500 text-amber-600'
-                                : 'bg-stone-200 text-stone-400'
+                                : 'bg-[#E2E8F0] text-[#94A3B8]'
                             }`}
                           >
                             {isDone ? (
@@ -221,10 +221,10 @@ export const RoadmapPage: React.FC = () => {
                           </button>
 
                           <div className="space-y-0.5">
-                            <h4 className="text-xs sm:text-sm font-black text-stone-900">
+                            <h4 className="text-xs sm:text-sm font-black text-[#1E293B]">
                               {m.title}
                             </h4>
-                            <p className="text-[11px] text-stone-500 font-medium line-clamp-2">
+                            <p className="text-[11px] text-[#64748B] font-medium line-clamp-2">
                               {m.description}
                             </p>
                           </div>
@@ -237,7 +237,7 @@ export const RoadmapPage: React.FC = () => {
                                 ? 'bg-emerald-100 text-emerald-800'
                                 : isCurrent
                                 ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                                : 'bg-stone-100 text-stone-500'
+                                : 'bg-[#F1EFE9] text-[#64748B]'
                             }`}
                           >
                             {isDone ? 'Completed' : isCurrent ? 'In Progress' : 'Upcoming'}
@@ -249,17 +249,17 @@ export const RoadmapPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right Column (5 cols): Roadmap Progress Donut & Quick Actions (Reference 2) */}
+              {/* Right Column (5 cols): Roadmap Progress Donut & Quick Actions */}
               <div className="lg:col-span-5 space-y-6">
                 {/* 1. Roadmap Progress Donut Card */}
-                <div className="rounded-3xl p-6 sm:p-7 border border-white/90 shadow-sm backdrop-blur-xl bg-white/85 space-y-4">
-                  <h3 className="text-base font-black text-stone-900">Your Roadmap Progress</h3>
+                <div className="rounded-3xl p-6 sm:p-7 border border-[#EFECE6] shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white space-y-4">
+                  <h3 className="text-base font-black text-[#1E293B]">Your Roadmap Progress</h3>
 
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-2">
                     {/* Donut graphic */}
                     <div className="relative w-36 h-36 shrink-0 flex items-center justify-center">
                       <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                        <circle cx="18" cy="18" r="14" fill="none" stroke="#f1f5f9" strokeWidth="4" />
+                        <circle cx="18" cy="18" r="14" fill="none" stroke="#F1EFE9" strokeWidth="4" />
                         <circle
                           cx="18"
                           cy="18"
@@ -272,10 +272,10 @@ export const RoadmapPage: React.FC = () => {
                         />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-2xl font-black text-stone-900 tracking-tight">
+                        <span className="text-2xl font-black text-[#1E293B] tracking-tight">
                           {progressPct}%
                         </span>
-                        <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">
+                        <span className="text-[9px] font-bold text-[#94A3B8] uppercase tracking-wider">
                           Finished
                         </span>
                       </div>
@@ -284,64 +284,64 @@ export const RoadmapPage: React.FC = () => {
                     {/* Progress breakdown list */}
                     <div className="space-y-3 w-full max-w-[170px]">
                       <div className="flex items-center justify-between text-xs font-bold">
-                        <span className="flex items-center gap-2 text-stone-700">
+                        <span className="flex items-center gap-2 text-[#64748B]">
                           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                           Completed
                         </span>
-                        <span className="text-stone-900">{completedCount}</span>
+                        <span className="text-[#1E293B]">{completedCount}</span>
                       </div>
 
                       <div className="flex items-center justify-between text-xs font-bold">
-                        <span className="flex items-center gap-2 text-stone-700">
+                        <span className="flex items-center gap-2 text-[#64748B]">
                           <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                           In Progress
                         </span>
-                        <span className="text-stone-900">{inProgressCount}</span>
+                        <span className="text-[#1E293B]">{inProgressCount}</span>
                       </div>
 
                       <div className="flex items-center justify-between text-xs font-bold">
-                        <span className="flex items-center gap-2 text-stone-700">
+                        <span className="flex items-center gap-2 text-[#64748B]">
                           <span className="w-2.5 h-2.5 rounded-full bg-stone-300" />
                           Upcoming
                         </span>
-                        <span className="text-stone-900">{upcomingCount}</span>
+                        <span className="text-[#1E293B]">{upcomingCount}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* 2. Quick Actions Card (Reference 2) */}
-                <div className="rounded-3xl p-6 border border-white/90 shadow-sm backdrop-blur-xl bg-white/85 space-y-3">
-                  <span className="text-xs font-black uppercase tracking-wider text-stone-500 block">
+                {/* 2. Quick Actions Card */}
+                <div className="rounded-3xl p-6 border border-[#EFECE6] shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white space-y-3">
+                  <span className="text-xs font-black uppercase tracking-wider text-[#64748B] block">
                     Quick Actions
                   </span>
                   <div className="grid grid-cols-3 gap-2.5 pt-1">
                     <Link
                       to="/dashboard/resources"
-                      className="p-3 rounded-2xl bg-white/80 border border-stone-200/80 hover:border-emerald-400 hover:bg-emerald-50/50 flex flex-col items-center text-center gap-1.5 transition-all group shadow-2xs"
+                      className="p-3 rounded-2xl bg-[#FAF9F5] border border-[#F0EDE4] hover:border-emerald-400 hover:bg-emerald-50/50 flex flex-col items-center text-center gap-1.5 transition-all group shadow-2xs"
                     >
                       <BookOpen className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition-transform" />
-                      <span className="text-[11px] font-black text-stone-800 leading-tight">
+                      <span className="text-[11px] font-black text-[#1E293B] leading-tight">
                         Explore Courses
                       </span>
                     </Link>
 
                     <Link
                       to="/dashboard/projects"
-                      className="p-3 rounded-2xl bg-white/80 border border-stone-200/80 hover:border-emerald-400 hover:bg-emerald-50/50 flex flex-col items-center text-center gap-1.5 transition-all group shadow-2xs"
+                      className="p-3 rounded-2xl bg-[#FAF9F5] border border-[#F0EDE4] hover:border-emerald-400 hover:bg-emerald-50/50 flex flex-col items-center text-center gap-1.5 transition-all group shadow-2xs"
                     >
                       <FolderGit2 className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition-transform" />
-                      <span className="text-[11px] font-black text-stone-800 leading-tight">
+                      <span className="text-[11px] font-black text-[#1E293B] leading-tight">
                         Find Projects
                       </span>
                     </Link>
 
                     <Link
                       to="/clarity-compass"
-                      className="p-3 rounded-2xl bg-white/80 border border-stone-200/80 hover:border-emerald-400 hover:bg-emerald-50/50 flex flex-col items-center text-center gap-1.5 transition-all group shadow-2xs"
+                      className="p-3 rounded-2xl bg-[#FAF9F5] border border-[#F0EDE4] hover:border-emerald-400 hover:bg-emerald-50/50 flex flex-col items-center text-center gap-1.5 transition-all group shadow-2xs"
                     >
                       <Users className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition-transform" />
-                      <span className="text-[11px] font-black text-stone-800 leading-tight">
+                      <span className="text-[11px] font-black text-[#1E293B] leading-tight">
                         Join Community
                       </span>
                     </Link>

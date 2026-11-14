@@ -130,14 +130,14 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container - Floating FinTrack Design */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 backdrop-blur-xl flex flex-col justify-between transition-all duration-300 border-r ${
+        className={`fixed top-3 bottom-3 left-3 z-50 rounded-3xl flex flex-col justify-between transition-all duration-300 border shadow-[0_4px_24px_rgba(0,0,0,0.03)] ${
           mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'
         } ${collapsed ? 'lg:w-20' : 'lg:w-64'}`}
         style={{
-          backgroundColor: 'var(--theme-sidebar-bg, rgba(255, 255, 255, 0.72))',
-          borderColor: 'var(--theme-sidebar-border, rgba(255, 255, 255, 0.85))',
+          backgroundColor: 'var(--theme-sidebar-bg, #FFFFFF)',
+          borderColor: 'var(--theme-sidebar-border, #EBE8DF)',
         }}
       >
         <div className="flex-1 flex flex-col min-h-0">

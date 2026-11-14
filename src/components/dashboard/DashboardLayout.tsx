@@ -10,14 +10,14 @@ export const DashboardLayout: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen text-[#171717] flex flex-col lg:flex-row pb-20 lg:pb-0 relative overflow-x-hidden selection:bg-emerald-200"
+      className="min-h-screen text-[#1E293B] flex flex-col lg:flex-row pb-20 lg:pb-0 relative overflow-x-hidden selection:bg-emerald-200"
       style={{
-        background: 'var(--theme-bg-gradient, linear-gradient(135deg, #e8f9e7 0%, #c8f5c6 25%, #eafce6 60%, #baf2bb 100%))',
+        background: 'var(--theme-bg-canvas, #F8F6F0)',
       }}
     >
-      {/* Ambient background glow circles (matching visual reference 1) */}
-      <div className="fixed top-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-white/30 blur-3xl pointer-events-none -z-0" />
-      <div className="fixed bottom-[-10%] left-[20%] w-[500px] h-[500px] rounded-full bg-emerald-300/20 blur-3xl pointer-events-none -z-0" />
+      {/* Subtle ambient warm-neutral background highlights */}
+      <div className="fixed top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-white/40 blur-3xl pointer-events-none -z-0" />
+      <div className="fixed bottom-[-10%] left-[20%] w-[450px] h-[450px] rounded-full bg-amber-50/20 blur-3xl pointer-events-none -z-0" />
 
       {/* Sidebar (Desktop + Mobile Drawer) */}
       <DashboardSidebar
@@ -30,7 +30,7 @@ export const DashboardLayout: React.FC = () => {
       {/* Main Content Area */}
       <div
         className={`flex-1 flex flex-col min-w-0 transition-all duration-300 relative z-10 ${
-          collapsed ? 'lg:ml-20' : 'lg:ml-64'
+          collapsed ? 'lg:ml-20' : 'lg:ml-72'
         }`}
       >
         <Outlet context={{ onOpenMobileMenu: () => setMobileOpen(true) }} />
